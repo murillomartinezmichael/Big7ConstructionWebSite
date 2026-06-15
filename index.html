@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Big 7 Construction — Built for Every Scale</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:     #0e0e0e;
+      --bg2:    #161616;
+      --bg3:    #202020;
+      --border: #2a2a2a;
+      --orange: #e85d04;
+      --orange2:#f48c06;
+      --cream:  #f0ebe3;
+      --dim:    #b8b2a9;
+      --muted:  #666260;
+      --ink:    #18130e;
+      --concrete: #e5dfd6;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--cream);
+      font-family: 'Barlow', sans-serif;
+      font-weight: 400;
+      overflow-x: hidden;
+    }
+
+    /* ─── NAV ─────────────────────────────────── */
+    nav {
+      position: fixed;
+      inset: 0 0 auto 0;
+      z-index: 200;
+      height: 68px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 48px;
+      background: rgba(14, 14, 14, 0.92);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo {
+      font-family: 'Anton', sans-serif;
+      font-size: 26px;
+      letter-spacing: 3px;
+      color: var(--cream);
+      text-decoration: none;
+    }
+    .logo em { color: var(--orange); font-style: normal; }
+
+    .nav-links {
+      display: flex;
+      gap: 40px;
+      list-style: none;
+    }
+    .nav-links a {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--dim);
+      text-decoration: none;
+      transition: color .2s;
+    }
+    .nav-links a:hover { color: var(--orange); }
+
+    .nav-quote {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      background: var(--orange);
+      color: var(--ink);
+      padding: 10px 22px;
+      text-decoration: none;
+      transition: background .2s;
+    }
+    .nav-quote:hover { background: var(--orange2); }
+
+    /* hamburger */
+    .ham {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+    }
+    .ham span {
+      display: block;
+      width: 26px;
+      height: 2px;
+      background: var(--cream);
+      transition: .3s;
+    }
+
+    .mob-menu {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 199;
+      background: var(--bg);
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 48px;
+    }
+    .mob-menu.open { display: flex; }
+    .mob-menu a {
+      font-family: 'Anton', sans-serif;
+      font-size: 52px;
+      letter-spacing: 2px;
+      color: var(--cream);
+      text-decoration: none;
+      transition: color .2s;
+    }
+    .mob-menu a:hover { color: var(--orange); }
+    .mob-close {
+      position: absolute;
+      top: 22px; right: 48px;
+      background: none;
+      border: none;
+      color: var(--dim);
+      font-size: 34px;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    /* ─── HERO ────────────────────────────────── */
+    #hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 68px 48px 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* giant 7 watermark */
+    .hero-7 {
+      position: absolute;
+      right: -80px;
+      top: 50%;
+      transform: translateY(-54%);
+      font-family: 'Anton', sans-serif;
+      font-size: clamp(380px, 52vw, 780px);
+      line-height: 1;
+      color: transparent;
+      -webkit-text-stroke: 1.5px rgba(232, 93, 4, 0.07);
+      user-select: none;
+      pointer-events: none;
+    }
+
+    /* diagonal accent line */
+    .hero-line {
+      position: absolute;
+      top: 0; bottom: 0;
+      left: 58%;
+      width: 1px;
+      background: linear-gradient(to bottom, transparent 10%, var(--border) 40%, transparent 90%);
+      pointer-events: none;
+    }
+
+    .hero-inner {
+      position: relative;
+      z-index: 1;
+      max-width: 840px;
+    }
+
+    .eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--orange);
+      margin-bottom: 28px;
+    }
+    .eyebrow::before {
+      content: '';
+      display: block;
+      width: 36px;
+      height: 2px;
+      background: var(--orange);
+    }
+
+    h1 {
+      font-family: 'Anton', sans-serif;
+      font-size: clamp(72px, 10vw, 148px);
+      line-height: .92;
+      text-transform: uppercase;
+      letter-spacing: -1px;
+      color: var(--cream);
+      margin-bottom: 36px;
+    }
+    h1 .o { color: var(--orange); }
+
+    .hero-sub {
+      font-size: 18px;
+      font-weight: 300;
+      color: var(--dim);
+      max-width: 540px;
+      line-height: 1.75;
+      margin-bottom: 52px;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .btn-p {
+      display: inline-block;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      background: var(--orange);
+      color: var(--ink);
+      padding: 16px 36px;
+      text-decoration: none;
+      transition: background .2s, transform .2s;
+    }
+    .btn-p:hover { background: var(--orange2); transform: translateY(-2px); }
+
+    .btn-s {
+      display: inline-block;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      border: 1px solid var(--border);
+      color: var(--cream);
+      padding: 16px 36px;
+      text-decoration: none;
+      transition: border-color .2s, transform .2s;
+    }
+    .btn-s:hover { border-color: var(--dim); transform: translateY(-2px); }
+
+    /* bottom stat bar */
+    .hero-bar {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      border-top: 1px solid var(--border);
+    }
+    .hstat {
+      padding: 26px 40px;
+      border-right: 1px solid var(--border);
+    }
+    .hstat:last-child { border-right: none; }
+    .hstat-n {
+      font-family: 'Anton', sans-serif;
+      font-size: 40px;
+      color: var(--orange);
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+    .hstat-l {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    /* ─── TICKER ──────────────────────────────── */
+    .ticker-wrap {
+      background: var(--orange);
+      overflow: hidden;
+      padding: 15px 0;
+    }
+    .ticker-track {
+      display: flex;
+      width: max-content;
+      animation: run 36s linear infinite;
+    }
+    .ticker-track:hover { animation-play-state: paused; }
+    .t-item {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--ink);
+      padding: 0 28px;
+      white-space: nowrap;
+    }
+    .t-dot { opacity: .35; }
+    @keyframes run {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+
+    /* ─── SECTION SHELL ───────────────────────── */
+    section { padding: 108px 48px; }
+
+    .s-label {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--orange);
+      margin-bottom: 20px;
+    }
+    .s-label::before {
+      content: '';
+      display: block;
+      width: 32px; height: 2px;
+      background: var(--orange);
+    }
+
+    h2 {
+      font-family: 'Anton', sans-serif;
+      font-size: clamp(44px, 6.5vw, 88px);
+      line-height: .95;
+      text-transform: uppercase;
+      letter-spacing: -.5px;
+      color: var(--cream);
+    }
+
+    /* ─── ABOUT ───────────────────────────────── */
+    #about {
+      display: grid;
+      grid-template-columns: 1fr 1.1fr;
+      gap: 88px;
+      align-items: center;
+      background: var(--bg);
+    }
+
+    .about-l h2 { margin-bottom: 0; }
+
+    .about-r p {
+      font-size: 17px;
+      font-weight: 300;
+      line-height: 1.82;
+      color: var(--dim);
+      margin-bottom: 22px;
+    }
+    .about-r p strong { color: var(--cream); font-weight: 600; }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 32px;
+    }
+    .tag {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      padding: 6px 14px;
+    }
+
+    /* ─── COMMERCIAL ──────────────────────────── */
+    #commercial { background: var(--bg2); }
+
+    .comm-hd {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 40px;
+      margin-bottom: 60px;
+    }
+    .comm-intro {
+      font-size: 16px;
+      font-weight: 300;
+      line-height: 1.75;
+      color: var(--dim);
+      max-width: 420px;
+    }
+
+    .comm-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border);
+    }
+
+    .ccard {
+      background: var(--bg2);
+      padding: 48px 36px;
+      position: relative;
+      overflow: hidden;
+      transition: background .25s;
+    }
+    .ccard::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0;
+      height: 3px;
+      width: 0;
+      background: var(--orange);
+      transition: width .4s ease;
+    }
+    .ccard:hover { background: var(--bg3); }
+    .ccard:hover::after { width: 100%; }
+
+    .ccard-n {
+      font-family: 'Anton', sans-serif;
+      font-size: 12px;
+      letter-spacing: 3px;
+      color: var(--orange);
+      margin-bottom: 22px;
+    }
+    .ccard-t {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 24px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      color: var(--cream);
+      margin-bottom: 12px;
+      line-height: 1.1;
+    }
+    .ccard-d {
+      font-size: 14px;
+      font-weight: 300;
+      line-height: 1.75;
+      color: var(--muted);
+    }
+
+    /* ─── WORK / PROJECTS ────────────────────── */
+    #work { background: var(--bg); padding: 108px 48px; }
+
+    .work-hd {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 56px;
+      gap: 40px;
+    }
+    .work-note {
+      font-size: 15px;
+      font-weight: 300;
+      color: var(--muted);
+      max-width: 360px;
+      line-height: 1.7;
+    }
+
+    .work-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      grid-template-rows: 320px 220px;
+      gap: 3px;
+    }
+
+    .wcard {
+      position: relative;
+      overflow: hidden;
+      background: var(--bg3);
+    }
+    .wcard img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      filter: brightness(.75) saturate(.85);
+      transition: transform .6s ease, filter .4s ease;
+    }
+    .wcard:hover img {
+      transform: scale(1.04);
+      filter: brightness(.6) saturate(.7);
+    }
+    .wcard-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(14,14,14,.85) 0%, transparent 55%);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 28px 32px;
+    }
+    .wcard-tag {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--orange);
+      margin-bottom: 8px;
+    }
+    .wcard-title {
+      font-family: 'Anton', sans-serif;
+      font-size: 28px;
+      letter-spacing: 0.5px;
+      color: var(--cream);
+      line-height: 1.05;
+    }
+    .wcard.span-col { grid-row: 1 / 3; }
+
+    .work-placeholder {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      background: var(--bg3);
+    }
+
+    @media (max-width: 768px) {
+      .work-grid {
+        grid-template-columns: 1fr;
+        grid-template-rows: 280px 200px 200px;
+      }
+      .wcard.span-col { grid-row: auto; }
+      #work { padding: 72px 20px; }
+      .work-hd { flex-direction: column; align-items: flex-start; }
+    }
+
+    /* ─── TRADES ──────────────────────────────── */
+    #trades {
+      background: var(--concrete);
+      padding: 108px 48px;
+    }
+    #trades .s-label { color: var(--orange); }
+    #trades .s-label::before { background: var(--orange); }
+    #trades h2 { color: var(--ink); }
+    .trades-intro {
+      font-size: 17px;
+      font-weight: 300;
+      line-height: 1.75;
+      color: #6a6460;
+      max-width: 540px;
+      margin: 16px 0 56px;
+    }
+
+    .trades-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 2px;
+      background: #cbc5bc;
+    }
+    .tcard {
+      background: var(--concrete);
+      padding: 36px 28px;
+      transition: background .2s;
+    }
+    .tcard:hover { background: #dad4cb; }
+    .tcard-icon {
+      font-size: 30px;
+      margin-bottom: 16px;
+      display: block;
+    }
+    .tcard-name {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 18px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--ink);
+      margin-bottom: 8px;
+    }
+    .tcard-desc {
+      font-size: 14px;
+      font-weight: 300;
+      line-height: 1.65;
+      color: #7a7470;
+    }
+
+    /* ─── PROCESS ─────────────────────────────── */
+    #process { background: var(--bg); }
+
+    .proc-hd { margin-bottom: 80px; }
+
+    .proc-steps {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      position: relative;
+    }
+    .proc-steps::before {
+      content: '';
+      position: absolute;
+      top: 35px;
+      left: 8%; right: 8%;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .pstep { padding: 0 28px; position: relative; z-index: 1; }
+
+    .pstep-n {
+      width: 70px; height: 70px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Anton', sans-serif;
+      font-size: 26px;
+      color: var(--orange);
+      margin-bottom: 28px;
+      transition: background .25s, border-color .25s, color .25s;
+    }
+    .pstep:hover .pstep-n {
+      background: var(--orange);
+      border-color: var(--orange);
+      color: var(--ink);
+    }
+
+    .pstep-t {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 19px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--cream);
+      margin-bottom: 12px;
+    }
+    .pstep-d {
+      font-size: 14px;
+      font-weight: 300;
+      line-height: 1.75;
+      color: var(--muted);
+    }
+
+    /* ─── NUMBERS BAR ─────────────────────────── */
+    #numbers {
+      background: var(--orange);
+      padding: 80px 48px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+    }
+    .num-item {
+      text-align: center;
+      padding: 0 32px;
+      border-right: 1px solid rgba(24, 19, 14, .2);
+    }
+    .num-item:last-child { border-right: none; }
+    .num-v {
+      font-family: 'Anton', sans-serif;
+      font-size: 76px;
+      line-height: 1;
+      color: var(--ink);
+      margin-bottom: 8px;
+    }
+    .num-l {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: rgba(24, 19, 14, .55);
+    }
+
+    /* ─── CONTACT ─────────────────────────────── */
+    #contact { background: var(--bg2); }
+
+    .contact-inner {
+      display: grid;
+      grid-template-columns: 1fr 1.1fr;
+      gap: 80px;
+      align-items: start;
+    }
+
+    .contact-l h2 { margin-bottom: 22px; }
+    .contact-desc {
+      font-size: 17px;
+      font-weight: 300;
+      line-height: 1.75;
+      color: var(--dim);
+      margin-bottom: 48px;
+    }
+
+    .ci {
+      display: flex;
+      gap: 18px;
+      align-items: flex-start;
+      margin-bottom: 22px;
+    }
+    .ci-lbl {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--orange);
+      width: 70px;
+      flex-shrink: 0;
+      padding-top: 2px;
+    }
+    .ci-val {
+      font-size: 15px;
+      color: var(--cream);
+      line-height: 1.6;
+    }
+
+    .cform {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .fg {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .fg label {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .fg input,
+    .fg select,
+    .fg textarea {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      color: var(--cream);
+      font-family: 'Barlow', sans-serif;
+      font-size: 15px;
+      padding: 14px 16px;
+      outline: none;
+      width: 100%;
+      transition: border-color .2s;
+      appearance: none;
+    }
+    .fg input:focus,
+    .fg select:focus,
+    .fg textarea:focus { border-color: var(--orange); }
+    .fg select option { background: var(--bg3); }
+    .fg textarea { resize: vertical; min-height: 120px; }
+
+    .form-btn {
+      align-self: flex-start;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      background: var(--orange);
+      color: var(--ink);
+      border: none;
+      padding: 17px 40px;
+      cursor: pointer;
+      transition: background .2s, transform .2s;
+    }
+    .form-btn:hover { background: var(--orange2); transform: translateY(-2px); }
+
+    /* ─── FOOTER ──────────────────────────────── */
+    footer {
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+      padding: 40px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+    .foot-logo {
+      font-family: 'Anton', sans-serif;
+      font-size: 22px;
+      letter-spacing: 3px;
+      color: var(--cream);
+      text-decoration: none;
+    }
+    .foot-logo em { color: var(--orange); font-style: normal; }
+
+    .foot-copy {
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 300;
+    }
+    .foot-nav {
+      display: flex;
+      gap: 28px;
+      list-style: none;
+    }
+    .foot-nav a {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color .2s;
+    }
+    .foot-nav a:hover { color: var(--orange); }
+
+    /* ─── SCROLL ANIMATION ────────────────────── */
+    .fu {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity .65s ease, transform .65s ease;
+    }
+    .fu.vis {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ─── RESPONSIVE ──────────────────────────── */
+    @media (max-width: 1100px) {
+      .comm-grid { grid-template-columns: repeat(2, 1fr); }
+      .trades-grid { grid-template-columns: repeat(2, 1fr); }
+      .proc-steps { grid-template-columns: repeat(2, 1fr); gap: 48px 0; }
+      .proc-steps::before { display: none; }
+      #numbers { grid-template-columns: repeat(2, 1fr); }
+      .num-item { padding: 40px; border-bottom: 1px solid rgba(24,19,14,.2); }
+      .num-item:nth-child(2n) { border-right: none; }
+      .num-item:last-child { border-bottom: none; }
+      .num-item:nth-child(3) { border-bottom: none; }
+    }
+
+    @media (max-width: 768px) {
+      nav { padding: 0 20px; }
+      .nav-links, .nav-quote { display: none; }
+      .ham { display: flex; }
+      .mob-close { right: 20px; }
+
+      section { padding: 72px 20px; }
+      #hero { padding: 68px 20px 0; }
+
+      h1 { font-size: clamp(54px, 14vw, 90px); }
+
+      .hero-bar { grid-template-columns: 1fr 1fr; }
+      .hstat { padding: 18px 20px; }
+      .hstat:nth-child(2) { border-right: none; }
+      .hstat:nth-child(3), .hstat:nth-child(4) { border-top: 1px solid var(--border); }
+      .hstat:nth-child(4) { border-right: none; }
+
+      #about { grid-template-columns: 1fr; gap: 40px; }
+
+      .comm-hd { flex-direction: column; align-items: flex-start; }
+      .comm-grid { grid-template-columns: 1fr; }
+
+      .trades-grid { grid-template-columns: 1fr 1fr; }
+
+      .proc-steps { grid-template-columns: 1fr; }
+      .pstep { padding: 0; margin-bottom: 40px; }
+
+      #numbers { grid-template-columns: 1fr 1fr; padding: 60px 20px; }
+
+      .contact-inner { grid-template-columns: 1fr; gap: 52px; }
+      .form-row { grid-template-columns: 1fr; }
+
+      footer { flex-direction: column; align-items: flex-start; }
+      .foot-nav { flex-wrap: wrap; }
+    }
+
+    @media (max-width: 480px) {
+      .trades-grid { grid-template-columns: 1fr; }
+      .hero-bar { grid-template-columns: 1fr; }
+      .hstat:nth-child(n) { border-right: none; border-top: 1px solid var(--border); }
+      .hstat:first-child { border-top: none; }
+      h2 { font-size: clamp(40px, 11vw, 64px); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="logo">BIG <em>7</em></a>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#commercial">Commercial</a></li>
+    <li><a href="#work">Work</a></li>
+    <li><a href="#trades">Services</a></li>
+    <li><a href="#process">Process</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <a href="#contact" class="nav-quote">Get a Quote</a>
+  <button class="ham" onclick="openMenu()" aria-label="Open menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- MOBILE MENU -->
+<div class="mob-menu" id="mobMenu" role="dialog" aria-modal="true" aria-label="Navigation">
+  <button class="mob-close" onclick="closeMenu()" aria-label="Close menu">✕</button>
+  <a href="#about"      onclick="closeMenu()">About</a>
+  <a href="#commercial" onclick="closeMenu()">Commercial</a>
+  <a href="#work"       onclick="closeMenu()">Work</a>
+  <a href="#trades"     onclick="closeMenu()">Services</a>
+  <a href="#process"    onclick="closeMenu()">Process</a>
+  <a href="#contact"    onclick="closeMenu()">Contact</a>
+</div>
+
+<!-- ═══ HERO ═══════════════════════════════════ -->
+<section id="hero">
+  <div class="hero-7" aria-hidden="true">7</div>
+  <div class="hero-line" aria-hidden="true"></div>
+
+  <div class="hero-inner">
+    <div class="eyebrow">Full-Service Construction</div>
+    <h1>Built for<br><span class="o">Every</span><br>Scale.</h1>
+    <p class="hero-sub">
+      From enterprise-scale commercial framing to the repair your home needs today — Big 7 Construction has the right specialist for every job, every time.
+    </p>
+    <div class="hero-actions">
+      <a href="#contact" class="btn-p">Start Your Project</a>
+      <a href="#trades"  class="btn-s">All Services</a>
+    </div>
+  </div>
+
+  <div class="hero-bar">
+    <div class="hstat">
+      <div class="hstat-n">500+</div>
+      <div class="hstat-l">Projects Built</div>
+    </div>
+    <div class="hstat">
+      <div class="hstat-n">20+</div>
+      <div class="hstat-l">Years Operating</div>
+    </div>
+    <div class="hstat">
+      <div class="hstat-n">7</div>
+      <div class="hstat-l">Core Divisions</div>
+    </div>
+    <div class="hstat">
+      <div class="hstat-n">100%</div>
+      <div class="hstat-l">Licensed &amp; Insured</div>
+    </div>
+  </div>
+</section>
+
+<!-- TICKER -->
+<div class="ticker-wrap" aria-hidden="true">
+  <div class="ticker-track">
+    <span class="t-item">Enterprise Framing</span><span class="t-item t-dot">✦</span>
+    <span class="t-item">Commercial Construction</span><span class="t-item t-dot">✦</span>
+    <span class="t-item">Plumbing</span><span class="t-item t-dot">✦</span>
+    <span class="t-item">Electrical</span><span class="t-item t-dot">✦</span>
+    <span class="t-item">Roofing</span><span class="t-item t-dot">✦</span>
+    <span class="t-item">Foundation &amp; Concrete</span><span class="t-item t-dot">✦</span>
+    <span class="t-item">Home Remodeling</span><span class="t-item t-dot">✦</span>
+    <span class="t-item">Custom Home Builds</span><span class="t-item t-dot">✦</span>
+    <span class="t-item">Tenant Improvement</span><span class="t-item t-dot">✦</span>
+    <span class="t-item">Industrial Warehouse</span><span class="t-item t-dot">✦</span>
+    <span class="t-item">HVAC</span><span class="t-item t-dot">✦</span>
+    <span class="t-item">Drywall &amp; Interiors</span><span class="t-item t-dot">✦</span>
+    <!-- duplicate for seamless loop -->
+    <span class="t-item">Enterprise Framing</span><span class="t-item t-dot">✦</span>
+    <span class="t-item">Commercial Construction</span><span class="t-item t-dot">✦</span>
+    <span class="t-item">Plumbing</span><span class="t-item t-dot">✦</span>
+    <span class="t-item">Electrical</span><span class="t-item t-dot">✦</span>
+    <span class="t-item">Roofing</span><span class="t-item t-dot">✦</span>
+    <span class="t-item">Foundation &amp; Concrete</span><span class="t-item t-dot">✦</span>
+    <span class="t-item">Home Remodeling</span><span class="t-item t-dot">✦</span>
+    <span class="t-item">Custom Home Builds</span><span class="t-item t-dot">✦</span>
+    <span class="t-item">Tenant Improvement</span><span class="t-item t-dot">✦</span>
+    <span class="t-item">Industrial Warehouse</span><span class="t-item t-dot">✦</span>
+    <span class="t-item">HVAC</span><span class="t-item t-dot">✦</span>
+    <span class="t-item">Drywall &amp; Interiors</span><span class="t-item t-dot">✦</span>
+  </div>
+</div>
+
+<!-- ═══ ABOUT ══════════════════════════════════ -->
+<section id="about">
+  <div class="about-l fu">
+    <div class="s-label">Who We Are</div>
+    <h2>One Call.<br>Every Trade.</h2>
+  </div>
+  <div class="about-r fu">
+    <p>Big 7 Construction was built on a single idea: a client should never have to manage seven different contractors to build something great. <strong>We bring the full roster under one roof.</strong></p>
+    <p>Our enterprise division handles large-scale commercial projects — multi-story buildings, warehouse complexes, industrial sites, and major tenant improvements. That's our flagship. But we didn't stop there.</p>
+    <p>Need a kitchen remodel? A leaking pipe fixed? A roof replaced before winter? We have <strong>licensed specialists for every trade in construction</strong>, held to the same standards we bring to a 100,000 sq ft commercial job.</p>
+    <div class="tags">
+      <span class="tag">Licensed GC</span>
+      <span class="tag">Fully Insured</span>
+      <span class="tag">OSHA Compliant</span>
+      <span class="tag">Commercial</span>
+      <span class="tag">Residential</span>
+      <span class="tag">Industrial</span>
+      <span class="tag">All Trades</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ COMMERCIAL ══════════════════════════════ -->
+<section id="commercial">
+  <div class="comm-hd">
+    <div class="fu">
+      <div class="s-label">Enterprise Division</div>
+      <h2>Commercial<br>&amp; Industrial</h2>
+    </div>
+    <p class="comm-intro fu">Our flagship — large-scale structural and commercial projects executed at the highest level of precision, safety, and reliability.</p>
+  </div>
+
+  <div class="comm-grid">
+    <div class="ccard fu">
+      <div class="ccard-n">01</div>
+      <div class="ccard-t">Enterprise Framing</div>
+      <p class="ccard-d">Structural steel and wood framing for multi-story commercial buildings. Our core competency, built over two decades of large-scale projects.</p>
+    </div>
+    <div class="ccard fu">
+      <div class="ccard-n">02</div>
+      <div class="ccard-t">Commercial New Construction</div>
+      <p class="ccard-d">Ground-up construction for office buildings, retail centers, mixed-use developments, and institutional facilities — all under one contract.</p>
+    </div>
+    <div class="ccard fu">
+      <div class="ccard-n">03</div>
+      <div class="ccard-t">Industrial &amp; Warehouse</div>
+      <p class="ccard-d">Large-footprint distribution centers, manufacturing facilities, and industrial complexes — built for durability and operational efficiency.</p>
+    </div>
+    <div class="ccard fu">
+      <div class="ccard-n">04</div>
+      <div class="ccard-t">Tenant Improvement</div>
+      <p class="ccard-d">Full buildouts for commercial tenants — office fit-outs, restaurant builds, retail spaces — delivered on time without disrupting ongoing operations.</p>
+    </div>
+    <div class="ccard fu">
+      <div class="ccard-n">05</div>
+      <div class="ccard-t">Design-Build</div>
+      <p class="ccard-d">Single-contract delivery from concept to completion. We manage design, permits, and construction — one point of contact, zero coordination gaps.</p>
+    </div>
+    <div class="ccard fu">
+      <div class="ccard-n">06</div>
+      <div class="ccard-t">Pre-Engineered Metal</div>
+      <p class="ccard-d">Fast-track steel building systems for commercial and industrial applications. Cost-effective, structurally sound, and scalable to any project size.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ OUR WORK ══════════════════════════════════ -->
+<section id="work">
+  <div class="work-hd">
+    <div class="fu">
+      <div class="s-label">Our Work</div>
+      <h2>Jobs That<br>Speak For Us</h2>
+    </div>
+    <p class="work-note fu">Active commercial and residential sites across the region — from foundation pours to full structural frames.</p>
+  </div>
+
+  <div class="work-grid">
+    <div class="wcard span-col fu">
+      <img src="images/jobsite-01.jpg" alt="Aerial view of active commercial foundation construction site" />
+      <div class="wcard-overlay">
+        <div class="wcard-tag">Commercial · Foundation &amp; Structural</div>
+        <div class="wcard-title">Multi-Story Commercial<br>Foundation Pour</div>
+      </div>
+    </div>
+    <div class="wcard fu">
+      <img src="images/jobsite-02.jpg" alt="Commercial construction site concrete formwork" />
+      <div class="wcard-overlay">
+        <div class="wcard-tag">Enterprise Framing</div>
+        <div class="wcard-title">Concrete Formwork<br>&amp; Site Work</div>
+      </div>
+    </div>
+    <div class="wcard fu" style="background: var(--bg3); display:flex; align-items:center; justify-content:center; flex-direction:column; gap:12px;">
+      <span style="font-family:'Anton',sans-serif;font-size:64px;color:rgba(232,93,4,0.12);">+</span>
+      <span style="font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--muted);">More Projects Coming</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ TRADES ═══════════════════════════════════ -->
+<section id="trades">
+  <div class="s-label">All Trades Division</div>
+  <h2>We Have a Specialist<br>for That</h2>
+  <p class="trades-intro">A building is a system of interconnected trades. We employ licensed experts in all of them — which means we can handle anything from a full custom home to a single repair call.</p>
+
+  <div class="trades-grid">
+    <div class="tcard fu">
+      <span class="tcard-icon">🔧</span>
+      <div class="tcard-name">Plumbing</div>
+      <p class="tcard-desc">Residential and commercial plumbing — new installs, repairs, repiping, water heaters, and full drain systems.</p>
+    </div>
+    <div class="tcard fu">
+      <span class="tcard-icon">⚡</span>
+      <div class="tcard-name">Electrical</div>
+      <p class="tcard-desc">Panel upgrades, full rewires, commercial service, EV charger installs, lighting design, and code compliance.</p>
+    </div>
+    <div class="tcard fu">
+      <span class="tcard-icon">🏠</span>
+      <div class="tcard-name">Roofing</div>
+      <p class="tcard-desc">Asphalt, metal, flat, and TPO systems. New installs, repairs, and full replacements backed by a written warranty.</p>
+    </div>
+    <div class="tcard fu">
+      <span class="tcard-icon">🏗️</span>
+      <div class="tcard-name">Foundation &amp; Concrete</div>
+      <p class="tcard-desc">Slab pours, footings, foundation repair, retaining walls, driveways, and structural concrete of all types.</p>
+    </div>
+    <div class="tcard fu">
+      <span class="tcard-icon">🪟</span>
+      <div class="tcard-name">Home Remodeling</div>
+      <p class="tcard-desc">Kitchen and bath renovations, room additions, basement finishing, and full-home transformations.</p>
+    </div>
+    <div class="tcard fu">
+      <span class="tcard-icon">🏡</span>
+      <div class="tcard-name">Custom Home Builds</div>
+      <p class="tcard-desc">Ground-up residential construction — fully custom homes built to your vision and your budget.</p>
+    </div>
+    <div class="tcard fu">
+      <span class="tcard-icon">🌡️</span>
+      <div class="tcard-name">HVAC</div>
+      <p class="tcard-desc">Install, replacement, and service of heating, ventilation, and air conditioning systems for any building type.</p>
+    </div>
+    <div class="tcard fu">
+      <span class="tcard-icon">🪣</span>
+      <div class="tcard-name">Drywall &amp; Interiors</div>
+      <p class="tcard-desc">Interior framing, drywall, taping, texturing, and finish work — commercial and residential to any spec.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ PROCESS ══════════════════════════════════ -->
+<section id="process">
+  <div class="proc-hd fu">
+    <div class="s-label">How We Work</div>
+    <h2>Simple Process.<br>Zero Surprises.</h2>
+  </div>
+
+  <div class="proc-steps">
+    <div class="pstep fu">
+      <div class="pstep-n">01</div>
+      <div class="pstep-t">Consult &amp; Scope</div>
+      <p class="pstep-d">We meet on-site or remotely, assess the full scope of work, and ask the right questions before we quote you a number.</p>
+    </div>
+    <div class="pstep fu">
+      <div class="pstep-n">02</div>
+      <div class="pstep-t">Proposal &amp; Planning</div>
+      <p class="pstep-d">Detailed written estimate, timeline, and trade assignments. You know exactly what's happening, who's doing it, and what it costs.</p>
+    </div>
+    <div class="pstep fu">
+      <div class="pstep-n">03</div>
+      <div class="pstep-t">Build &amp; Manage</div>
+      <p class="pstep-d">Our crew executes. Project managers coordinate every trade, track every milestone, and keep you updated throughout.</p>
+    </div>
+    <div class="pstep fu">
+      <div class="pstep-n">04</div>
+      <div class="pstep-t">Inspect &amp; Deliver</div>
+      <p class="pstep-d">Final walkthrough with you before we close out. Every punchlist item resolved. We don't leave until you're satisfied.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ NUMBERS ══════════════════════════════════ -->
+<div id="numbers">
+  <div class="num-item fu">
+    <div class="num-v">500+</div>
+    <div class="num-l">Projects Built</div>
+  </div>
+  <div class="num-item fu">
+    <div class="num-v">20+</div>
+    <div class="num-l">Years Operating</div>
+  </div>
+  <div class="num-item fu">
+    <div class="num-v">50M+</div>
+    <div class="num-l">Sq Ft Constructed</div>
+  </div>
+  <div class="num-item fu">
+    <div class="num-v">8</div>
+    <div class="num-l">Licensed Trades</div>
+  </div>
+</div>
+
+<!-- ═══ CONTACT ══════════════════════════════════ -->
+<section id="contact">
+  <div class="contact-inner">
+    <div class="contact-l fu">
+      <div class="s-label">Get in Touch</div>
+      <h2>Let's Build<br>Something.</h2>
+      <p class="contact-desc">
+        Whether you're a developer scoping a commercial project or a homeowner with a single repair — we want to hear from you. No project too large, no job too small.
+      </p>
+      <div class="ci">
+        <span class="ci-lbl">Phone</span>
+        <span class="ci-val">(555) 700-0007</span>
+      </div>
+      <div class="ci">
+        <span class="ci-lbl">Email</span>
+        <span class="ci-val">info@big7construction.com</span>
+      </div>
+      <div class="ci">
+        <span class="ci-lbl">Hours</span>
+        <span class="ci-val">Mon–Fri 7am–6pm &nbsp;|&nbsp; Sat 8am–2pm</span>
+      </div>
+      <div class="ci">
+        <span class="ci-lbl">License</span>
+        <span class="ci-val">Licensed, bonded &amp; insured statewide</span>
+      </div>
+    </div>
+
+    <div class="fu">
+      <form class="cform" onsubmit="submitForm(event)">
+        <div class="form-row">
+          <div class="fg">
+            <label for="name">Full Name</label>
+            <input type="text" id="name" name="name" placeholder="John Smith" required />
+          </div>
+          <div class="fg">
+            <label for="phone">Phone</label>
+            <input type="tel" id="phone" name="phone" placeholder="(555) 000-0000" />
+          </div>
+        </div>
+        <div class="fg">
+          <label for="email">Email Address</label>
+          <input type="email" id="email" name="email" placeholder="you@company.com" required />
+        </div>
+        <div class="fg">
+          <label for="ptype">Project Type</label>
+          <select id="ptype" name="ptype">
+            <option value="" disabled selected>Select a service…</option>
+            <option>Commercial / Enterprise</option>
+            <option>Industrial &amp; Warehouse</option>
+            <option>Tenant Improvement</option>
+            <option>Design-Build</option>
+            <option>Custom Home Build</option>
+            <option>Home Remodeling</option>
+            <option>Plumbing</option>
+            <option>Electrical</option>
+            <option>Roofing</option>
+            <option>Foundation &amp; Concrete</option>
+            <option>HVAC</option>
+            <option>Drywall &amp; Interiors</option>
+            <option>Other / Not Sure</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label for="msg">Project Details</label>
+          <textarea id="msg" name="msg" placeholder="Tell us about your project — scope, timeline, location, and anything else that helps us understand what you need."></textarea>
+        </div>
+        <button type="submit" class="form-btn" id="formBtn">Send Message →</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <a href="#" class="foot-logo">BIG <em>7</em></a>
+  <p class="foot-copy">© 2024 Big 7 Construction. All rights reserved.</p>
+  <ul class="foot-nav">
+    <li><a href="#about">About</a></li>
+    <li><a href="#commercial">Commercial</a></li>
+    <li><a href="#work">Work</a></li>
+    <li><a href="#trades">Services</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</footer>
+
+<script>
+  /* Mobile menu */
+  function openMenu()  { document.getElementById('mobMenu').classList.add('open');    document.body.style.overflow = 'hidden'; }
+  function closeMenu() { document.getElementById('mobMenu').classList.remove('open'); document.body.style.overflow = ''; }
+
+  /* Scroll fade-in */
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('vis'); io.unobserve(e.target); }
+    });
+  }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+  document.querySelectorAll('.fu').forEach(el => io.observe(el));
+
+  /* Form */
+  function submitForm(e) {
+    e.preventDefault();
+    const btn = document.getElementById('formBtn');
+    btn.textContent = 'Message Sent ✓';
+    btn.style.background = '#2a6b2a';
+    btn.disabled = true;
+    e.target.querySelectorAll('input, select, textarea').forEach(f => f.disabled = true);
+  }
+</script>
+</body>
+</html>
