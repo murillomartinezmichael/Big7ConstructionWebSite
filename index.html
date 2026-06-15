@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Big 7 Construction — Built for Every Scale</title>
+  <title>Big 7 Construction — Commercial, Industrial & Residential</title>
+  <meta name="description" content="Big 7 Construction: full-service commercial and residential contractor. Enterprise framing, industrial warehouse, tenant improvement, custom home builds, and all trades — one call, every scale." />
+  <meta name="theme-color" content="#0e0e0e" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
@@ -11,16 +13,16 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg:     #0e0e0e;
-      --bg2:    #161616;
-      --bg3:    #202020;
-      --border: #2a2a2a;
-      --orange: #e85d04;
-      --orange2:#f48c06;
-      --cream:  #f0ebe3;
-      --dim:    #b8b2a9;
-      --muted:  #666260;
-      --ink:    #18130e;
+      --bg:       #0e0e0e;
+      --bg2:      #161616;
+      --bg3:      #202020;
+      --border:   #2a2a2a;
+      --orange:   #e85d04;
+      --orange2:  #f48c06;
+      --cream:    #f0ebe3;
+      --dim:      #b8b2a9;
+      --muted:    #666260;
+      --ink:      #18130e;
       --concrete: #e5dfd6;
     }
 
@@ -44,8 +46,8 @@
       align-items: center;
       justify-content: space-between;
       padding: 0 48px;
-      background: rgba(14, 14, 14, 0.92);
-      backdrop-filter: blur(14px);
+      background: rgba(14, 14, 14, 0.94);
+      backdrop-filter: blur(16px);
       border-bottom: 1px solid var(--border);
     }
 
@@ -55,17 +57,18 @@
       letter-spacing: 3px;
       color: var(--cream);
       text-decoration: none;
+      flex-shrink: 0;
     }
     .logo em { color: var(--orange); font-style: normal; }
 
     .nav-links {
       display: flex;
-      gap: 40px;
+      gap: 32px;
       list-style: none;
     }
     .nav-links a {
       font-family: 'Barlow Condensed', sans-serif;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 700;
       letter-spacing: 2.5px;
       text-transform: uppercase;
@@ -77,7 +80,7 @@
 
     .nav-quote {
       font-family: 'Barlow Condensed', sans-serif;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 700;
       letter-spacing: 2px;
       text-transform: uppercase;
@@ -86,10 +89,10 @@
       padding: 10px 22px;
       text-decoration: none;
       transition: background .2s;
+      flex-shrink: 0;
     }
     .nav-quote:hover { background: var(--orange2); }
 
-    /* hamburger */
     .ham {
       display: none;
       flex-direction: column;
@@ -116,12 +119,12 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 48px;
+      gap: 40px;
     }
     .mob-menu.open { display: flex; }
     .mob-menu a {
       font-family: 'Anton', sans-serif;
-      font-size: 52px;
+      font-size: 48px;
       letter-spacing: 2px;
       color: var(--cream);
       text-decoration: none;
@@ -145,12 +148,11 @@
       display: flex;
       flex-direction: column;
       justify-content: center;
-      padding: 68px 48px 0;
+      padding: 68px 48px 180px;
       position: relative;
       overflow: hidden;
     }
 
-    /* giant 7 watermark */
     .hero-7 {
       position: absolute;
       right: -80px;
@@ -165,7 +167,6 @@
       pointer-events: none;
     }
 
-    /* diagonal accent line */
     .hero-line {
       position: absolute;
       top: 0; bottom: 0;
@@ -216,7 +217,7 @@
       font-size: 18px;
       font-weight: 300;
       color: var(--dim);
-      max-width: 540px;
+      max-width: 560px;
       line-height: 1.75;
       margin-bottom: 52px;
     }
@@ -257,7 +258,6 @@
     }
     .btn-s:hover { border-color: var(--dim); transform: translateY(-2px); }
 
-    /* bottom stat bar */
     .hero-bar {
       position: absolute;
       bottom: 0; left: 0; right: 0;
@@ -295,7 +295,7 @@
     .ticker-track {
       display: flex;
       width: max-content;
-      animation: run 36s linear infinite;
+      animation: run 48s linear infinite;
     }
     .ticker-track:hover { animation-play-state: paused; }
     .t-item {
@@ -312,6 +312,76 @@
     @keyframes run {
       from { transform: translateX(0); }
       to   { transform: translateX(-50%); }
+    }
+
+    /* ─── TWO PATHS ───────────────────────────── */
+    #two-paths {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .path {
+      padding: 100px 64px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .path-commercial { background: var(--bg2); }
+    .path-residential { background: var(--concrete); }
+
+    .path-residential .s-label { color: var(--orange); }
+    .path-residential .s-label::before { background: var(--orange); }
+    .path-residential h2 { color: var(--ink); }
+    .path-residential .path-desc { color: #5a5450; }
+    .path-residential .path-detail {
+      color: #7a7470;
+      border-color: #cbc5bc;
+    }
+
+    .path-inner { max-width: 480px; position: relative; z-index: 1; }
+
+    .path h2 {
+      font-family: 'Anton', sans-serif;
+      font-size: clamp(44px, 5vw, 80px);
+      line-height: .95;
+      text-transform: uppercase;
+      letter-spacing: -.5px;
+      color: var(--cream);
+      margin-bottom: 20px;
+    }
+
+    .path-desc {
+      font-size: 17px;
+      font-weight: 300;
+      line-height: 1.75;
+      color: var(--dim);
+      margin-bottom: 16px;
+    }
+
+    .path-detail {
+      font-size: 13px;
+      font-weight: 300;
+      line-height: 1.7;
+      color: var(--muted);
+      border-left: 2px solid var(--border);
+      padding-left: 16px;
+      margin-bottom: 36px;
+    }
+
+    .path-bg-label {
+      position: absolute;
+      right: 32px;
+      bottom: 20px;
+      font-family: 'Anton', sans-serif;
+      font-size: clamp(100px, 14vw, 200px);
+      line-height: 1;
+      color: transparent;
+      -webkit-text-stroke: 1px rgba(232, 93, 4, 0.06);
+      user-select: none;
+      pointer-events: none;
+    }
+    .path-residential .path-bg-label {
+      -webkit-text-stroke: 1px rgba(24, 19, 14, 0.06);
     }
 
     /* ─── SECTION SHELL ───────────────────────── */
@@ -450,7 +520,7 @@
       color: var(--muted);
     }
 
-    /* ─── WORK / PROJECTS ────────────────────── */
+    /* ─── WORK / PROJECTS ─────────────────────── */
     #work { background: var(--bg); padding: 108px 48px; }
 
     .work-hd {
@@ -519,24 +589,6 @@
     }
     .wcard.span-col { grid-row: 1 / 3; }
 
-    .work-placeholder {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-      background: var(--bg3);
-    }
-
-    @media (max-width: 768px) {
-      .work-grid {
-        grid-template-columns: 1fr;
-        grid-template-rows: 280px 200px 200px;
-      }
-      .wcard.span-col { grid-row: auto; }
-      #work { padding: 72px 20px; }
-      .work-hd { flex-direction: column; align-items: flex-start; }
-    }
-
     /* ─── TRADES ──────────────────────────────── */
     #trades {
       background: var(--concrete);
@@ -550,13 +602,13 @@
       font-weight: 300;
       line-height: 1.75;
       color: #6a6460;
-      max-width: 540px;
+      max-width: 580px;
       margin: 16px 0 56px;
     }
 
     .trades-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(5, 1fr);
       gap: 2px;
       background: #cbc5bc;
     }
@@ -567,13 +619,13 @@
     }
     .tcard:hover { background: #dad4cb; }
     .tcard-icon {
-      font-size: 30px;
-      margin-bottom: 16px;
+      font-size: 28px;
+      margin-bottom: 14px;
       display: block;
     }
     .tcard-name {
       font-family: 'Barlow Condensed', sans-serif;
-      font-size: 18px;
+      font-size: 17px;
       font-weight: 800;
       text-transform: uppercase;
       letter-spacing: 1px;
@@ -581,7 +633,7 @@
       margin-bottom: 8px;
     }
     .tcard-desc {
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 300;
       line-height: 1.65;
       color: #7a7470;
@@ -591,6 +643,14 @@
     #process { background: var(--bg); }
 
     .proc-hd { margin-bottom: 80px; }
+    .proc-sub {
+      font-size: 16px;
+      font-weight: 300;
+      line-height: 1.75;
+      color: var(--muted);
+      max-width: 480px;
+      margin-top: 16px;
+    }
 
     .proc-steps {
       display: grid;
@@ -643,6 +703,74 @@
       color: var(--muted);
     }
 
+    /* ─── SAFETY ──────────────────────────────── */
+    #safety { background: var(--bg2); }
+
+    .safety-inner {
+      display: grid;
+      grid-template-columns: 1fr 1.1fr;
+      gap: 88px;
+      align-items: center;
+    }
+
+    .safety-l h2 { margin-bottom: 20px; }
+
+    .safety-commitment {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--orange);
+      border-left: 3px solid var(--orange);
+      padding-left: 18px;
+      margin-bottom: 28px;
+    }
+
+    .safety-l p {
+      font-size: 17px;
+      font-weight: 300;
+      line-height: 1.75;
+      color: var(--dim);
+    }
+
+    .safety-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2px;
+      background: var(--border);
+    }
+
+    .scard {
+      background: var(--bg2);
+      padding: 36px 28px;
+      transition: background .25s;
+    }
+    .scard:hover { background: var(--bg3); }
+
+    .scard-icon {
+      font-size: 28px;
+      margin-bottom: 14px;
+      display: block;
+    }
+
+    .scard-t {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 16px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--cream);
+      margin-bottom: 8px;
+    }
+
+    .scard-d {
+      font-size: 13px;
+      font-weight: 300;
+      line-height: 1.65;
+      color: var(--muted);
+    }
+
     /* ─── NUMBERS BAR ─────────────────────────── */
     #numbers {
       background: var(--orange);
@@ -670,6 +798,64 @@
       letter-spacing: 3px;
       text-transform: uppercase;
       color: rgba(24, 19, 14, .55);
+    }
+
+    /* ─── TESTIMONIALS ────────────────────────── */
+    #testimonials { background: var(--bg); }
+
+    .testi-hd { margin-bottom: 64px; }
+
+    .testi-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+      background: var(--border);
+    }
+
+    .testi-card {
+      background: var(--bg2);
+      padding: 48px 36px;
+      position: relative;
+      transition: background .25s;
+    }
+    .testi-card:hover { background: var(--bg3); }
+
+    .testi-quote {
+      font-family: 'Anton', sans-serif;
+      font-size: 72px;
+      line-height: .8;
+      color: var(--orange);
+      opacity: .3;
+      margin-bottom: 20px;
+      display: block;
+    }
+
+    .testi-text {
+      font-size: 16px;
+      font-weight: 300;
+      line-height: 1.8;
+      color: var(--dim);
+      margin-bottom: 32px;
+      font-style: italic;
+    }
+
+    .testi-author {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--cream);
+    }
+
+    .testi-role {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--orange);
+      margin-top: 6px;
     }
 
     /* ─── CONTACT ─────────────────────────────── */
@@ -773,47 +959,99 @@
     }
     .form-btn:hover { background: var(--orange2); transform: translateY(-2px); }
 
+    .form-note {
+      font-size: 13px;
+      font-weight: 300;
+      color: var(--muted);
+      margin-top: -8px;
+    }
+
     /* ─── FOOTER ──────────────────────────────── */
     footer {
       background: var(--bg);
       border-top: 1px solid var(--border);
-      padding: 40px 48px;
+    }
+
+    .foot-main {
+      padding: 64px 48px 48px;
+      display: grid;
+      grid-template-columns: 1.4fr 1fr 1fr 1fr;
+      gap: 48px;
+    }
+
+    .foot-brand .foot-logo {
+      font-family: 'Anton', sans-serif;
+      font-size: 24px;
+      letter-spacing: 3px;
+      color: var(--cream);
+      text-decoration: none;
+      display: block;
+      margin-bottom: 16px;
+    }
+    .foot-brand .foot-logo em { color: var(--orange); font-style: normal; }
+
+    .foot-tagline {
+      font-size: 14px;
+      font-weight: 300;
+      line-height: 1.75;
+      color: var(--muted);
+      max-width: 260px;
+    }
+
+    .foot-col h4 {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+
+    .foot-col ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .foot-col ul a {
+      font-size: 14px;
+      font-weight: 300;
+      color: var(--dim);
+      text-decoration: none;
+      transition: color .2s;
+    }
+    .foot-col ul a:hover { color: var(--orange); }
+
+    .foot-bottom {
+      padding: 24px 48px;
+      border-top: 1px solid var(--border);
       display: flex;
       align-items: center;
       justify-content: space-between;
       flex-wrap: wrap;
-      gap: 20px;
+      gap: 16px;
     }
-    .foot-logo {
-      font-family: 'Anton', sans-serif;
-      font-size: 22px;
-      letter-spacing: 3px;
-      color: var(--cream);
-      text-decoration: none;
-    }
-    .foot-logo em { color: var(--orange); font-style: normal; }
 
     .foot-copy {
-      font-size: 13px;
+      font-size: 12px;
       color: var(--muted);
       font-weight: 300;
     }
-    .foot-nav {
+
+    .foot-legal {
       display: flex;
-      gap: 28px;
-      list-style: none;
+      gap: 24px;
     }
-    .foot-nav a {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 2px;
-      text-transform: uppercase;
+    .foot-legal a {
+      font-size: 12px;
       color: var(--muted);
       text-decoration: none;
+      font-weight: 300;
       transition: color .2s;
     }
-    .foot-nav a:hover { color: var(--orange); }
+    .foot-legal a:hover { color: var(--dim); }
 
     /* ─── SCROLL ANIMATION ────────────────────── */
     .fu {
@@ -827,9 +1065,13 @@
     }
 
     /* ─── RESPONSIVE ──────────────────────────── */
+    @media (max-width: 1280px) {
+      .foot-main { grid-template-columns: 1fr 1fr; gap: 40px; }
+    }
+
     @media (max-width: 1100px) {
       .comm-grid { grid-template-columns: repeat(2, 1fr); }
-      .trades-grid { grid-template-columns: repeat(2, 1fr); }
+      .trades-grid { grid-template-columns: repeat(3, 1fr); }
       .proc-steps { grid-template-columns: repeat(2, 1fr); gap: 48px 0; }
       .proc-steps::before { display: none; }
       #numbers { grid-template-columns: repeat(2, 1fr); }
@@ -837,6 +1079,14 @@
       .num-item:nth-child(2n) { border-right: none; }
       .num-item:last-child { border-bottom: none; }
       .num-item:nth-child(3) { border-bottom: none; }
+      .safety-inner { grid-template-columns: 1fr; gap: 56px; }
+      .testi-grid { grid-template-columns: repeat(2, 1fr); }
+      .testi-grid .testi-card:last-child { grid-column: 1 / -1; }
+    }
+
+    @media (max-width: 900px) {
+      #two-paths { grid-template-columns: 1fr; }
+      .path { padding: 80px 48px; }
     }
 
     @media (max-width: 768px) {
@@ -846,7 +1096,7 @@
       .mob-close { right: 20px; }
 
       section { padding: 72px 20px; }
-      #hero { padding: 68px 20px 0; }
+      #hero { padding: 68px 20px 180px; }
 
       h1 { font-size: clamp(54px, 14vw, 90px); }
 
@@ -861,6 +1111,14 @@
       .comm-hd { flex-direction: column; align-items: flex-start; }
       .comm-grid { grid-template-columns: 1fr; }
 
+      .work-grid {
+        grid-template-columns: 1fr;
+        grid-template-rows: 280px 200px 200px;
+      }
+      .wcard.span-col { grid-row: auto; }
+      #work { padding: 72px 20px; }
+      .work-hd { flex-direction: column; align-items: flex-start; }
+
       .trades-grid { grid-template-columns: 1fr 1fr; }
 
       .proc-steps { grid-template-columns: 1fr; }
@@ -868,11 +1126,16 @@
 
       #numbers { grid-template-columns: 1fr 1fr; padding: 60px 20px; }
 
+      .testi-grid { grid-template-columns: 1fr; }
+      .testi-grid .testi-card:last-child { grid-column: auto; }
+
       .contact-inner { grid-template-columns: 1fr; gap: 52px; }
       .form-row { grid-template-columns: 1fr; }
 
-      footer { flex-direction: column; align-items: flex-start; }
-      .foot-nav { flex-wrap: wrap; }
+      .foot-main { grid-template-columns: 1fr 1fr; padding: 48px 20px 36px; }
+      .foot-bottom { padding: 20px; }
+
+      .path { padding: 64px 20px; }
     }
 
     @media (max-width: 480px) {
@@ -881,6 +1144,8 @@
       .hstat:nth-child(n) { border-right: none; border-top: 1px solid var(--border); }
       .hstat:first-child { border-top: none; }
       h2 { font-size: clamp(40px, 11vw, 64px); }
+      .foot-main { grid-template-columns: 1fr; }
+      .safety-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -894,7 +1159,7 @@
     <li><a href="#commercial">Commercial</a></li>
     <li><a href="#work">Work</a></li>
     <li><a href="#trades">Services</a></li>
-    <li><a href="#process">Process</a></li>
+    <li><a href="#safety">Safety</a></li>
     <li><a href="#contact">Contact</a></li>
   </ul>
   <a href="#contact" class="nav-quote">Get a Quote</a>
@@ -910,7 +1175,7 @@
   <a href="#commercial" onclick="closeMenu()">Commercial</a>
   <a href="#work"       onclick="closeMenu()">Work</a>
   <a href="#trades"     onclick="closeMenu()">Services</a>
-  <a href="#process"    onclick="closeMenu()">Process</a>
+  <a href="#safety"     onclick="closeMenu()">Safety</a>
   <a href="#contact"    onclick="closeMenu()">Contact</a>
 </div>
 
@@ -920,14 +1185,14 @@
   <div class="hero-line" aria-hidden="true"></div>
 
   <div class="hero-inner">
-    <div class="eyebrow">Full-Service Construction</div>
+    <div class="eyebrow">Commercial · Industrial · Residential · Repair</div>
     <h1>Built for<br><span class="o">Every</span><br>Scale.</h1>
     <p class="hero-sub">
-      From enterprise-scale commercial framing to the repair your home needs today — Big 7 Construction has the right specialist for every job, every time.
+      Whether you're breaking ground on a 100,000 sq ft commercial site or a homeowner with a repair that can't wait — Big 7 has every licensed specialist, at every scale, under one roof.
     </p>
     <div class="hero-actions">
       <a href="#contact" class="btn-p">Start Your Project</a>
-      <a href="#trades"  class="btn-s">All Services</a>
+      <a href="#two-paths" class="btn-s">What We Build</a>
     </div>
   </div>
 
@@ -941,8 +1206,8 @@
       <div class="hstat-l">Years Operating</div>
     </div>
     <div class="hstat">
-      <div class="hstat-n">7</div>
-      <div class="hstat-l">Core Divisions</div>
+      <div class="hstat-n">8</div>
+      <div class="hstat-l">Licensed Trades</div>
     </div>
     <div class="hstat">
       <div class="hstat-n">100%</div>
@@ -956,6 +1221,8 @@
   <div class="ticker-track">
     <span class="t-item">Enterprise Framing</span><span class="t-item t-dot">✦</span>
     <span class="t-item">Commercial Construction</span><span class="t-item t-dot">✦</span>
+    <span class="t-item">Home Construction</span><span class="t-item t-dot">✦</span>
+    <span class="t-item">Home Repair</span><span class="t-item t-dot">✦</span>
     <span class="t-item">Plumbing</span><span class="t-item t-dot">✦</span>
     <span class="t-item">Electrical</span><span class="t-item t-dot">✦</span>
     <span class="t-item">Roofing</span><span class="t-item t-dot">✦</span>
@@ -966,9 +1233,12 @@
     <span class="t-item">Industrial Warehouse</span><span class="t-item t-dot">✦</span>
     <span class="t-item">HVAC</span><span class="t-item t-dot">✦</span>
     <span class="t-item">Drywall &amp; Interiors</span><span class="t-item t-dot">✦</span>
+    <span class="t-item">Design-Build</span><span class="t-item t-dot">✦</span>
     <!-- duplicate for seamless loop -->
     <span class="t-item">Enterprise Framing</span><span class="t-item t-dot">✦</span>
     <span class="t-item">Commercial Construction</span><span class="t-item t-dot">✦</span>
+    <span class="t-item">Home Construction</span><span class="t-item t-dot">✦</span>
+    <span class="t-item">Home Repair</span><span class="t-item t-dot">✦</span>
     <span class="t-item">Plumbing</span><span class="t-item t-dot">✦</span>
     <span class="t-item">Electrical</span><span class="t-item t-dot">✦</span>
     <span class="t-item">Roofing</span><span class="t-item t-dot">✦</span>
@@ -979,6 +1249,31 @@
     <span class="t-item">Industrial Warehouse</span><span class="t-item t-dot">✦</span>
     <span class="t-item">HVAC</span><span class="t-item t-dot">✦</span>
     <span class="t-item">Drywall &amp; Interiors</span><span class="t-item t-dot">✦</span>
+    <span class="t-item">Design-Build</span><span class="t-item t-dot">✦</span>
+  </div>
+</div>
+
+<!-- ═══ TWO PATHS ════════════════════════════════ -->
+<div id="two-paths">
+  <div class="path path-commercial fu">
+    <div class="path-inner">
+      <div class="s-label">Commercial &amp; Enterprise</div>
+      <h2>Ground Up.<br>At Scale.</h2>
+      <p class="path-desc">Multi-story buildings, industrial warehouses, tenant improvements, and design-build delivery — the full commercial stack executed under one contract.</p>
+      <p class="path-detail">Enterprise framing · New construction · Industrial &amp; warehouse · Tenant improvement · Design-build · Pre-engineered metal</p>
+      <a href="#commercial" class="btn-p">Enterprise Division →</a>
+    </div>
+    <div class="path-bg-label" aria-hidden="true">C</div>
+  </div>
+  <div class="path path-residential fu">
+    <div class="path-inner">
+      <div class="s-label">Residential &amp; Repair</div>
+      <h2>Your Home.<br>Done Right.</h2>
+      <p class="path-desc">Ground-up custom homes, full structural alterations, and every repair your home needs — handled by licensed specialists, not handymen.</p>
+      <p class="path-detail">Home construction · Custom builds · Full remodels · Structural alterations · Emergency repair · All residential trades</p>
+      <a href="#trades" class="btn-p">All Services →</a>
+    </div>
+    <div class="path-bg-label" aria-hidden="true">R</div>
   </div>
 </div>
 
@@ -989,16 +1284,17 @@
     <h2>One Call.<br>Every Trade.</h2>
   </div>
   <div class="about-r fu">
-    <p>Big 7 Construction was built on a single idea: a client should never have to manage seven different contractors to build something great. <strong>We bring the full roster under one roof.</strong></p>
-    <p>Our enterprise division handles large-scale commercial projects — multi-story buildings, warehouse complexes, industrial sites, and major tenant improvements. That's our flagship. But we didn't stop there.</p>
-    <p>Need a kitchen remodel? A leaking pipe fixed? A roof replaced before winter? We have <strong>licensed specialists for every trade in construction</strong>, held to the same standards we bring to a 100,000 sq ft commercial job.</p>
+    <p>Big 7 Construction was built on a single idea: a client should never have to manage seven different contractors to build something great. <strong>We bring the full roster under one roof — commercial, industrial, and residential.</strong></p>
+    <p>Our enterprise division handles the largest commercial and industrial projects — multi-story buildings, warehouse complexes, industrial sites, and major tenant improvements. That's our flagship. But we didn't stop there.</p>
+    <p>We also build custom homes from the ground up, complete full structural alterations, and service every residential repair your home needs — plumbing, electrical, roofing, HVAC. <strong>One call handles it all, held to the same exacting standard as a 100,000 sq ft commercial job.</strong></p>
     <div class="tags">
       <span class="tag">Licensed GC</span>
       <span class="tag">Fully Insured</span>
       <span class="tag">OSHA Compliant</span>
       <span class="tag">Commercial</span>
-      <span class="tag">Residential</span>
       <span class="tag">Industrial</span>
+      <span class="tag">Residential</span>
+      <span class="tag">Home Repair</span>
       <span class="tag">All Trades</span>
     </div>
   </div>
@@ -1028,7 +1324,7 @@
     <div class="ccard fu">
       <div class="ccard-n">03</div>
       <div class="ccard-t">Industrial &amp; Warehouse</div>
-      <p class="ccard-d">Large-footprint distribution centers, manufacturing facilities, and industrial complexes — built for durability and operational efficiency.</p>
+      <p class="ccard-d">Large-footprint distribution centers, manufacturing facilities, and industrial complexes built for durability and operational efficiency.</p>
     </div>
     <div class="ccard fu">
       <div class="ccard-n">04</div>
@@ -1073,20 +1369,30 @@
         <div class="wcard-title">Concrete Formwork<br>&amp; Site Work</div>
       </div>
     </div>
-    <div class="wcard fu" style="background: var(--bg3); display:flex; align-items:center; justify-content:center; flex-direction:column; gap:12px;">
+    <div class="wcard fu" style="display:flex; align-items:center; justify-content:center; flex-direction:column; gap:12px;">
       <span style="font-family:'Anton',sans-serif;font-size:64px;color:rgba(232,93,4,0.12);">+</span>
-      <span style="font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--muted);">More Projects Coming</span>
+      <span style="font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--muted);">More Projects Coming</span>
     </div>
   </div>
 </section>
 
 <!-- ═══ TRADES ═══════════════════════════════════ -->
 <section id="trades">
-  <div class="s-label">All Trades Division</div>
+  <div class="s-label">All Services</div>
   <h2>We Have a Specialist<br>for That</h2>
-  <p class="trades-intro">A building is a system of interconnected trades. We employ licensed experts in all of them — which means we can handle anything from a full custom home to a single repair call.</p>
+  <p class="trades-intro">From a 50-story commercial frame to a broken pipe that needs fixing today — we employ licensed experts in every trade, held to the same standard on every job.</p>
 
   <div class="trades-grid">
+    <div class="tcard fu">
+      <span class="tcard-icon">🏗️</span>
+      <div class="tcard-name">Home Construction</div>
+      <p class="tcard-desc">New homes built from the ground up and complete structural alterations — additions, second stories, full rebuilds to your spec.</p>
+    </div>
+    <div class="tcard fu">
+      <span class="tcard-icon">🔨</span>
+      <div class="tcard-name">Home Repair</div>
+      <p class="tcard-desc">Fast, reliable repair for everything your home needs — storm damage, broken systems, structural fixes — no job too small.</p>
+    </div>
     <div class="tcard fu">
       <span class="tcard-icon">🔧</span>
       <div class="tcard-name">Plumbing</div>
@@ -1103,7 +1409,7 @@
       <p class="tcard-desc">Asphalt, metal, flat, and TPO systems. New installs, repairs, and full replacements backed by a written warranty.</p>
     </div>
     <div class="tcard fu">
-      <span class="tcard-icon">🏗️</span>
+      <span class="tcard-icon">🪨</span>
       <div class="tcard-name">Foundation &amp; Concrete</div>
       <p class="tcard-desc">Slab pours, footings, foundation repair, retaining walls, driveways, and structural concrete of all types.</p>
     </div>
@@ -1134,14 +1440,15 @@
 <section id="process">
   <div class="proc-hd fu">
     <div class="s-label">How We Work</div>
-    <h2>Simple Process.<br>Zero Surprises.</h2>
+    <h2>The Big7<br>Build Process</h2>
+    <p class="proc-sub">Simple, transparent, and the same whether you're breaking ground on a warehouse or fixing a leaky roof.</p>
   </div>
 
   <div class="proc-steps">
     <div class="pstep fu">
       <div class="pstep-n">01</div>
       <div class="pstep-t">Consult &amp; Scope</div>
-      <p class="pstep-d">We meet on-site or remotely, assess the full scope of work, and ask the right questions before we quote you a number.</p>
+      <p class="pstep-d">We meet on-site or remotely, assess the full scope of work, and ask the right questions before we quote you a number. No guesswork, no surprises.</p>
     </div>
     <div class="pstep fu">
       <div class="pstep-n">02</div>
@@ -1151,12 +1458,46 @@
     <div class="pstep fu">
       <div class="pstep-n">03</div>
       <div class="pstep-t">Build &amp; Manage</div>
-      <p class="pstep-d">Our crew executes. Project managers coordinate every trade, track every milestone, and keep you updated throughout.</p>
+      <p class="pstep-d">Our crew executes. Project managers coordinate every trade, track every milestone, and keep you updated throughout — daily if needed.</p>
     </div>
     <div class="pstep fu">
       <div class="pstep-n">04</div>
       <div class="pstep-t">Inspect &amp; Deliver</div>
-      <p class="pstep-d">Final walkthrough with you before we close out. Every punchlist item resolved. We don't leave until you're satisfied.</p>
+      <p class="pstep-d">Final walkthrough with you before we close out. Every punchlist item resolved. We don't leave until you're satisfied — that's the Big7 standard.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ SAFETY ════════════════════════════════════ -->
+<section id="safety">
+  <div class="safety-inner">
+    <div class="safety-l fu">
+      <div class="s-label">Safety &amp; Compliance</div>
+      <h2>Every Worker<br>Home Safe.</h2>
+      <div class="safety-commitment">Zero Incident Standard — Every Site, Every Day</div>
+      <p>Safety at Big 7 is not a checklist item. It's the first conversation on every jobsite, every morning, before a single tool is picked up. Our crews are OSHA-trained, our sites fully insured, and our project managers personally accountable for every worker on the ground — commercial or residential.</p>
+    </div>
+    <div class="safety-grid fu">
+      <div class="scard">
+        <span class="scard-icon">🛡️</span>
+        <div class="scard-t">OSHA Compliant</div>
+        <p class="scard-d">Every crew member trained and current on OSHA standards for commercial and residential work.</p>
+      </div>
+      <div class="scard">
+        <span class="scard-icon">📋</span>
+        <div class="scard-t">Daily Briefings</div>
+        <p class="scard-d">Pre-shift safety briefings on every active site — hazard review and task planning before work begins.</p>
+      </div>
+      <div class="scard">
+        <span class="scard-icon">🔒</span>
+        <div class="scard-t">Licensed &amp; Bonded</div>
+        <p class="scard-d">Fully licensed, bonded, and insured statewide. You are protected at every phase of the project.</p>
+      </div>
+      <div class="scard">
+        <span class="scard-icon">✅</span>
+        <div class="scard-t">Quality Checkpoints</div>
+        <p class="scard-d">Structured inspections at every project milestone. Nothing moves forward until it passes.</p>
+      </div>
     </div>
   </div>
 </section>
@@ -1181,6 +1522,34 @@
   </div>
 </div>
 
+<!-- ═══ TESTIMONIALS ════════════════════════════ -->
+<section id="testimonials">
+  <div class="testi-hd fu">
+    <div class="s-label">Client Stories</div>
+    <h2>Built on Trust.</h2>
+  </div>
+  <div class="testi-grid">
+    <div class="testi-card fu">
+      <span class="testi-quote">"</span>
+      <p class="testi-text">Big 7 managed our entire warehouse buildout — 80,000 sq ft, on time and under budget. They're the only contractor we call for commercial work.</p>
+      <div class="testi-author">Regional Distribution Co.</div>
+      <div class="testi-role">Industrial &amp; Warehouse</div>
+    </div>
+    <div class="testi-card fu">
+      <span class="testi-quote">"</span>
+      <p class="testi-text">They remodeled our kitchen and replaced our roof in the same week. One call, two problems solved — that's exactly what you want from a contractor.</p>
+      <div class="testi-author">Homeowner, Dallas TX</div>
+      <div class="testi-role">Kitchen Remodel + Roofing</div>
+    </div>
+    <div class="testi-card fu">
+      <span class="testi-quote">"</span>
+      <p class="testi-text">From permits to final walkthrough, their project managers were on top of every detail. Our new tenant space came out better than the architect's drawings.</p>
+      <div class="testi-author">Retail Group LLC</div>
+      <div class="testi-role">Tenant Improvement · Commercial</div>
+    </div>
+  </div>
+</section>
+
 <!-- ═══ CONTACT ══════════════════════════════════ -->
 <section id="contact">
   <div class="contact-inner">
@@ -1188,7 +1557,7 @@
       <div class="s-label">Get in Touch</div>
       <h2>Let's Build<br>Something.</h2>
       <p class="contact-desc">
-        Whether you're a developer scoping a commercial project or a homeowner with a single repair — we want to hear from you. No project too large, no job too small.
+        Whether you're a developer scoping a multi-million dollar commercial project or a homeowner who needs a repair handled right — we want to hear from you. No project too large, no job too small.
       </p>
       <div class="ci">
         <span class="ci-lbl">Phone</span>
@@ -1228,19 +1597,40 @@
           <label for="ptype">Project Type</label>
           <select id="ptype" name="ptype">
             <option value="" disabled selected>Select a service…</option>
-            <option>Commercial / Enterprise</option>
-            <option>Industrial &amp; Warehouse</option>
-            <option>Tenant Improvement</option>
-            <option>Design-Build</option>
-            <option>Custom Home Build</option>
-            <option>Home Remodeling</option>
-            <option>Plumbing</option>
-            <option>Electrical</option>
-            <option>Roofing</option>
-            <option>Foundation &amp; Concrete</option>
-            <option>HVAC</option>
-            <option>Drywall &amp; Interiors</option>
+            <optgroup label="Commercial &amp; Enterprise">
+              <option>Commercial / Enterprise Framing</option>
+              <option>Industrial &amp; Warehouse</option>
+              <option>Tenant Improvement</option>
+              <option>Design-Build</option>
+              <option>Pre-Engineered Metal Building</option>
+            </optgroup>
+            <optgroup label="Residential Construction">
+              <option>Custom Home Build (Ground Up)</option>
+              <option>Home Construction / Structural Alteration</option>
+              <option>Home Remodeling</option>
+            </optgroup>
+            <optgroup label="Home Repair &amp; Trades">
+              <option>Home Repair</option>
+              <option>Plumbing</option>
+              <option>Electrical</option>
+              <option>Roofing</option>
+              <option>Foundation &amp; Concrete</option>
+              <option>HVAC</option>
+              <option>Drywall &amp; Interiors</option>
+            </optgroup>
             <option>Other / Not Sure</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label for="budget">Estimated Budget</label>
+          <select id="budget" name="budget">
+            <option value="" disabled selected>Select a range…</option>
+            <option>Under $10,000</option>
+            <option>$10,000 – $50,000</option>
+            <option>$50,000 – $250,000</option>
+            <option>$250,000 – $1M</option>
+            <option>$1M – $5M</option>
+            <option>$5M+</option>
           </select>
         </div>
         <div class="fg">
@@ -1248,6 +1638,7 @@
           <textarea id="msg" name="msg" placeholder="Tell us about your project — scope, timeline, location, and anything else that helps us understand what you need."></textarea>
         </div>
         <button type="submit" class="form-btn" id="formBtn">Send Message →</button>
+        <p class="form-note">We respond to all inquiries within one business day.</p>
       </form>
     </div>
   </div>
@@ -1255,23 +1646,61 @@
 
 <!-- FOOTER -->
 <footer>
-  <a href="#" class="foot-logo">BIG <em>7</em></a>
-  <p class="foot-copy">© 2024 Big 7 Construction. All rights reserved.</p>
-  <ul class="foot-nav">
-    <li><a href="#about">About</a></li>
-    <li><a href="#commercial">Commercial</a></li>
-    <li><a href="#work">Work</a></li>
-    <li><a href="#trades">Services</a></li>
-    <li><a href="#contact">Contact</a></li>
-  </ul>
+  <div class="foot-main">
+    <div class="foot-brand">
+      <a href="#" class="foot-logo">BIG <em>7</em></a>
+      <p class="foot-tagline">One contractor. Every phase. Any scale. Commercial, industrial, and residential — all under one roof.</p>
+    </div>
+
+    <div class="foot-col">
+      <h4>Company</h4>
+      <ul>
+        <li><a href="#about">About Us</a></li>
+        <li><a href="#work">Our Work</a></li>
+        <li><a href="#process">Our Process</a></li>
+        <li><a href="#safety">Safety</a></li>
+        <li><a href="#testimonials">Client Stories</a></li>
+        <li><a href="#contact">Careers</a></li>
+      </ul>
+    </div>
+
+    <div class="foot-col">
+      <h4>Services</h4>
+      <ul>
+        <li><a href="#commercial">Commercial</a></li>
+        <li><a href="#commercial">Industrial &amp; Warehouse</a></li>
+        <li><a href="#commercial">Tenant Improvement</a></li>
+        <li><a href="#trades">Home Construction</a></li>
+        <li><a href="#trades">Home Repair</a></li>
+        <li><a href="#trades">All Trades</a></li>
+      </ul>
+    </div>
+
+    <div class="foot-col">
+      <h4>Contact</h4>
+      <ul>
+        <li><a href="tel:5557000007">(555) 700-0007</a></li>
+        <li><a href="mailto:info@big7construction.com">info@big7construction.com</a></li>
+        <li><a href="#contact">Get a Free Quote</a></li>
+        <li><a href="#contact">Trade Partners</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="foot-bottom">
+    <p class="foot-copy">© 2024 Big 7 Construction. All rights reserved. Licensed, bonded &amp; insured statewide.</p>
+    <div class="foot-legal">
+      <a href="#">Privacy Policy</a>
+      <a href="#">Terms of Service</a>
+      <a href="#">Sitemap</a>
+    </div>
+  </div>
 </footer>
 
 <script>
-  /* Mobile menu */
   function openMenu()  { document.getElementById('mobMenu').classList.add('open');    document.body.style.overflow = 'hidden'; }
   function closeMenu() { document.getElementById('mobMenu').classList.remove('open'); document.body.style.overflow = ''; }
 
-  /* Scroll fade-in */
   const io = new IntersectionObserver((entries) => {
     entries.forEach(e => {
       if (e.isIntersecting) { e.target.classList.add('vis'); io.unobserve(e.target); }
@@ -1279,7 +1708,6 @@
   }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
   document.querySelectorAll('.fu').forEach(el => io.observe(el));
 
-  /* Form */
   function submitForm(e) {
     e.preventDefault();
     const btn = document.getElementById('formBtn');
@@ -1287,6 +1715,7 @@
     btn.style.background = '#2a6b2a';
     btn.disabled = true;
     e.target.querySelectorAll('input, select, textarea').forEach(f => f.disabled = true);
+    document.querySelector('.form-note').textContent = "We'll be in touch within one business day.";
   }
 </script>
 </body>
