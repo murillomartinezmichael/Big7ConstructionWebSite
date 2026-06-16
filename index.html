@@ -13,17 +13,19 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg:       #0e0e0e;
-      --bg2:      #161616;
-      --bg3:      #202020;
-      --border:   #2a2a2a;
-      --orange:   #e85d04;
-      --orange2:  #f48c06;
+      --bg:       #0a0a0a;
+      --bg2:      #121212;
+      --bg3:      #1c1c1c;
+      --border:   #262626;
+      --orange:   #e03000;    /* RZR body orange-red */
+      --orange2:  #ff4500;
+      --blue:     #1460cc;    /* RZR interior electric blue */
+      --blue2:    #2578f0;
       --cream:    #f0ebe3;
       --dim:      #b8b2a9;
       --muted:    #666260;
-      --ink:      #18130e;
-      --concrete: #e5dfd6;
+      --ink:      #0a0605;
+      --concrete: #e0dbd2;
     }
 
     html { scroll-behavior: smooth; }
@@ -1063,6 +1065,44 @@
       opacity: 1;
       transform: translateY(0);
     }
+
+    /* ─── BLUE ACCENT — Commercial & Enterprise track ─── */
+    #commercial .s-label            { color: var(--blue); }
+    #commercial .s-label::before    { background: var(--blue); }
+    .ccard-n                        { color: var(--blue); }
+    .ccard::after                   { background: var(--blue); }
+
+    .path-commercial .s-label       { color: var(--blue); }
+    .path-commercial .s-label::before { background: var(--blue); }
+    .path-commercial .btn-p         { background: var(--blue); color: #fff; }
+    .path-commercial .btn-p:hover   { background: var(--blue2); }
+    .path-commercial .path-bg-label { -webkit-text-stroke: 1px rgba(20,96,204,0.08); }
+
+    #about .s-label                 { color: var(--blue); }
+    #about .s-label::before         { background: var(--blue); }
+
+    #safety .s-label                { color: var(--blue); }
+    #safety .s-label::before        { background: var(--blue); }
+    .safety-commitment              { color: var(--blue); border-left-color: var(--blue); }
+
+    #process .s-label               { color: var(--blue); }
+    #process .s-label::before       { background: var(--blue); }
+    .pstep-n                        { color: var(--blue); }
+    .pstep:hover .pstep-n           { background: var(--blue); border-color: var(--blue); color: #fff; }
+
+    #work .s-label                  { color: var(--blue); }
+    #work .s-label::before          { background: var(--blue); }
+    .wcard-tag                      { color: var(--blue); }
+
+    #testimonials .s-label          { color: var(--blue); }
+    #testimonials .s-label::before  { background: var(--blue); }
+    .testi-role                     { color: var(--blue); }
+
+    .nav-links a:hover              { color: var(--blue); }
+    .foot-col ul a:hover            { color: var(--blue); }
+
+    /* Numbers bar — blue instead of orange for enterprise feel */
+    #numbers                        { background: var(--blue); }
 
     /* ─── RESPONSIVE ──────────────────────────── */
     @media (max-width: 1280px) {
