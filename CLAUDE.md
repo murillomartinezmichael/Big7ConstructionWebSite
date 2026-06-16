@@ -1,0 +1,32 @@
+# CLAUDE.md
+
+## What This Is
+Static marketing website for Big 7 Construction — a full-service commercial, industrial, and residential contractor. Single-file HTML site served via nginx:alpine on Railway.
+
+## Stack
+Single-file HTML5 + embedded CSS (no JS framework, no build step) → nginx:alpine Docker on Railway (port 8080)
+
+## Key Files
+- `index.html` — entire site: HTML + all CSS in `<style>` block. Fonts: Anton + Barlow (Google Fonts). Color palette: warm off-white, orange-red, electric blue
+- `images/` — project photos and assets
+- `nginx.conf` — nginx config; PORT is injected at runtime via `sed`
+- `Dockerfile` — `FROM nginx:alpine`, copies site files, runs `sed` to set port
+
+## Run Locally
+```bash
+cd Big7Construction
+python -m http.server 8080
+# Open http://localhost:8080
+```
+
+## Deploy
+Railway — push to main triggers Docker build. nginx serves on `${PORT:-8080}`. Port is injected at container start via `sed -i s/NGINX_PORT/${PORT:-8080}/g nginx.conf`.
+
+## Env Vars
+None — fully static site. Railway injects `PORT` automatically for the nginx config substitution.
+
+## Rules
+- No JavaScript — pure HTML + CSS
+- All styles in the `<style>` block inside `index.html`
+- Images go in `images/` and are copied into the Docker image
+- YAGNI — no CMS, no JS framework, no build tools
