@@ -28,6 +28,50 @@
       --concrete: #D8D4CE;    /* alternate section */
     }
 
+    /* ─── THEME TOGGLE ───────────────────────────── */
+    .theme-toggle {
+      background: none;
+      border: 1px solid #333;
+      color: #888;
+      cursor: pointer;
+      padding: 7px 13px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      transition: border-color .2s, color .2s;
+      margin-right: 10px;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+    .theme-toggle:hover { border-color: var(--orange); color: var(--orange); }
+
+    /* show DARK in light mode, LIGHT in dark mode */
+    .theme-toggle::before { content: '☀ Light'; }
+    [data-theme="dark"] .theme-toggle::before { content: '☾ Dark'; }
+
+    /* ─── DARK MODE OVERRIDES ─────────────────── */
+    [data-theme="dark"] {
+      --bg:       #0a0a0a;
+      --bg2:      #121212;
+      --bg3:      #1c1c1c;
+      --border:   #262626;
+      --cream:    #f0ebe3;
+      --dim:      #b8b2a9;
+      --muted:    #666260;
+      --ink:      #0a0605;
+      --concrete: #e0dbd2;
+    }
+    [data-theme="dark"] .fg input,
+    [data-theme="dark"] .fg select,
+    [data-theme="dark"] .fg textarea {
+      background: #1c1c1c;
+      border-color: #2a2a2a;
+      color: #f0ebe3;
+    }
+    [data-theme="dark"] .fg select option { background: #1c1c1c; }
+
     /* ─── DARK SECTIONS — hero / nav / footer stay dark ── */
     nav {
       background: rgba(8, 8, 8, 0.97) !important;
@@ -1252,6 +1296,7 @@
     <li><a href="#safety">Safety</a></li>
     <li><a href="#contact">Contact</a></li>
   </ul>
+  <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()" aria-label="Toggle light/dark mode"></button>
   <a href="#contact" class="nav-quote">Get a Quote</a>
   <button class="ham" onclick="openMenu()" aria-label="Open menu">
     <span></span><span></span><span></span>
@@ -1788,6 +1833,19 @@
 </footer>
 
 <script>
+  // Init theme before paint to avoid flash
+  (function() {
+    var saved = localStorage.getItem('big7-theme') || 'light';
+    document.documentElement.setAttribute('data-theme', saved);
+  })();
+
+  function toggleTheme() {
+    var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    var next = isDark ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('big7-theme', next);
+  }
+
   function openMenu()  { document.getElementById('mobMenu').classList.add('open');    document.body.style.overflow = 'hidden'; }
   function closeMenu() { document.getElementById('mobMenu').classList.remove('open'); document.body.style.overflow = ''; }
 
