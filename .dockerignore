@@ -1,0 +1,37 @@
+# Version control + tooling
+.git/
+.github/
+.gitignore
+.gitattributes
+.editorconfig
+.pre-commit-config.yaml
+
+# OS + editor cruft
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Repo-specific docs that don't need to ship in the image
+docs/
+tests/
+BRD.md
+TRD.md
+RUNBOOK.md
+ONBOARDING.md
+CHANGELOG.md
+CONTRIBUTING.md
+SECURITY.md
+CLAUDE.md
+LICENSE
+README.md
+
+# Build scripts (not needed inside the nginx container)
+build.sh
+build.bat
+Makefile
+setup.sh
+setup.bat
+run.sh
+run.bat
