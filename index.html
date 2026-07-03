@@ -1212,6 +1212,64 @@
 
     .testi-cta { margin-top: 40px; display: flex; justify-content: center; }
 
+    /* ─── § 07 · FAQ ───────────────────────────────────────────── */
+    section.faq { padding: 96px 0; background: var(--paper); position: relative; }
+    @media (min-width: 1024px) { section.faq { padding: 128px 0; } }
+    .faq-inner { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+    .faq-head { text-align: center; max-width: 720px; margin: 0 auto 56px; }
+    .faq-eyebrow {
+      font-family: 'Barlow', sans-serif;
+      font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--accent-600); font-weight: 600; margin: 0;
+    }
+    .faq-head h2 {
+      font-family: 'Anton', sans-serif;
+      font-size: clamp(36px, 5vw, 68px);
+      font-weight: 400; letter-spacing: -0.005em; line-height: 1.02;
+      color: var(--ink-900); margin: 18px 0 0;
+    }
+    .faq-head h2 em.italic-serif {
+      font-style: italic; color: var(--accent-500); font-weight: 400;
+      font-family: 'Fraunces', serif;
+    }
+    .faq-list { border-top: 1px solid var(--ink-200); }
+    .faq-item { border-bottom: 1px solid var(--ink-200); }
+    .faq-item summary {
+      padding: 24px 8px; cursor: pointer; list-style: none;
+      font-family: 'Anton', sans-serif;
+      font-size: 20px; font-weight: 400; letter-spacing: 0.01em;
+      color: var(--ink-900);
+      display: flex; justify-content: space-between; align-items: center; gap: 24px;
+      transition: color 0.15s;
+    }
+    @media (min-width: 640px) { .faq-item summary { font-size: 24px; } }
+    .faq-item summary::-webkit-details-marker { display: none; }
+    .faq-item summary::after {
+      content: '+';
+      font-family: 'Barlow', sans-serif;
+      font-size: 32px; font-weight: 300;
+      color: var(--accent-500);
+      transition: transform 0.25s;
+      line-height: 0.8; flex-shrink: 0;
+    }
+    .faq-item[open] summary::after { transform: rotate(45deg); }
+    .faq-item summary:hover { color: var(--accent-500); }
+    .faq-answer {
+      padding: 0 8px 26px;
+      color: var(--ink-700);
+      font-size: 16px; line-height: 1.7;
+      font-family: 'Barlow', sans-serif;
+    }
+    .faq-answer strong { color: var(--ink-900); font-weight: 700; }
+    .faq-footnote {
+      margin-top: 48px; padding-top: 28px;
+      border-top: 1px dashed var(--ink-200);
+      text-align: center;
+      font-family: 'Barlow', sans-serif;
+      font-size: 13px; color: var(--ink-500);
+    }
+    .faq-footnote a { color: var(--accent-600); font-weight: 600; text-decoration: underline; text-decoration-color: var(--accent-500); text-underline-offset: 3px; }
+
     /* ─── CTA CLOSER ─────────────────────────────────────────── */
     section.cta {
       background: var(--ink-950);
@@ -1691,7 +1749,7 @@
   </section>
 
   <!-- ─── § 01 · TWO DIVISIONS ─────────────────────────────── -->
-  <div class="divider dark"><div class="wrap"><div class="section-marker"><span class="tabular">§ 01</span><span class="normal">Two Divisions</span><span class="tabular" style="opacity:0.6">of 07</span></div></div></div>
+  <div class="divider dark"><div class="wrap"><div class="section-marker"><span class="tabular">§ 01</span><span class="normal">Two Divisions</span><span class="tabular" style="opacity:0.6">of 08</span></div></div></div>
 
   <section class="divisions" id="two-paths">
     <div class="wrap divisions-inner">
@@ -1775,7 +1833,7 @@
   </section>
 
   <!-- ─── § 02 · SERVICES ──────────────────────────────────── -->
-  <div class="divider dark"><div class="wrap"><div class="section-marker"><span class="tabular">§ 02</span><span class="normal">Service Catalog</span><span class="tabular" style="opacity:0.6">of 07</span></div></div></div>
+  <div class="divider dark"><div class="wrap"><div class="section-marker"><span class="tabular">§ 02</span><span class="normal">Service Catalog</span><span class="tabular" style="opacity:0.6">of 08</span></div></div></div>
 
   <section id="services" class="services">
     <div class="wrap services-inner">
@@ -1878,7 +1936,7 @@
   </section>
 
   <!-- ─── § 03 · PORTFOLIO ─────────────────────────────────── -->
-  <div class="divider light"><div class="wrap"><div class="section-marker"><span class="tabular">§ 03</span><span class="normal">Recent Projects</span><span class="tabular" style="opacity:0.6">of 07</span></div></div></div>
+  <div class="divider light"><div class="wrap"><div class="section-marker"><span class="tabular">§ 03</span><span class="normal">Recent Projects</span><span class="tabular" style="opacity:0.6">of 08</span></div></div></div>
 
   <section id="portfolio" class="portfolio">
     <div class="wrap">
@@ -2031,7 +2089,7 @@
   </section>
 
   <!-- ─── § 04 · CREDENTIALS ──────────────────────────────── -->
-  <div class="divider light"><div class="wrap"><div class="section-marker"><span class="tabular">§ 04</span><span class="normal">Compliance &amp; Safety</span><span class="tabular" style="opacity:0.6">of 07</span></div></div></div>
+  <div class="divider light"><div class="wrap"><div class="section-marker"><span class="tabular">§ 04</span><span class="normal">Compliance &amp; Safety</span><span class="tabular" style="opacity:0.6">of 08</span></div></div></div>
 
   <section id="credentials" class="credentials">
     <div class="wrap">
@@ -2087,7 +2145,7 @@
   </section>
 
   <!-- ─── § 05 · PROCESS ──────────────────────────────────── -->
-  <div class="divider light"><div class="wrap"><div class="section-marker"><span class="tabular">§ 05</span><span class="normal">How It Works</span><span class="tabular" style="opacity:0.6">of 07</span></div></div></div>
+  <div class="divider light"><div class="wrap"><div class="section-marker"><span class="tabular">§ 05</span><span class="normal">How It Works</span><span class="tabular" style="opacity:0.6">of 08</span></div></div></div>
 
   <section id="process" class="process">
     <div class="wrap">
@@ -2163,7 +2221,7 @@
   </section>
 
   <!-- ─── § 06 · TESTIMONIALS ─────────────────────────────── -->
-  <div class="divider light"><div class="wrap"><div class="section-marker"><span class="tabular">§ 06</span><span class="normal">Clients on the Record</span><span class="tabular" style="opacity:0.6">of 07</span></div></div></div>
+  <div class="divider light"><div class="wrap"><div class="section-marker"><span class="tabular">§ 06</span><span class="normal">Clients on the Record</span><span class="tabular" style="opacity:0.6">of 08</span></div></div></div>
 
   <section id="testimonials" class="testimonials">
     <div class="wrap-narrow testi-lead">
@@ -2208,8 +2266,82 @@
     </div>
   </section>
 
-  <!-- ─── § 07 · CTA CLOSER ───────────────────────────────── -->
-  <div class="divider dark"><div class="wrap"><div class="section-marker"><span class="tabular">§ 07</span><span class="normal">Bid Intake Open</span><span class="tabular" style="opacity:0.6">of 07</span></div></div></div>
+  <!-- ─── § 07 · THE STRAIGHT ANSWERS (FAQ) ─────────────────── -->
+  <div class="divider light"><div class="wrap"><div class="section-marker"><span class="tabular">§ 07</span><span class="normal">The Straight Answers</span><span class="tabular" style="opacity:0.6">of 08</span></div></div></div>
+
+  <section id="faq" class="faq">
+    <div class="faq-inner">
+      <div class="faq-head reveal">
+        <p class="faq-eyebrow">// The straight answers · § VII</p>
+        <h2>Everything people <em class="italic-serif">actually ask</em> about a bid.</h2>
+      </div>
+
+      <div class="faq-list">
+        <details class="faq-item">
+          <summary>Do you provide fixed-price bids?</summary>
+          <div class="faq-answer">
+            <strong>Yes — fixed bids are the default.</strong> Every scope of work we quote comes with a hard number, a line-item breakdown, and a schedule. Time-and-materials is reserved for genuine unknowns (deep-cut renovations where the wall might hide anything). If your scope has T&amp;M in it, we'll flag exactly which line items and why.
+          </div>
+        </details>
+
+        <details class="faq-item">
+          <summary>Do I own the drawings, permits, and closeout docs?</summary>
+          <div class="faq-answer">
+            Yes. Final permits, warranties, closeout binders, and any project-specific drawings transfer to you at final payment. If we prepared design-assist drawings, you own those too. We keep archival copies for our records; you get the originals.
+          </div>
+        </details>
+
+        <details class="faq-item">
+          <summary>What if I need something that isn't on your services list?</summary>
+          <div class="faq-answer">
+            Ask. Our list covers 90% of what commercial, industrial, and residential clients need. Anything outside it, we'll tell you honestly whether we can self-perform or should bring in a specialist trade partner. Either way, it stays under one contract, one PM, one point of accountability.
+          </div>
+        </details>
+
+        <details class="faq-item">
+          <summary>Can we scale the scope up or down mid-project?</summary>
+          <div class="faq-answer">
+            Change orders happen; how we handle them is what matters. Every change gets a written change order with a fixed cost and a schedule impact, signed before work resumes. No surprises on the final invoice.
+          </div>
+        </details>
+
+        <details class="faq-item">
+          <summary>What warranty do you offer after completion?</summary>
+          <div class="faq-answer">
+            <strong>One-year workmanship warranty on every trade we self-perform.</strong> Material and manufacturer warranties pass through to you in the closeout binder. If a defect is on us, we come back and fix it — full stop, no invoice.
+          </div>
+        </details>
+
+        <details class="faq-item">
+          <summary>Do you require a written contract?</summary>
+          <div class="faq-answer">
+            For every project over $5,000, yes. Standard AIA-style contract or a plain-English version — your preference. Under $5k, a signed one-page scope-of-work with milestones is enough. It protects both of us.
+          </div>
+        </details>
+
+        <details class="faq-item">
+          <summary>How does payment work?</summary>
+          <div class="faq-answer">
+            Milestone-based, not time-based. Typical schedule: <strong>15% deposit at signing, 25% at material delivery / demo, 40% at rough-in complete, 20% at final walk-through</strong>. Progress payments align with visible milestones, so you're never paying for work that hasn't happened yet.
+          </div>
+        </details>
+
+        <details class="faq-item">
+          <summary>Do you take rush jobs — and what does that add?</summary>
+          <div class="faq-answer">
+            Yes, when the calendar allows. Rush work runs <strong>15–25% above standard bid</strong>, depending on trade availability and material lead time. You'll see the rush premium as its own line item — not folded into the base — so you know exactly what you're paying for.
+          </div>
+        </details>
+      </div>
+
+      <p class="faq-footnote">
+        Didn't see your question? <a href="#contact">Ask it in the bid form →</a>
+      </p>
+    </div>
+  </section>
+
+  <!-- ─── § 08 · CTA CLOSER ───────────────────────────────── -->
+  <div class="divider dark"><div class="wrap"><div class="section-marker"><span class="tabular">§ 08</span><span class="normal">Bid Intake Open</span><span class="tabular" style="opacity:0.6">of 08</span></div></div></div>
 
   <section class="cta">
     <div class="cta-bg" aria-hidden="true"></div>
