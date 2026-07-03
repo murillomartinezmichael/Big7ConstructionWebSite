@@ -71,14 +71,18 @@
       --paper:   #F5F1EA;
       --paper-2: #EAE4D9;
       --paper-3: #DED6C7;
-      /* Copper — restrained industrial accent. */
-      --accent-400: #D08B5C;
-      --accent-500: #B96A3D;
-      --accent-600: #8E4E2A;
-      /* Steel — executive blue, credentials only. */
-      --steel-500: #2F4A6B;
-      --steel-600: #1F3A5F;
-      /* Compliance forest. */
+      /* Orange — brand primary. Vivid, warm, editorial. */
+      --accent-400: #F17C4F;
+      --accent-500: #E85D2C;
+      --accent-600: #B34419;
+      /* Blue — brand secondary. Punchy corporate blue for compliance,
+         credentials, and Division 02 (residential) to counterweight the
+         orange used across Division 01 (commercial). */
+      --steel-400: #4B85E0;
+      --steel-500: #2565CC;
+      --steel-600: #1E5FBF;
+      --steel-700: #164B94;
+      /* Compliance forest — used on form success only. */
       --forest:  #2F5D3A;
     }
 
@@ -228,8 +232,8 @@
     }
     .blueprint-grid {
       background-image:
-        linear-gradient(rgba(185, 106, 61, 0.05) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(185, 106, 61, 0.05) 1px, transparent 1px);
+        linear-gradient(rgba(232, 93, 44, 0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(232, 93, 44, 0.06) 1px, transparent 1px);
       background-size: 48px 48px;
     }
     .progress-rail {
@@ -697,6 +701,16 @@
     }
     .div-link:hover { color: var(--accent-400); }
 
+    /* Division 02 (residential) reads blue — the counterweight to
+       Division 01's orange. Together they show orange + blue + black
+       as the three main brand colors on a single screen. */
+    .div-col.alt .num { color: var(--steel-500); }
+    .div-col.alt .div-title em { color: var(--steel-500); }
+    .div-col.alt .div-list li::before { background: var(--steel-500); }
+    .div-col.alt .div-stat dd .u { color: var(--steel-500); }
+    .div-col.alt .div-link { color: var(--steel-500); }
+    .div-col.alt .div-link:hover { color: var(--steel-400); }
+
     /* ─── SERVICES PREVIEW (dark spec list) ─────────────────── */
     section.services {
       background: var(--ink-900);
@@ -974,12 +988,23 @@
     }
     .cred-label {
       font-family: 'Barlow Condensed', sans-serif;
-      font-size: 10px;
-      font-weight: 600;
+      font-size: 11px;
+      font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.22em;
       color: var(--steel-600);
     }
+
+    /* Blue-forward compliance section — eyebrow + italic-serif accent
+       switch from orange to blue in-scope so the section reads as the
+       procurement / credentials part of the site. */
+    section.credentials .eyebrow { color: var(--steel-600); }
+    section.credentials .eyebrow::before { background: var(--steel-600); }
+    section.credentials .italic-serif { color: var(--steel-600) !important; }
+    section.credentials .cred-foot a { border-bottom-color: var(--steel-600); }
+    section.credentials .cred-foot a:hover { color: var(--steel-600); }
+    .badge-cred { border-color: var(--steel-400); color: var(--steel-400); }
+    .badge-cred.on-light { border-color: var(--steel-600); color: var(--steel-600); }
     .cred-value {
       font-family: 'Fraunces', serif;
       font-weight: 500;
