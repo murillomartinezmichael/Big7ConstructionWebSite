@@ -11,6 +11,8 @@
   <meta property="og:description" content="Two divisions, every trade in-house. Licensed, bonded, insured. Metro Atlanta." />
   <meta name="twitter:card" content="summary_large_image" />
 
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%2308090B'/%3E%3Ctext x='50%25' y='68%25' font-family='Georgia,serif' font-size='38' font-weight='500' text-anchor='middle' fill='%23F5F1EA'%3EB7%3C/text%3E%3Crect x='4' y='4' width='56' height='2' fill='%23E85D2C'/%3E%3C/svg%3E" />
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500&family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -2259,7 +2261,9 @@
 
     <div class="contact-body">
       <div class="wrap-page contact-grid">
-        <form class="cform" onsubmit="submitForm(event)" aria-label="Request a bid">
+        <form class="cform" action="https://formspree.io/f/xykabwog" method="POST" onsubmit="submitForm(event)" aria-label="Request a bid">
+          <input type="hidden" name="_subject" value="New bid request via Big 7 Construction" />
+          <input type="hidden" name="_replyto" value="" />
           <fieldset class="cform-set">
             <div class="cform-legend">
               <span class="lbl">01 · Who&rsquo;s asking</span>
@@ -2282,7 +2286,7 @@
               </label>
               <label>
                 <span>Email *</span>
-                <input type="email" name="email" required autocomplete="email" />
+                <input type="email" name="email" required autocomplete="email" oninput="this.form.querySelector('[name=_replyto]').value = this.value" />
               </label>
             </div>
             <label>
@@ -2599,16 +2603,33 @@
       btn.setAttribute('aria-label', isOpen ? 'Close menu' : 'Open menu');
     }
 
-    // ─── Form submit stub (no backend wired yet) ──────────
-    function submitForm(e) {
+    // ─── Form submit: POST to Formspree via fetch, keep the user
+    //     on-page. Falls back to the native form action if fetch fails.
+    async function submitForm(e) {
       e.preventDefault();
+      const form = e.target;
       const btn = document.getElementById('formBtn');
       const note = document.querySelector('.form-note');
-      btn.textContent = 'Request received ✓';
-      btn.style.background = '#2F5D3A';
+      const original = btn.textContent;
+      btn.textContent = 'Sending…';
       btn.disabled = true;
-      e.target.querySelectorAll('input, select, textarea').forEach(f => f.disabled = true);
-      if (note) note.textContent = "A senior estimator will reach out within 48 hours. Drawings + specs can be emailed to info@big7construction.com.";
+
+      try {
+        const res = await fetch(form.action, {
+          method: 'POST',
+          body: new FormData(form),
+          headers: { 'Accept': 'application/json' }
+        });
+        if (!res.ok) throw new Error('Formspree returned ' + res.status);
+        btn.textContent = 'Request received ✓';
+        btn.style.background = '#2F5D3A';
+        form.querySelectorAll('input, select, textarea').forEach(f => f.disabled = true);
+        if (note) note.textContent = "A senior estimator will reach out within 48 hours. Drawings + specs can be emailed to info@big7construction.com.";
+      } catch (err) {
+        btn.textContent = original;
+        btn.disabled = false;
+        if (note) note.textContent = "Something went wrong sending the form. Email info@big7construction.com directly or call (555) 700-0007.";
+      }
     }
 
     // ─── Year in footer ───────────────────────────────────
