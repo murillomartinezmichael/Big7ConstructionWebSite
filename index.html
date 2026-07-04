@@ -6,10 +6,24 @@
   <title>Big 7 Construction — Commercial · Industrial · Residential General Contractor · Atlanta</title>
   <meta name="description" content="Big 7 Construction is a metro Atlanta general contractor. Two divisions — commercial &amp; enterprise, residential &amp; repair — every trade in-house. Licensed, bonded, insured. Full itemized bid inside two weeks." />
   <meta name="theme-color" content="#08090B" />
+  <link rel="canonical" href="https://big7construction.com/" />
+
+  <!-- Open Graph -->
   <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Big 7 Construction" />
   <meta property="og:title" content="Big 7 Construction — Commercial · Industrial · Residential" />
   <meta property="og:description" content="Two divisions, every trade in-house. Licensed, bonded, insured. Metro Atlanta." />
+  <meta property="og:url" content="https://big7construction.com/" />
+  <meta property="og:image" content="https://big7construction.com/images/jobsite-01.jpg" />
+  <meta property="og:image:alt" content="Big 7 Construction jobsite" />
+  <meta property="og:locale" content="en_US" />
+
+  <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Big 7 Construction — Commercial · Industrial · Residential" />
+  <meta name="twitter:description" content="Two divisions, every trade in-house. Licensed, bonded, insured. Metro Atlanta." />
+  <meta name="twitter:image" content="https://big7construction.com/images/jobsite-01.jpg" />
+  <meta name="twitter:image:alt" content="Big 7 Construction jobsite" />
 
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%2308090B'/%3E%3Ctext x='50%25' y='68%25' font-family='Georgia,serif' font-size='38' font-weight='500' text-anchor='middle' fill='%23F5F1EA'%3EB7%3C/text%3E%3Crect x='4' y='4' width='56' height='2' fill='%23E85D2C'/%3E%3C/svg%3E" />
 
@@ -31,11 +45,37 @@
     "email": "info@big7construction.com",
     "url": "https://big7construction.com",
     "priceRange": "$$-$$$$",
+    "image": "https://big7construction.com/images/jobsite-01.jpg",
+    "logo": "https://big7construction.com/images/jobsite-01.jpg",
     "address": {
       "@type": "PostalAddress",
       "addressLocality": "Atlanta",
       "addressRegion": "GA",
       "addressCountry": "US"
+    },
+    "openingHoursSpecification": [
+      {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+        "opens": "07:00",
+        "closes": "18:00"
+      }
+    ],
+    "hasOfferCatalog": {
+      "@type": "OfferCatalog",
+      "name": "Divisions",
+      "itemListElement": [
+        {
+          "@type": "OfferCatalog",
+          "name": "Commercial & Enterprise",
+          "itemListElement": []
+        },
+        {
+          "@type": "OfferCatalog",
+          "name": "Residential & Repair",
+          "itemListElement": []
+        }
+      ]
     }
   }
   </script>
@@ -1628,7 +1668,7 @@
   <!-- ─── NAV ────────────────────────────────────────────────── -->
   <nav class="top">
     <div class="wrap nav-inner">
-      <a href="#" class="brand">
+      <a href="#hero" class="brand">
         <span class="brand-mark" aria-hidden="true">B7</span>
         <span class="brand-text">
           <span class="brand-name">Big 7<em> Construction</em></span>
@@ -2767,5 +2807,22 @@
     // ─── Year in footer ───────────────────────────────────
     (function () { const y = document.getElementById('year'); if (y) y.textContent = new Date().getFullYear(); })();
   </script>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       SiteGuide widget — Big 7 tenant. Loaded from separately-deployed
+       SiteGuide (siteguide-production.up.railway.app). If unreachable
+       the rest of the page is unaffected. If the visitor is on an
+       origin not listed in SiteGuide/sites/big7.json → allowed_origins,
+       /v1/chat returns 403 and the widget stays silent (by design).
+       LOCAL DEV: swap both URLs below to http://localhost:8000
+                  after `cd ../SiteGuide && ./run.sh`.
+       ═══════════════════════════════════════════════════════════════ -->
+  <script
+    src="https://siteguide-production.up.railway.app/widget.js"
+    data-site="big7"
+    data-api="https://siteguide-production.up.railway.app"
+    data-title="Ask Big 7"
+    defer></script>
+
 </body>
 </html>
