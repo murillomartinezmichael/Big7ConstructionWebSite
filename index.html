@@ -39,6 +39,17 @@
     "description": "Metro Atlanta general contractor. Commercial, industrial, and residential construction. Every trade in-house. Licensed, bonded, insured.",
     "areaServed": [
       { "@type": "City", "name": "Atlanta" },
+      { "@type": "City", "name": "Sandy Springs" },
+      { "@type": "City", "name": "Brookhaven" },
+      { "@type": "City", "name": "Buckhead" },
+      { "@type": "City", "name": "Marietta" },
+      { "@type": "City", "name": "Alpharetta" },
+      { "@type": "City", "name": "Roswell" },
+      { "@type": "City", "name": "Decatur" },
+      { "@type": "City", "name": "Kennesaw" },
+      { "@type": "City", "name": "Smyrna" },
+      { "@type": "City", "name": "Norcross" },
+      { "@type": "City", "name": "South Fulton" },
       { "@type": "State", "name": "Georgia" }
     ],
     "telephone": "+1-555-700-0007",
@@ -68,12 +79,21 @@
         {
           "@type": "OfferCatalog",
           "name": "Commercial & Enterprise",
-          "itemListElement": []
+          "itemListElement": [
+            { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Enterprise Framing", "description": "Structural steel and wood framing for multi-story commercial, mixed-use, and industrial builds. Up to 6 stories, Type IIB & V-A, SEOR-coordinated." } },
+            { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Commercial New Construction", "description": "Ground-up offices, retail, hospitality, and institutional buildings — permit to punch list. Design-build option, GC of record, bonded per project." } },
+            { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Industrial & Warehouse", "description": "Distribution, manufacturing, and cold-storage facilities on fast-track schedules. Pre-engineered metal, tilt-up, loading dock & racking." } },
+            { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Tenant Improvement", "description": "Office fit-outs and retail buildouts in occupied buildings. After-hours crews, landlord coordination, TI allowance management." } }
+          ]
         },
         {
           "@type": "OfferCatalog",
           "name": "Residential & Repair",
-          "itemListElement": []
+          "itemListElement": [
+            { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Custom Home Builds", "description": "Ground-up residential with owner-vision plans and defensible budget discipline. 2,400–8,000 sq ft, 8–14 months, fixed-price milestones." } },
+            { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Structural Repair & Remodeling", "description": "Storm damage, foundation issues, additions, and full renovations. One crew, one warranty. Foundation, framing, roof, full mechanical." } },
+            { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Every Trade In-House", "description": "Plumbing, electrical, roofing, HVAC, foundation, drywall, and interiors — no anonymous subs." } }
+          ]
         }
       ]
     }
@@ -1994,6 +2014,20 @@
         </div>
       </div>
 
+      <!--
+        ═══════════════════════════════════════════════════════════════
+        ADD A NEW PROJECT — copy any <a class="pf-card ..."> block below
+        and change these 4 things only. No JS, no build step, no CMS.
+        ───────────────────────────────────────────────────────────────
+          1. img src        → images/your-photo.jpg  (drop file in /images)
+          2. pf-tag         → "Industrial № 07"      (division + number)
+          3. pf-eyebrow     → "Client Name · City, GA"
+          4. pf-title + dl  → project name + Size/Duration/Budget/Trades
+        The .wide modifier makes a card span two columns — use it for
+        the flagship at the top of the grid. Update `--reveal-delay` in
+        70ms increments so cards stagger in on scroll.
+        ═══════════════════════════════════════════════════════════════
+      -->
       <div class="portfolio-grid">
         <a class="pf-card wide reveal blueprint-grid" style="--reveal-delay: 0ms" href="#contact">
           <img src="images/jobsite-01.jpg" alt="South Fulton distribution facility" loading="lazy" onerror="this.style.display='none'" />
