@@ -261,8 +261,9 @@
       transition: background 0.2s, color 0.2s, border-color 0.2s, transform 0.2s;
       text-decoration: none;
     }
-    .btn-accent { background: var(--accent-500); color: #fff; }
-    .btn-accent:hover { background: var(--accent-600); transform: translateY(-1px); }
+    /* .btn-accent uses --accent-600 for WCAG AA on white text (3.48 → 5.05). Hover darkens via filter to preserve interaction affordance without a new color token. */
+    .btn-accent { background: var(--accent-600); color: #fff; }
+    .btn-accent:hover { filter: brightness(0.88); transform: translateY(-1px); }
     .btn-dark { background: var(--ink-900); color: #fff; }
     .btn-dark:hover { background: var(--ink-950); transform: translateY(-1px); }
     .btn-outline-dark { background: transparent; color: var(--ink-900); border-color: var(--ink-900); }
@@ -393,6 +394,7 @@
     .brand-name em { font-style: normal; color: var(--ink-500); font-weight: 400; }
     .brand-sub {
       display: inline-flex;
+      /* color: var(--ink-500) — was --ink-400; bumped for WCAG AA on --paper (4.14 → 5.53) */
       align-items: center;
       gap: 6px;
       margin-top: 4px;
@@ -401,7 +403,7 @@
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.22em;
-      color: var(--ink-400);
+      color: var(--ink-500);
     }
 
     .nav-links {
@@ -1810,7 +1812,7 @@
   </section>
 
   <!-- ─── § 01 · TWO DIVISIONS ─────────────────────────────── -->
-  <div class="divider dark"><div class="wrap"><div class="section-marker"><span class="tabular">§ 01</span><span class="normal">Two Divisions</span><span class="tabular" style="opacity:0.6">of 08</span></div></div></div>
+  <div class="divider dark"><div class="wrap"><div class="section-marker"><span class="tabular">§ 01</span><span class="normal">Two Divisions</span><span class="tabular" style="opacity:0.8">of 08</span></div></div></div>
 
   <section class="divisions" id="two-paths">
     <div class="wrap divisions-inner">
@@ -1894,7 +1896,7 @@
   </section>
 
   <!-- ─── § 02 · SERVICES ──────────────────────────────────── -->
-  <div class="divider dark"><div class="wrap"><div class="section-marker"><span class="tabular">§ 02</span><span class="normal">Service Catalog</span><span class="tabular" style="opacity:0.6">of 08</span></div></div></div>
+  <div class="divider dark"><div class="wrap"><div class="section-marker"><span class="tabular">§ 02</span><span class="normal">Service Catalog</span><span class="tabular" style="opacity:0.8">of 08</span></div></div></div>
 
   <section id="services" class="services">
     <div class="wrap services-inner">
@@ -1997,7 +1999,7 @@
   </section>
 
   <!-- ─── § 03 · PORTFOLIO ─────────────────────────────────── -->
-  <div class="divider light"><div class="wrap"><div class="section-marker"><span class="tabular">§ 03</span><span class="normal">Recent Projects</span><span class="tabular" style="opacity:0.6">of 08</span></div></div></div>
+  <div class="divider light"><div class="wrap"><div class="section-marker"><span class="tabular">§ 03</span><span class="normal">Recent Projects</span><span class="tabular" style="opacity:0.8">of 08</span></div></div></div>
 
   <section id="portfolio" class="portfolio">
     <div class="wrap">
@@ -2164,7 +2166,7 @@
   </section>
 
   <!-- ─── § 04 · CREDENTIALS ──────────────────────────────── -->
-  <div class="divider light"><div class="wrap"><div class="section-marker"><span class="tabular">§ 04</span><span class="normal">Compliance &amp; Safety</span><span class="tabular" style="opacity:0.6">of 08</span></div></div></div>
+  <div class="divider light"><div class="wrap"><div class="section-marker"><span class="tabular">§ 04</span><span class="normal">Compliance &amp; Safety</span><span class="tabular" style="opacity:0.8">of 08</span></div></div></div>
 
   <section id="credentials" class="credentials">
     <div class="wrap">
@@ -2220,7 +2222,7 @@
   </section>
 
   <!-- ─── § 05 · PROCESS ──────────────────────────────────── -->
-  <div class="divider light"><div class="wrap"><div class="section-marker"><span class="tabular">§ 05</span><span class="normal">How It Works</span><span class="tabular" style="opacity:0.6">of 08</span></div></div></div>
+  <div class="divider light"><div class="wrap"><div class="section-marker"><span class="tabular">§ 05</span><span class="normal">How It Works</span><span class="tabular" style="opacity:0.8">of 08</span></div></div></div>
 
   <section id="process" class="process">
     <div class="wrap">
@@ -2296,7 +2298,7 @@
   </section>
 
   <!-- ─── § 06 · TESTIMONIALS ─────────────────────────────── -->
-  <div class="divider light"><div class="wrap"><div class="section-marker"><span class="tabular">§ 06</span><span class="normal">Clients on the Record</span><span class="tabular" style="opacity:0.6">of 08</span></div></div></div>
+  <div class="divider light"><div class="wrap"><div class="section-marker"><span class="tabular">§ 06</span><span class="normal">Clients on the Record</span><span class="tabular" style="opacity:0.8">of 08</span></div></div></div>
 
   <section id="testimonials" class="testimonials">
     <div class="wrap-narrow testi-lead">
@@ -2342,7 +2344,7 @@
   </section>
 
   <!-- ─── § 07 · THE STRAIGHT ANSWERS (FAQ) ─────────────────── -->
-  <div class="divider light"><div class="wrap"><div class="section-marker"><span class="tabular">§ 07</span><span class="normal">The Straight Answers</span><span class="tabular" style="opacity:0.6">of 08</span></div></div></div>
+  <div class="divider light"><div class="wrap"><div class="section-marker"><span class="tabular">§ 07</span><span class="normal">The Straight Answers</span><span class="tabular" style="opacity:0.8">of 08</span></div></div></div>
 
   <section id="faq" class="faq">
     <div class="faq-inner">
@@ -2416,7 +2418,7 @@
   </section>
 
   <!-- ─── § 08 · CTA CLOSER ───────────────────────────────── -->
-  <div class="divider dark"><div class="wrap"><div class="section-marker"><span class="tabular">§ 08</span><span class="normal">Bid Intake Open</span><span class="tabular" style="opacity:0.6">of 08</span></div></div></div>
+  <div class="divider dark"><div class="wrap"><div class="section-marker"><span class="tabular">§ 08</span><span class="normal">Bid Intake Open</span><span class="tabular" style="opacity:0.8">of 08</span></div></div></div>
 
   <section class="cta">
     <div class="cta-bg" aria-hidden="true"></div>
