@@ -15,6 +15,14 @@ Rolling list of before/after moments and process shots that would land on TikTok
 - **Google Fonts render-block, isolated.** Terminal shot of the `render-blocking-insight` audit — before line shows `wastedMs: 786` and score 0, after line shows score 1 (PASS). Cut to the ~5-line HTML diff (Filament Group async-load pattern) that removed it. **Frame:** "one HTML edit, 800 ms shaved off first paint. Font loading is the single most-mis-configured thing on the web."
 - **The 206×206 hero image reveal.** Split-screen: the hero on the live site (looks fine at hero size) next to opening the actual file in an image viewer at 100% — pixel-tiny 206×206 speck. **Frame:** "your fancy hero image is a thumbnail wearing makeup. This is why real photos matter." (Client-photo-blocked note: don't publish until real photos land.)
 
+## 2026-07-05 chunk 3 (a11y + 404)
+
+### Filmable
+- **The DL semantic reveal, screen-reader edition.** Screen record with macOS VoiceOver (or NVDA) walking the hero stats: before the fix, VoiceOver says "empty definition list, empty definition list…" because the DTs and DDs were nested in divs; after, "Projects delivered, 500 plus. Trades in-house, 8. Coverage, 100 percent…" — perfect. **Frame:** "a blind visitor. Before: silence. After: your whole pitch. And it took deleting four divs."
+- **404 that isn't the home page.** Split-screen: paste a fake URL like `/services/framing/does-not-exist` into two browsers. Left: an old build silently reloads the home page and pretends everything's fine. Right: the new build shows a real 404 with a big "back to Big 7" button. **Frame:** "if your broken links secretly serve your home page, Google is duplicate-content-penalizing you and you don't know it. This is a two-line nginx fix."
+- **`.btn-accent` accessibility fix in the browser dev tools.** Open Chrome dev-tools contrast checker, hover the CTA — old build shows 3.48 (fail), new build shows 5.05 (pass). Voice-over: "This was making my CTA invisible to about 8 percent of visitors. One hex code change. My conversion just got better and I didn't touch the layout." **Frame:** "the a11y fix that pays for itself in extra clicks."
+
 ## Waiting-for
 - Real jobsite photos (2000+ px) — the site actually reads like a portfolio not a template only after these arrive.
 - Client testimonial + head-shot — the trust section is currently editorial framing with no faces.
+- Real live URL — Perf Lighthouse against Railway prod, not local emulator, is the honest re-measurement.
