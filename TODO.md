@@ -1,50 +1,52 @@
 # Big7Construction — TODO
 
-**Last updated:** 2026-07-05 (Ignition Prompt session)
-**Stack (locked by ADR-0001):** single-file `index.html` + embedded CSS + nginx:alpine on Railway. No JS framework, no build step.
-**Ladder position:** RUNG 4 (SPEED) partially climbed this session — see SHIPPED below.
+**Last updated:** 2026-07-05 (Ignition Prompt session, block 2)
+**Stack (locked by ADR-0001):** single-file `index.html` + embedded CSS + nginx:alpine on Railway. Now with a real `/404.html`. No JS framework, no build step.
+**Ladder position:** RUNG 3 CLEAN pass shipped this block (a11y). RUNG 4 QUICKEN's Lighthouse re-measurement is the pending verify (needs Chromium — Michael-side).
 
-## SHIPPED (recent, chronological)
+## SHIPPED (this session — 2026-07-05, block 2)
 
-**2026-07-05 (chunk 1) — SEO / schema.org deepening** (committed as `d213c8c`)
-- JSON-LD `GeneralContractor.areaServed` expanded 2 → 13 nodes (12 metro Atlanta cities + GA state).
-- `hasOfferCatalog.itemListElement` populated from empty stubs to 7 real `Service` offers (4 Commercial + 3 Residential).
-- Portfolio grid: copy-paste comment marker at line 1997 documenting the 4 fields a client edits per new project (no JS, no build tool).
-- Page weight verified: 125 KB raw / **24 KB gzipped** (8× under the 200 KB gate).
-
-**2026-07-05 (chunk 2, this session) — RUNG 4 SPEED, one-shot fix**
-- Async-loaded Google Fonts stylesheet using the Filament Group pattern (preload + `media=print` + `onload='this.media=all'` + `<noscript>` fallback). Same-origin `preconnect` was already in place.
-- Added `<link rel="preload" as="image" href="images/jobsite-01.jpg" fetchpriority="high" />` for the hero LCP candidate.
-- Lighthouse mobile before/after (`npx lighthouse` v13.4.0, `--headless=new`, mobile emulation):
-  - `render-blocking-insight` audit: **0 → 1 (PASS)**. wastedMs was 786.
-  - Category score: 74 → 70 — within throttling noise (~±5). The Speed Index metric moved 63 → 76.
-  - FCP/LCP raw values unchanged — Lighthouse's simulated slow-4G throttling also throttles the async font fetch, so the emulator doesn't see the real-world win.
-- **Honest read: audit-level PASS is a real improvement (~800 ms off render on real slow devices); score gate 95 still not cleared in the emulator.** Root causes remain (below).
+- **Checkpoint 1** (`b06b4ba`) — **`.hero-stats <dl>` flattened.** Dropped 4 wrapper `<div class="hero-stat">`. All 4 `<dt>` are now direct children of `<dl>`, followed by all 4 `<dd>`. CSS grid `grid-auto-flow: row` preserves the 4-column visual layout. Renamed `.hero-stat *` CSS selectors to `.hero-stats *` — grep-verified zero orphans. Predicted a11y 93 → ~95 on next Lighthouse pass.
+- **Checkpoint 2** (`ec70763`) — **Color-contrast sweep + `Vary: Accept-Encoding`.** `.brand-sub` `--ink-400` → `--ink-500` (4.14 → 5.53 on paper). `.btn-accent` bg `--accent-500` → `--accent-600` (3.48 → ~5.05 on white text); hover moved from a bg swap to `filter: brightness(0.88)`. All 8 `.section-marker span.tabular` `opacity: 0.6` → `0.8` (marginal on light dividers; dark-divider case still fails AA — deferred). nginx gets `Vary: Accept-Encoding` for gzip correctness. **TODO PARKED §3 (cache headers) was a false positive** — nginx.conf already sets `public, max-age=31536000, immutable` at server scope + `max-age=0, must-revalidate` on `/index.html`. Prior Lighthouse cache-insight=50 was measured against `python -m http.server`, not nginx. Book I §3: repo beats word.
+- **Checkpoint 3** (`d921703`) — **Real `/404.html` + nginx no longer rewrites broken links.** STANDARDS §6 required a 404 page — never had one. `nginx.conf` `try_files` falls through to `=404` (was silently rewriting typos + broken inbound links to `/` with HTTP 200 — bad for SEO). `error_page 404 /404.html;` + `internal;` location. `Dockerfile` copies the file.
+- **Exit-rite state files** (`712edae` + this commit) — `STATUS.md` created with runtime + evolution ladder + Lighthouse timeline + Rung-7 ENVISION proposal. `DECISIONS.md` created with 4 reversible calls. `CONTENT.md` gained 3 filmable moments. `CHANGELOG.md` [Unreleased] catches all three block-2 commits.
 
 ## NEXT ACTION (60-second cold start)
 
-**Fix the CLS on `.hero-stats <dl>` structure (a11y 93 → ~95).** Lighthouse `definition-list` audit calls out `section#hero > div.wrap > div > dl.hero-stats` — each `<div class="hero-stat">` wraps a `<dt>`/`<dd>` pair, but the a11y checker requires `<dt>` and `<dd>` as direct children of `<dl>` in properly-ordered runs. Either drop the wrapper `<div>` (and use CSS grid on the `<dl>` directly) or switch the semantic to `<ul>` of `<li>` with visual styling. ~30 min including a re-run.
+**Re-run Lighthouse against a real deploy** (or a locally-hosted `nginx.conf` container) to verify block-2 landed the a11y bump and to see whether Perf category cleared 95 with async-fonts + color-contrast + `<dl>` fixes together.
+
+Micro-steps:
+1. Push commits (this session's `push` at exit rite handles that; or `git push origin main` if resumed).
+2. Redeploy Big7 to Railway — the a11y + nginx + Dockerfile changes need a rebuild.
+3. Get the live URL from Railway dashboard (still not on file — see PARKED §9).
+4. `npx lighthouse https://<prod-url> --preset=desktop --output=json --output-path=./lighthouse-post-block2.json --headless=new`
+5. Append the deltas to `STATUS.md § Lighthouse timeline` — a11y target 95-96, Perf still 70-ish (real fix is real photos per PARKED §1).
+
+If any score REGRESSES, git-blame this session's commits + revert the specific change. `b06b4ba` (`<dl>` flatten) is the highest risk of visual regression — verify the 4-column hero stat block still renders correctly on mobile (375px width).
 
 ## PARKED (do NOT start without a session goal)
 
-- **Real photos** — `images/jobsite-01.jpg` and `jobsite-02.jpg` are **206×206 pixels** (verified via PIL 2026-07-05). All 6 portfolio cards + the hero all reuse those two 206px thumbnails, upscaled 3-5× in CSS. This is the deepest quality issue on the site. Real fix: client sends 6+ real jobsite photos at ≥1600 px long edge. Blocked on client.
-- **Color-contrast a11y** (5+ violations). Lighthouse concretely names: `.brand-sub` #6e757c on paper (4.14, needs 4.5); `.btn` white on some fill (3.48); `.section-marker span.tabular` (2.51, opacity 0.6 amplifies the miss); `.section-marker span.tabular` inside dividers (1.61). Fix path: bump ink-400 → ink-500 (#4C5258) in these spots; drop opacity 0.6 to 0.8 on section-marker span.tabular. ~20 min.
-- **Cache headers in `nginx.conf`.** Lighthouse `cache-insight` = 50. Add per-asset `Cache-Control: public, max-age=31536000, immutable` for `/images/*` and `/*.woff2`, plus `Cache-Control: public, max-age=3600` for HTML. ~5 min. Needs a Railway redeploy to observe.
-- **Unminified / unused CSS** (both audits at 50). Truly fixing would mean a build step, which ADR-0001 explicitly rejects. Alternative: hand-audit the `<style>` block for definitely-dead rules only.
-- **Service pages per offering (7) + per area (12)** for local SEO. Highest local-search lever remaining. Requires ~4–6 hrs to shape as separate `.html` files served by same nginx. Only justified if Google Business Profile is claimed.
-- **Trust section with real content** (line 2134 credentials §). Currently editorial framing only. Blocked on client input.
-- **Quote form lead storage.** Formspree emails leads (line 2418). If searchable log is wanted → Cloudflare Workers KV row-store. Not needed until lead volume > 3/week.
-- **Placeholder phone `(555) 700-0007`** — needs real number before public launch. Locations: nav (1688), CTA closer (2405), contact (2572, 2612, 2648), JSON-LD (44).
-- **Placeholder email `info@big7construction.com`** — verify domain owned + inbox routing.
-- **HTTP 200 verification of the live Railway URL.** URL isn't on file. `PENDING_MIKE.md § J` covers the dashboard lookup.
+- **Real photos** — `images/jobsite-01.jpg` + `jobsite-02.jpg` are 206×206 px, upscaled 3-5× in CSS. Deepest quality issue. Blocked on client sending 6+ real jobsite photos ≥1600 px long edge. Perf 95 won't clear without this.
+- **Section-marker tabular contrast on DARK dividers** (was 1.61; now ~2.14 after opacity bump — still fails AA). Root: `--ink-400` (#6E757C) on `--ink-950` (#08090B) is a color-pick problem, not opacity. Fix: use `--ink-300` (#9CA3AA) or lighter for tabular specifically on `.divider.dark .section-marker span.tabular`. ~10 min. Named separately so it doesn't slip.
+- **Unminified / unused CSS** (both Lighthouse audits at 50). Truly fixing means a build step, ADR-1 rejects it. Hand-audit for definitely-dead rules is possible (5-10 min).
+- **Service pages per offering (7) + per area (12)** for local SEO. Highest local-search lever remaining. 4-6 hrs shaped as separate `.html` files. Only justified once Google Business Profile is claimed. Note: `try_files ... =404` now correctly 404s non-existent service paths.
+- **Trust section with real content** (line 2134 credentials §). Blocked on client input.
+- **Quote form lead storage.** Formspree emails leads now. Cloudflare Workers KV row-store only when volume > 3/week.
+- **Placeholder phone `(555) 700-0007`** — nav (1688), CTA closer (2405), contact (2572, 2612, 2648), JSON-LD (44).
+- **Placeholder email `info@big7construction.com`** — verify domain + inbox.
+- **HTTP 200 verification of the live Railway URL.** URL not on file. `PENDING_MIKE.md § J` covers the dashboard lookup.
+- **`/robots.txt` + `/sitemap.xml`.** Neither exists at repo root. Both are SEO wins. `nginx try_files =404` now correctly 404s these — Google will re-crawl once wired. ~15 min. Bundle with service-pages work.
 
 ## QUESTIONS FOR MIKE (session end)
 
-None. Session ran fully on independent authority.
+1. Redeploy Big7 to Railway to pick up 404.html + a11y fixes? (yes / no)
+2. `.btn-accent` background switched from `--accent-500` (#E85D2C) to `--accent-600` (#B34419) for WCAG AA. Is the deeper orange still on-brand, or revert? (keep / revert)
 
 ## References
 
-- `docs/adr/0001-nginx-alpine-static-html.md` — why we're not on Astro
-- `index.html:34` — JSON-LD block
-- `index.html:1997` — portfolio copy-paste marker
-- `index.html:30-38` — head render-block fix (this session)
+- `docs/adr/0001-nginx-alpine-static-html.md` — stack lock
+- `index.html:1766-1775` — flattened `<dl>` hero-stats
+- `index.html:264-266` — `.btn-accent` new colors + filter-based hover
+- `nginx.conf:35-45` — new try_files + error_page
+- `404.html` — new
+- `STATUS.md § Lighthouse timeline` — score history + next entry pending
