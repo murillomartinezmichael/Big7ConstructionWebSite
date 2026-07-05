@@ -29,7 +29,17 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500&family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="preload" as="image" href="images/jobsite-01.jpg" fetchpriority="high" />
+  <!--
+    Async-load Google Fonts (Filament Group pattern) — stylesheet no longer
+    render-blocks. `media=print` avoids the render block; onload swaps back to
+    `all` once the sheet is parsed. `<noscript>` covers the JS-off tail.
+    Removing this reintroduces ~800ms of blocking FCP/LCP time (measured
+    2026-07-05 Lighthouse mobile, wastedMs=786 on render-blocking-insight).
+  -->
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500&family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500&family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" media="print" onload="this.media='all'" />
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500&family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" /></noscript>
 
   <script type="application/ld+json">
   {
