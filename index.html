@@ -558,7 +558,7 @@
       padding-top: 32px;
     }
     @media (min-width: 640px) { .hero-stats { grid-template-columns: repeat(4, 1fr); } }
-    .hero-stat dt {
+    .hero-stats dt {
       font-family: 'Barlow Condensed', sans-serif;
       font-size: 10px;
       font-weight: 600;
@@ -566,8 +566,8 @@
       letter-spacing: 0.22em;
       color: var(--ink-400);
     }
-    .hero-stat dd {
-      margin-top: 6px;
+    .hero-stats dd {
+      margin: 6px 0 0;
       font-family: 'Fraunces', serif;
       font-weight: 500;
       font-size: 30px;
@@ -576,8 +576,8 @@
       font-variant-numeric: tabular-nums;
       letter-spacing: -0.025em;
     }
-    .hero-stat dd .up { color: var(--accent-500); font-size: 18px; }
-    .hero-stat .fine { display: block; margin-top: 4px; font-family: 'Barlow Condensed', sans-serif; font-size: 10px; letter-spacing: 0.12em; color: var(--ink-500); font-variant-numeric: tabular-nums; text-transform: uppercase; }
+    .hero-stats dd .up { color: var(--accent-500); font-size: 18px; }
+    .hero-stats .fine { display: block; margin-top: 4px; font-family: 'Barlow Condensed', sans-serif; font-size: 10px; letter-spacing: 0.12em; color: var(--ink-500); font-variant-numeric: tabular-nums; text-transform: uppercase; }
 
     .hero-photo {
       position: relative;
@@ -1764,23 +1764,14 @@
           <a href="#portfolio" class="btn btn-outline-light">See recent projects</a>
         </div>
         <dl class="hero-stats reveal in" style="--reveal-delay: 1000ms">
-          <div class="hero-stat">
-            <dt>Projects delivered</dt>
-            <dd>500<span class="up">+</span></dd>
-          </div>
-          <div class="hero-stat">
-            <dt>Trades in-house</dt>
-            <dd>8</dd>
-          </div>
-          <div class="hero-stat">
-            <dt>Coverage</dt>
-            <dd>100<span class="up">%</span></dd>
-            <span class="fine">Bonded &amp; insured</span>
-          </div>
-          <div class="hero-stat">
-            <dt>Bid response</dt>
-            <dd>48<span class="up">hr</span></dd>
-          </div>
+          <dt>Projects delivered</dt>
+          <dt>Trades in-house</dt>
+          <dt>Coverage</dt>
+          <dt>Bid response</dt>
+          <dd>500<span class="up">+</span></dd>
+          <dd>8</dd>
+          <dd>100<span class="up">%</span><span class="fine">Bonded &amp; insured</span></dd>
+          <dd>48<span class="up">hr</span></dd>
         </dl>
       </div>
       <div class="hero-photo">
