@@ -21,4 +21,10 @@ USER nginx
 
 EXPOSE 8080
 
+# Runtime liveness — Railway ignores this, but local `docker run` + orchestrators
+# (compose / k8s) use it to know when nginx is actually serving. wget is present
+# in the alpine base; the substituted $PORT is what nginx binds.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD wget -q --spider "http://localhost:${PORT:-8080}/" || exit 1
+
 CMD ["sh", "-c", "sed -i s/NGINX_PORT/${PORT:-8080}/g /etc/nginx/conf.d/default.conf && exec nginx -g 'daemon off;'"]
