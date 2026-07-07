@@ -4,7 +4,9 @@
 **Stack (locked by ADR-0001):** single-file `index.html` + embedded CSS + nginx:alpine on Railway. Now with a real `/404.html`, `/robots.txt`, and `/sitemap.xml`. No JS framework, no build step.
 **Ladder position:** RUNG 3 CLEAN — final AA fail (dark-divider tabular) closed 2026-07-07. RUNG 5 INSCRIBE — `robots.txt` + `sitemap.xml` shipped 2026-07-07 (only remaining doc-tier gap was crawler files). RUNG 6 UPGRADE still taking a bite (conversion loop closed + shareable preview card landed). RUNG 4 QUICKEN Lighthouse re-measurement still pending (Michael-side).
 
-## SHIPPED (2026-07-07, fleet all-day ignition — Rungs III + V twin strike, zero client blockers)
+## SHIPPED (2026-07-07, fleet all-day ignition — Rungs III + V + VI triple strike, zero client blockers)
+
+- **Analytics adapter: `dataLayer` → `gtag`/`plausible` bridge (Rung VI UPGRADE — half-shipping the client-blocked NEXT ACTION).** The conversion IIFE from tick 3 has been pushing `cta_click` + `intake_submit` to `window.dataLayer` since 2026-07-06 — but with no consumer, the events were a passive log. Rather than wait on a client-side GA4 ID or a Mike-registered Plausible domain, this session shipped a consumer-agnostic adapter (22 lines vanilla JS, no dep, monkey-patches `dataLayer.push`) that forwards every future push to whichever tag is loaded — none, GA4, Plausible, or both together. Michael's zero-code activation is now a single `<script>` tag drop-in (both snippet variants documented inline right above the adapter). Adapter no-ops on gtag's own `arguments`-shaped pushes so there's no forwarding loop when both are live. Runs after the conversion IIFE; `try/catch` around the forward so a broken consumer script never breaks a CTA click. **Client-blocked half remaining** = Michael pastes the one tag line when he has a domain-registered Plausible property or a client-supplied GA4 Measurement ID.
 
 - **`/robots.txt` + `/sitemap.xml` shipped end-to-end** — closes the two crawler-file PARKED items with a single deploy.
   - `robots.txt`: `User-agent: *` + `Allow: /` + `Sitemap: https://big7construction.com/sitemap.xml` (matches the site's existing canonical + `og:url`).
@@ -45,16 +47,22 @@
 
 ## NEXT ACTION (60-second cold start)
 
-**Still: wire real analytics onto the `window.dataLayer` events fired by tick 3.** The conversion loop is now emitting `cta_click` and `intake_submit`, but no downstream consumer exists — the events go into `dataLayer` and stop there. Cheapest right move: paste a GA4 gtag.js snippet in `<head>` with a real Measurement ID; every dataLayer push then reports automatically. Alternative: Plausible + a custom-event bridge (10 lines). Do NOT ship a third tag manager. LAW 5.
+**Mike-side, one tag line to activate the analytics funnel.** The conversion loop emits `cta_click` + `intake_submit` to `window.dataLayer`, and the 2026-07-07 adapter now mirrors every push to `window.gtag` or `window.plausible` if either is defined. Nothing else in the code needs to change. Drop-in either or both:
 
-Micro-steps:
-1. Get GA4 Measurement ID from client (`G-XXXXXXX`) — or spin up a free property on Mike's account for now.
-2. Paste standard gtag.js snippet after `<head>` opens, before the `<title>` line.
-3. Smoke-test locally with `python -m http.server 8080`: click a service row, open GA4 DebugView, confirm the `cta_click` event lands with correct `intent` param.
-4. Submit the form with a fake email + name, confirm `intake_submit` fires + Formspree still receives it.
-5. Deploy. Verify one live click before closing the tick.
+- **Plausible (paste inside `<head>`, after the meta block):**
+  `<script defer data-domain="big7construction.com" src="https://plausible.io/js/script.js"></script>`
+  Requires a Plausible account with `big7construction.com` (or the eventual client domain) registered. Cost: $9/mo or free 30-day trial.
 
-If GA4 is a blocker (client hasn't handed over anything), instead ship a Plausible embed and add a 4-line adapter that mirrors `dataLayer` pushes to `plausible('cta_click', {props: {...}})`. Same event names, same funnels.
+- **GA4 (paste inside `<head>`, after the meta block):**
+  ```
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXX"></script>
+  <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-XXXXXXX');</script>
+  ```
+  Requires GA4 Measurement ID (`G-XXXXXXX`) — client-side or spin one up under M³. Free.
+
+Smoke-test after deploy: click any service row, then either open GA4 DebugView (looks for `cta_click` with `intent=service:<slug>`) or the Plausible dashboard's real-time view. Submit the form with fake info to also trigger `intake_submit` — Formspree still receives it, adapter mirrors it, and the funnel is complete.
+
+**Deferred (Michael-side, unchanged from tick 2):** re-run Lighthouse against a real deploy to verify block-2 a11y bump landed + 2026-07-07 dark-divider tabular fix pushed a11y to 96/98. Micro-steps unchanged — see git history at commit `7ef08e4` for the full script if resurrected.
 
 **Deferred (Michael-side, unchanged from tick 2):** re-run Lighthouse against a real deploy to verify block-2 a11y bump landed. Micro-steps unchanged — see git history at commit `7ef08e4` for the full script if resurrected.
 

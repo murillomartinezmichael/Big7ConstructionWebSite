@@ -2934,6 +2934,39 @@
       }
     })();
 
+    // ─── Analytics adapter: dataLayer → gtag/plausible bridge ─
+    // The IIFE above already pushes `cta_click` + `intake_submit` to
+    // `window.dataLayer` (GA4-compatible payload shape). This adapter
+    // monkey-patches `dataLayer.push` so every future push is mirrored
+    // to whichever consumer script is loaded — none, GA4, Plausible, or
+    // both. Michael's zero-code activation:
+    //   GA4:      <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXX"><\/script>
+    //             <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-XXXXXXX');<\/script>
+    //   Plausible: <script defer data-domain="big7construction.com" src="https://plausible.io/js/script.js"><\/script>
+    // (The `<\/script>` escapes above are mandatory — a bare closing tag inside
+    // this script block, even in a comment, prematurely closes the outer tag.)
+    // Dropping either tag turns the funnel on with zero code changes. The
+    // adapter no-ops on gtag's own `arguments`-shaped pushes (no `.event`
+    // property → skipped) so there's no forwarding loop when both are live.
+    (function () {
+      var dl = window.dataLayer = window.dataLayer || [];
+      var origPush = Array.prototype.push.bind(dl);
+      dl.push = function (evt) {
+        var r = origPush(evt);
+        try {
+          if (evt && evt.event) {
+            var props = {};
+            for (var k in evt) {
+              if (k !== 'event' && Object.prototype.hasOwnProperty.call(evt, k)) props[k] = evt[k];
+            }
+            if (typeof window.gtag === 'function') window.gtag('event', evt.event, props);
+            if (typeof window.plausible === 'function') window.plausible(evt.event, { props: props });
+          }
+        } catch (_) { /* never break the click */ }
+        return r;
+      };
+    })();
+
     // ─── Year in footer ───────────────────────────────────
     (function () { const y = document.getElementById('year'); if (y) y.textContent = new Date().getFullYear(); })();
   </script>
