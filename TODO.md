@@ -38,6 +38,37 @@ If GA4 is a blocker (client hasn't handed over anything), instead ship a Plausib
 
 **Deferred (Michael-side, unchanged from tick 2):** re-run Lighthouse against a real deploy to verify block-2 a11y bump landed. Micro-steps unchanged — see git history at commit `7ef08e4` for the full script if resurrected.
 
+---
+
+## Cloudflare Pages deploy — OPTIONAL migration paste-block (2026-07-06)
+
+Big7 currently ships on Railway (nginx:alpine, works fine). Cloudflare Pages is a viable static-first alternative if you want free-tier hosting + built-in edge cache. **Not urgent** — money ladder rung 3 says "reheat when client sends new shoots." Kept here so a future migration is a paste, not a hunt.
+
+Because Big7 is pure static (no build step, no functions), the deploy is one command:
+
+```powershell
+cd C:/Users/Michael/Documents/GitHub/Big7Construction
+npx wrangler login                                                # once
+npx wrangler pages project create m3-big7construction --production-branch main   # once
+npx wrangler pages deploy . --project-name=m3-big7construction --branch=main
+```
+
+Wrangler auto-ignores `.git/`, `node_modules/`, `Dockerfile`, and any file listed in `.gitignore`. It'll upload `index.html` + `404.html` + `images/` + `nginx.conf` (harmless on CF Pages — ignored). Add a `.wrangler-ignore` if you want to strip the Docker/nginx files explicitly.
+
+**Custom domain:** dashboard → project → Custom domains → attach the client's domain → follow the CNAME instructions.
+
+**Smoke after deploy:** `curl -sI https://<preview>.pages.dev/` returns 200; `curl -sI https://<preview>.pages.dev/does-not-exist` returns 404 (proves `404.html` is wired).
+
+**When migration WOULD make sense:**
+- Railway costs start showing up (Big7 as a static site pays nothing on CF Pages)
+- Client asks for a specific CF-only feature (edge redirects, per-request access rules)
+- You're already there for CompanySite and want the whole M³ portfolio under one dashboard
+
+**When to stay on Railway:**
+- Client has never complained
+- Docker/nginx config is dialed in
+- Boring-tech law says don't churn what works
+
 ## PARKED (do NOT start without a session goal)
 
 - **Real photos** — `images/jobsite-01.jpg` + `jobsite-02.jpg` are 206×206 px, upscaled 3-5× in CSS. Deepest quality issue. Blocked on client sending 6+ real jobsite photos ≥1600 px long edge. Perf 95 won't clear without this. **Note (tick 4): the OG/Twitter card no longer relies on these — social previews are now a proper 1200×630 branded PNG (`images/og-card.png`). The in-page hero + gallery + JSON-LD `image`/`logo` still do.**
