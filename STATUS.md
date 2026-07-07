@@ -1,6 +1,6 @@
 # Big7Construction — STATUS
 
-**Last verified:** 2026-07-07 (tick 5 — Rung IV QUICKEN micro-wins)
+**Last verified:** 2026-07-07 (tick 7 — Rung II PROVE second bite: sitemap/robots + canonical-agreement)
 
 ## Runtime
 
@@ -12,7 +12,7 @@
 ## Evolution ladder
 
 - Rung 1 HARDEN ✅ — non-root nginx user, security headers (`Strict-Transport-Security`, `X-Content-Type-Options`, `X-Frame-Options: DENY`, `Referrer-Policy`, `Permissions-Policy`), no dynamic input surface (static site).
-- Rung 2 TEST 🔄 (first bite, 2026-07-07 tick 6) — `tests/test_jsonld.py` is now the first automated test in the repo: parses the `application/ld+json` block in `index.html` and asserts required LocalBusiness fields for Google local-pack candidacy (address/PostalAddress shape, geo range, hasOfferCatalog children, etc.). Stdlib-only. `make test` delegates to `make test-jsonld`. Self-tested against broken inputs to confirm it's not a rubber-stamp. Money-path per STANDARDS §3 — structured data is the SEO surface for this business. Next test-worthy money paths (deferred): sitemap.xml round-trips ElementTree parse; robots.txt has `Sitemap:` line; conversion IIFE + adapter smoke (would need jsdom/playwright — out of stdlib scope).
+- Rung 2 TEST 🔄 (two bites landed, 2026-07-07 ticks 6+7) — `tests/test_jsonld.py` (tick 6) parses the `application/ld+json` block in `index.html` and asserts LocalBusiness shape for Google local-pack candidacy. `tests/test_seo_files.py` (tick 7) parses `sitemap.xml` (sitemap.org 0.9 namespace + ≥1 absolute-`https` `<loc>`) and `robots.txt` (`User-agent:` + `Sitemap:`), THEN cross-checks canonical origin agrees across `sitemap.xml <loc>`, `robots.txt Sitemap:` line, and `index.html <link rel="canonical">` — guards the silent-drift failure mode. Both stdlib-only. `make test` chains both via `make test-jsonld test-seo-files`. Both self-tested against broken inputs (8/8 caught on the SEO test, similar coverage on the JSON-LD test). Next test-worthy money paths (deferred): conversion IIFE + analytics adapter smoke (would need jsdom/playwright — out of stdlib scope) — see PARKED below.
 - Rung 3 CLEAN ✅ (as of 2026-07-07) — a11y contrast + `<dl>` semantic + real 404 landed prior block; dark-divider `.section-marker span.tabular` contrast fixed 2026-07-07 by scoped `--ink-200` override (11.5 contrast, comfortably passes AA). Only outstanding item is dead-CSS sweep, which ADR-0001 rejects at build-tool level and hand-audit ROI is low. Rung CLEAN closed pending Michael-side Lighthouse verification.
 - Rung 4 QUICKEN 🔄 — block-1 async-fonts + preload-hero landed the `render-blocking-insight` audit PASS. Tick 5 (2026-07-07, `e22f148`) added three safe no-visual-change hints: `decoding="async"` on all 7 `<img>` tags, `fetchpriority="high"` on hero `<img>` matching the existing preload, and `preconnect`+`dns-prefetch` for `formspree.io` (form action target). Emulated Perf still bounded by 206×206 px placeholder images upscaled 3-5× in CSS (see PARKED §1) — not a code fix; real-world win from tick 5 comes from unambiguous LCP-element hint + form-submit TLS/DNS shave, both invisible in slow-4G emulator throttling.
 - Rung 5 INSCRIBE ✅ — README/CLAUDE/BRD/TRD/RUNBOOK/ONBOARDING/CHANGELOG/CONTRIBUTING/SECURITY doc-tier full. Crawler files (`robots.txt` + `sitemap.xml`) shipped 2026-07-07 with correct nginx cache/header overrides; site is now fully addressable to Googlebot on the canonical `big7construction.com/` origin the moment the domain resolves.
@@ -44,7 +44,12 @@ Next measurement:
 
 ## Recent commits (heads)
 
-Most recent through 2026-07-07 tick 5:
+Most recent through 2026-07-07 tick 7 (LOCAL ONLY — brief locked "commit locally, do not push"):
+- `<tick-7 pending>` test(rung2): stdlib sitemap/robots + canonical-agreement smoke test
+- `824d25c` docs(status): mark Rung 2 TEST as in-flight (JSON-LD smoke first) (tick 6)
+- `063391f` test(rung2): stdlib JSON-LD smoke test on LocalBusiness block (tick 6)
+- `5344367` fix(perf): drop decoding=async on hero LCP <img> (tick 5 follow-up)
+- `6cdee5b` docs(state): tick-5 Rung IV micro-wins SHIPPED in TODO/STATUS/CHANGELOG
 - `e22f148` perf(rung4): decoding=async + formspree preconnect + hero fetchpriority (tick 5)
 - `c6edb41` feat(conv): data-intent + form prefill + cta_click on service/portfolio CTAs
 - `a2708c9` docs(state): record JSON-LD geo/hasMap ship + park sameAs/aggregateRating
