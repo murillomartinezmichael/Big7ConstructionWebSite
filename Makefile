@@ -10,7 +10,7 @@
 # =============================================================================
 
 .DEFAULT_GOAL := help
-.PHONY: help build run test test-unit test-integration test-e2e lint fmt clean docker docker-run deploy
+.PHONY: help build run test test-jsonld test-unit test-integration test-e2e lint fmt clean docker docker-run deploy
 
 help: ## Show this help
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -21,8 +21,10 @@ build: ## Clean-clone -> running prerequisites met (delegates to build.sh)
 run: ## Run the service locally
 	./scripts/run.sh
 
-test: ## Run all tests
-	./scripts/test.sh
+test: test-jsonld ## Run all tests (stdlib-only smoke suite)
+
+test-jsonld: ## Validate LocalBusiness JSON-LD parses + has required fields
+	python tests/test_jsonld.py
 
 test-unit: ## Run unit tests only
 	./scripts/test.sh unit

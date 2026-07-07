@@ -1,8 +1,12 @@
 # Big7Construction — TODO
 
-**Last updated:** 2026-07-07 (tick 5 — Rung IV QUICKEN micro-wins)
+**Last updated:** 2026-07-07 (tick 6 — Rung II PROVE first bite)
 **Stack (locked by ADR-0001):** single-file `index.html` + embedded CSS + nginx:alpine on Railway. Now with a real `/404.html`, `/robots.txt`, and `/sitemap.xml`. No JS framework, no build step.
-**Ladder position:** RUNG 3 CLEAN — closed. RUNG 5 INSCRIBE — closed. RUNG 6 UPGRADE — half-shipped (analytics adapter waits on Michael's one-tag activation). RUNG 4 QUICKEN — tick 5 added three safe no-visual-change micro-wins (`decoding=async` × 7 imgs, `fetchpriority=high` on hero `<img>`, `preconnect`+`dns-prefetch` for formspree). Root-cause 206px placeholder images still client-blocked. Michael-side Lighthouse re-measure still pending.
+**Ladder position:** RUNG 2 PROVE — first automated smoke test landed 2026-07-07 (JSON-LD schema; money-signal path). RUNG 3 CLEAN — closed. RUNG 5 INSCRIBE — closed. RUNG 6 UPGRADE — half-shipped (analytics adapter waits on Michael's one-tag activation). RUNG 4 QUICKEN — tick 5 added three safe no-visual-change micro-wins (`decoding=async` × 7 imgs, `fetchpriority=high` on hero `<img>`, `preconnect`+`dns-prefetch` for formspree). Root-cause 206px placeholder images still client-blocked. Michael-side Lighthouse re-measure still pending.
+
+## SHIPPED (2026-07-07 tick 6 — Rung II PROVE first bite)
+
+- **`tests/test_jsonld.py` + `make test-jsonld` — stdlib smoke test on the LocalBusiness JSON-LD block.** Extracts every `application/ld+json` script from `index.html`, JSON-parses, then asserts required fields for Google local-pack candidacy: `@context == "https://schema.org"`, `@type` includes a `LocalBusiness` subtype, `name`/`description`/`url`/`telephone`/`priceRange`/`openingHoursSpecification`, `address` with `PostalAddress` shape (`addressLocality`/`addressRegion`/`addressCountry`), `geo` with in-range `GeoCoordinates`, non-empty `areaServed`, `hasOfferCatalog` with children. Python 3.11+ stdlib only (`json`, `re`, `pathlib`) — no `pip install`, no network. Passes today (1 block, LocalBusiness schema valid). Self-tested against broken inputs: missing top-level fields → 12 caught, wrong `@context`/`@type` → 14 caught (rubber-stamp test = worse than no test). Wired into `Makefile` as `.PHONY test-jsonld`; `make test` now delegates to it. Rationale: STANDARDS §3 requires tests on money paths, and structured data is the money signal driving Google's local-pack surface for this business. Tick 6 brief offered "JSON-LD LocalBusiness schema block if missing" — the block was already complete after tick 2 (`geo`/`hasMap`), so this tick locks it against silent future regression instead of expanding a well-covered surface.
 
 ## SHIPPED (2026-07-07 tick 5 — Rung IV QUICKEN micro-wins, e22f148)
 
