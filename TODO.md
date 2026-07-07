@@ -1,8 +1,12 @@
 # Big7Construction — TODO
 
-**Last updated:** 2026-07-06 (auto-improve tick 2/8)
+**Last updated:** 2026-07-06 (auto-improve tick 3/8)
 **Stack (locked by ADR-0001):** single-file `index.html` + embedded CSS + nginx:alpine on Railway. Now with a real `/404.html`. No JS framework, no build step.
-**Ladder position:** RUNG 3 CLEAN (a11y) + RUNG 5 INSCRIBE (JSON-LD completeness) advancing. RUNG 4 QUICKEN Lighthouse re-measurement still pending (Michael-side).
+**Ladder position:** RUNG 3 CLEAN (a11y) + RUNG 5 INSCRIBE (JSON-LD completeness) advancing. RUNG 6 UPGRADE now taking a bite (conversion loop closed). RUNG 4 QUICKEN Lighthouse re-measurement still pending (Michael-side).
+
+## SHIPPED (2026-07-06 tick 3)
+
+- **`c6edb41`** — **Conversion audit — CTA `data-intent` + form prefill + `cta_click`/`intake_submit` attribution.** CONVERSION_STANDARDS.md §§2/3/4 gap-fill. 7 service-list rows + 6 portfolio cards now carry `service:<slug>` / `portfolio:<slug>` intents. One IIFE below the existing form-submit handler: on any `[data-intent]` click it pushes `cta_click` to `window.dataLayer` (GA4-compatible, no analytics dep required today), selects the matching `projectType` radio if not already checked, and seeds the textarea with `— Interested in: <label>`. Form-submit fires `intake_submit` with `has_prefill` bool. Verified: 13 CTAs, 13 unique intents, every mapped `projectType` value exists as a real radio. Kills anti-pattern §8 "CTA scrolls to a form that's blank" — the top gap called out in this tick's brief.
 
 ## SHIPPED (2026-07-06 tick 2)
 
@@ -17,16 +21,18 @@
 
 ## NEXT ACTION (60-second cold start)
 
-**Re-run Lighthouse against a real deploy** (or a locally-hosted `nginx.conf` container) to verify block-2 landed the a11y bump and to see whether Perf category cleared 95 with async-fonts + color-contrast + `<dl>` fixes together.
+**Wire real analytics onto the `window.dataLayer` events fired by tick 3.** The conversion loop is now emitting `cta_click` and `intake_submit`, but no downstream consumer exists — the events go into `dataLayer` and stop there. Cheapest right move: paste a GA4 gtag.js snippet in `<head>` with a real Measurement ID; every dataLayer push then reports automatically. Alternative: Plausible + a custom-event bridge (10 lines). Do NOT ship a third tag manager. LAW 5.
 
 Micro-steps:
-1. Push commits (this session's `push` at exit rite handles that; or `git push origin main` if resumed).
-2. Redeploy Big7 to Railway — the a11y + nginx + Dockerfile changes need a rebuild.
-3. Get the live URL from Railway dashboard (still not on file — see PARKED §9).
-4. `npx lighthouse https://<prod-url> --preset=desktop --output=json --output-path=./lighthouse-post-block2.json --headless=new`
-5. Append the deltas to `STATUS.md § Lighthouse timeline` — a11y target 95-96, Perf still 70-ish (real fix is real photos per PARKED §1).
+1. Get GA4 Measurement ID from client (`G-XXXXXXX`) — or spin up a free property on Mike's account for now.
+2. Paste standard gtag.js snippet after `<head>` opens, before the `<title>` line.
+3. Smoke-test locally with `python -m http.server 8080`: click a service row, open GA4 DebugView, confirm the `cta_click` event lands with correct `intent` param.
+4. Submit the form with a fake email + name, confirm `intake_submit` fires + Formspree still receives it.
+5. Deploy. Verify one live click before closing the tick.
 
-If any score REGRESSES, git-blame this session's commits + revert the specific change. `b06b4ba` (`<dl>` flatten) is the highest risk of visual regression — verify the 4-column hero stat block still renders correctly on mobile (375px width).
+If GA4 is a blocker (client hasn't handed over anything), instead ship a Plausible embed and add a 4-line adapter that mirrors `dataLayer` pushes to `plausible('cta_click', {props: {...}})`. Same event names, same funnels.
+
+**Deferred (Michael-side, unchanged from tick 2):** re-run Lighthouse against a real deploy to verify block-2 a11y bump landed. Micro-steps unchanged — see git history at commit `7ef08e4` for the full script if resurrected.
 
 ## PARKED (do NOT start without a session goal)
 
@@ -42,17 +48,24 @@ If any score REGRESSES, git-blame this session's commits + revert the specific c
 - **`/robots.txt` + `/sitemap.xml`.** Neither exists at repo root. Both are SEO wins. `nginx try_files =404` now correctly 404s these — Google will re-crawl once wired. ~15 min. Bundle with service-pages work.
 - **JSON-LD `sameAs` social links.** Skipped in 2026-07-06 tick — no confirmed handles. Once client hands over Facebook / Instagram / LinkedIn / Google Business Profile URLs, add them as a `"sameAs": [...]` array right after `hasMap` in the `<script type="application/ld+json">` block (~44–95 in index.html). ~2 min.
 - **JSON-LD `aggregateRating`.** Skipped — no real Google/BBB reviews yet. Once ≥3 real reviews exist, add `"aggregateRating": {"@type": "AggregateRating", "ratingValue": <n>, "reviewCount": <n>}`. Sourced from Google Business Profile once claimed. LAW 6 blocks fabricating this.
+- **Generic-CTA attribution** — hero "Request a bid →", nav CTA, footer CTAs, "Start a scoping call", "Start at Station 01" etc. all still route to `#contact` without `data-intent`. Adding requires extending the shared standards namespace list (`cta:hero-primary`, `cta:nav-primary`, `cta:footer`, `cta:scoping`) — cannot do without touching `../docs/CONVERSION_STANDARDS.md`, which is out-of-scope for this project's tick. Batch this into the next cross-repo standards pass. ~10 min at that point.
+- **Cross-repo standards extension** — propose adding `service:` and `portfolio:` to the reserved-namespaces table in `../docs/CONVERSION_STANDARDS.md § 2`. See `DECISIONS.md` "2026-07-06 · CONVERSION_STANDARDS.md fix" entry for the rationale. Needs a shared-docs session, not a Big7 session.
 
 ## QUESTIONS FOR MIKE (session end)
 
-1. Redeploy Big7 to Railway to pick up 404.html + a11y fixes? (yes / no)
+1. Redeploy Big7 to Railway to pick up 404.html + a11y fixes + conversion attribution? (yes / no)
 2. `.btn-accent` background switched from `--accent-500` (#E85D2C) to `--accent-600` (#B34419) for WCAG AA. Is the deeper orange still on-brand, or revert? (keep / revert)
+3. GA4 Measurement ID for Big7 — do you have one from the client, want me to create one under M³ for now, or ship Plausible instead? (client / m3 / plausible)
 
 ## References
 
 - `docs/adr/0001-nginx-alpine-static-html.md` — stack lock
+- `index.html:1923-1997` — 7 service-list rows w/ `data-intent="service:<slug>"`
+- `index.html:2041-2160` — 6 portfolio cards w/ `data-intent="portfolio:<slug>"`
+- `index.html:2850-2914` — conversion IIFE: intent→prefill + dataLayer push (`cta_click`, `intake_submit`)
 - `index.html:1766-1775` — flattened `<dl>` hero-stats
 - `index.html:264-266` — `.btn-accent` new colors + filter-based hover
-- `nginx.conf:35-45` — new try_files + error_page
-- `404.html` — new
+- `nginx.conf:35-45` — try_files + error_page
+- `404.html` — real 404
+- `../docs/CONVERSION_STANDARDS.md` — the standard this tick audited against
 - `STATUS.md § Lighthouse timeline` — score history + next entry pending

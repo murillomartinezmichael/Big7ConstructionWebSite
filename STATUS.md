@@ -1,6 +1,6 @@
 # Big7Construction — STATUS
 
-**Last verified:** 2026-07-06 (auto-improve tick 2/8)
+**Last verified:** 2026-07-06 (auto-improve tick 3/8)
 
 ## Runtime
 
@@ -16,7 +16,7 @@
 - Rung 3 CLEAN 🔄 — a11y contrast + `<dl>` semantic + real 404 landed this block. Remaining: dead-CSS sweep (low-value, ADR-locked away from a build step), dark-divider `.section-marker span.tabular` color fix.
 - Rung 4 QUICKEN 🔄 — block-1 async-fonts + preload-hero landed the `render-blocking-insight` audit PASS. Emulated Perf score stuck ~70 under Lighthouse's simulated slow-4G throttling. Real bottleneck = 206×206 px placeholder images upscaled 3-5× in CSS (see PARKED §1). Not a code fix.
 - Rung 5 INSCRIBE ✅ — README/CLAUDE/BRD/TRD/RUNBOOK/ONBOARDING/CHANGELOG/CONTRIBUTING/SECURITY doc-tier full.
-- Rung 6 UPGRADE 🔜 — 12 service-area pages + 7 offering pages (PARKED §4) would land the largest local-SEO lift. Waits on Google Business Profile claim.
+- Rung 6 UPGRADE 🔄 — tick 3 landed the conversion loop: `data-intent` on 13 CTAs, project-type radio prefill from click, `cta_click` + `intake_submit` pushed to `window.dataLayer` (GA4-compatible). Remaining under this rung: (a) wire an actual analytics consumer to `dataLayer` (see TODO NEXT), (b) 12 service-area + 7 offering pages waits on Google Business Profile claim.
 - Rung 7 ENVISION 🔜 — see PROPOSAL below.
 - Rung 8 RENEWAL — not yet.
 
@@ -44,8 +44,10 @@ Next measurement:
 
 ## Recent commits (heads)
 
-Most recent through 2026-07-06 tick 2:
-- `b9450ce` feat(seo): add geo + hasMap to GeneralContractor JSON-LD (this tick)
+Most recent through 2026-07-06 tick 3:
+- `c6edb41` feat(conv): data-intent + form prefill + cta_click on service/portfolio CTAs (this tick)
+- `a2708c9` docs(state): record JSON-LD geo/hasMap ship + park sameAs/aggregateRating
+- `b9450ce` feat(seo): add geo + hasMap to GeneralContractor JSON-LD (tick 2)
 - `1f971b2` docs(claude): append Cockpit Work Log DoD reminder to project CLAUDE.md
 - `7ef08e4` docs(TODO): rewrite for block-2 SHIPPED + Lighthouse-re-measure NEXT ACTION
 - `712edae` docs(state): TODO/STATUS/DECISIONS rewritten + CONTENT + CHANGELOG for block-2 ships

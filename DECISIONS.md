@@ -34,6 +34,26 @@ Reversible + small choices only. Load-bearing choices live in `docs/adr/`.
 
 ---
 
+## 2026-07-06 · CONVERSION_STANDARDS.md fix — data-intent taxonomy uses `service:` + `portfolio:` namespaces
+
+**What:** the shared standards doc (`../docs/CONVERSION_STANDARDS.md`) lists six reserved namespaces — `tier:`, `product:`, `feature:`, `plan:`, `book:`, `checkout:`. Big7 sells neither tiers nor SaaS products, and its CTAs feed a shared intake form scoped to project types and portfolio case studies. Rather than force-map to `product:` (misleading — Big 7's "products" are constructed buildings, not the case studies themselves), added two intents: `service:<slug>` for the 7 service-list rows and `portfolio:<slug>` for the 6 case-study cards.
+
+**Why:** the standard's own §2 says "if a CTA's intent doesn't map to one of these, extend the namespace list in this doc." That doc lives at the shared repo root (`../docs/CONVERSION_STANDARDS.md`), and this session's hard constraints forbid touching cross-project shared files. So the extension is applied inline here + noted for a future cross-repo pass. The alternative (invent `service:` silently) is what §2 explicitly forbids — this is the audit trail so a future reviewer doesn't wonder.
+
+**How to escalate if wrong:** if a cross-repo standards pass promotes a different taxonomy (e.g., merges `service:` into `product:`), the `INTENT_TO_TYPE` map in `index.html` is the only place to update — 13 keys, one map, one commit. Portfolio + service HTML anchors would need `data-intent` values updated in a second pass. Total blast radius: ~15 lines.
+
+---
+
+## 2026-07-06 · Textarea prefill uses `— Interested in: <label>` marker, not a horizontal rule
+
+**What:** the shared standards' canonical prefill pattern (§3) uses a horizontal-rule separator to detect prior prefills without overwriting user-typed text. Big7's textarea prefill uses `— Interested in: <label>\n\n` as the marker instead of an HR line.
+
+**Why:** the textarea in Big7's form has no rendered HR (it's a plain `<textarea>`), so a Unicode em-dash + a fixed prefix does the same "identifiable marker" job with fewer characters and a friendlier reading experience for the visitor who *sees* the prefilled text before typing. The `indexOf(PREFILL_MARK) === 0` check preserves the "never overwrite user typing" invariant — if the visitor starts with anything else, we leave it alone.
+
+**How to escalate if wrong:** if analytics later wants to standardize prefill markers across projects, replace the constant `PREFILL_MARK` in one place (line ~2865 of index.html) — one-line change. No structural refactor needed.
+
+---
+
 ## 2026-07-05 · 404.html inlines its palette rather than importing from index.html
 
 **What:** the 404 page defines `--paper`, `--ink-500`, `--ink-900`, `--ink-950`, `--accent-600` directly in a small `:root` block instead of loading a shared CSS file.
