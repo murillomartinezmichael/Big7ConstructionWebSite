@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "big",
+  "name": "big7construction",
   "compatibility_date": "2026-07-01",
   "assets": {
     "directory": "./",
