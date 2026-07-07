@@ -10,7 +10,7 @@
 # =============================================================================
 
 .DEFAULT_GOAL := help
-.PHONY: help build run test test-jsonld test-seo-files test-conversion test-og test-assets test-anchors test-nginx test-form test-unit test-integration test-e2e lint fmt clean docker docker-run deploy
+.PHONY: help build run test test-jsonld test-seo-files test-conversion test-og test-assets test-anchors test-nginx test-form test-font-preload test-unit test-integration test-e2e lint fmt clean docker docker-run deploy
 
 help: ## Show this help
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -21,7 +21,7 @@ build: ## Clean-clone -> running prerequisites met (delegates to build.sh)
 run: ## Run the service locally
 	./scripts/run.sh
 
-test: test-jsonld test-seo-files test-conversion test-og test-assets test-anchors test-nginx test-form ## Run all tests (stdlib-only smoke suite)
+test: test-jsonld test-seo-files test-conversion test-og test-assets test-anchors test-nginx test-form test-font-preload ## Run all tests (stdlib-only smoke suite)
 
 test-jsonld: ## Validate LocalBusiness JSON-LD parses + has required fields
 	python tests/test_jsonld.py
@@ -53,6 +53,10 @@ test-nginx: ## nginx.conf: 5 security headers on server + every protected locati
 test-form: ## Intake form contract: Formspree action, required name/email/phone, honeypot, tel:<->JSON-LD phone agreement
 	python tests/test_form.py
 	python tests/test_form.py --selftest
+
+test-font-preload: ## Google Fonts preload/stylesheet/noscript hrefs byte-identical on index + 404 (async pattern lock)
+	python tests/test_font_preload.py
+	python tests/test_font_preload.py --selftest
 
 test-unit: ## Run unit tests only
 	./scripts/test.sh unit
