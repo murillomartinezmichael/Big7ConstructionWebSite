@@ -1,6 +1,6 @@
 # Big7Construction — STATUS
 
-**Last verified:** 2026-07-06 (auto-improve tick 3/8)
+**Last verified:** 2026-07-06 (auto-improve tick 4/8)
 
 ## Runtime
 
@@ -16,7 +16,7 @@
 - Rung 3 CLEAN 🔄 — a11y contrast + `<dl>` semantic + real 404 landed this block. Remaining: dead-CSS sweep (low-value, ADR-locked away from a build step), dark-divider `.section-marker span.tabular` color fix.
 - Rung 4 QUICKEN 🔄 — block-1 async-fonts + preload-hero landed the `render-blocking-insight` audit PASS. Emulated Perf score stuck ~70 under Lighthouse's simulated slow-4G throttling. Real bottleneck = 206×206 px placeholder images upscaled 3-5× in CSS (see PARKED §1). Not a code fix.
 - Rung 5 INSCRIBE ✅ — README/CLAUDE/BRD/TRD/RUNBOOK/ONBOARDING/CHANGELOG/CONTRIBUTING/SECURITY doc-tier full.
-- Rung 6 UPGRADE 🔄 — tick 3 landed the conversion loop: `data-intent` on 13 CTAs, project-type radio prefill from click, `cta_click` + `intake_submit` pushed to `window.dataLayer` (GA4-compatible). Remaining under this rung: (a) wire an actual analytics consumer to `dataLayer` (see TODO NEXT), (b) 12 service-area + 7 offering pages waits on Google Business Profile claim.
+- Rung 6 UPGRADE 🔄 — tick 3 landed the conversion loop: `data-intent` on 13 CTAs, project-type radio prefill from click, `cta_click` + `intake_submit` pushed to `window.dataLayer` (GA4-compatible). Tick 4 landed a real 1200×630 branded OG card (`images/og-card.png` via `scripts/gen-og-card.py`) — social previews now render cleanly on both top-level pages instead of a 206px placeholder crop. Remaining under this rung: (a) wire an actual analytics consumer to `dataLayer` (see TODO NEXT), (b) 12 service-area + 7 offering pages waits on Google Business Profile claim.
 - Rung 7 ENVISION 🔜 — see PROPOSAL below.
 - Rung 8 RENEWAL — not yet.
 
