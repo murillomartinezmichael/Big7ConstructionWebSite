@@ -1,9 +1,14 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "big",
-  "compatibility_date": "2026-07-01",
+  "name": "big7",
+  "compatibility_date": "2026-07-07",
+  "observability": {
+    "enabled": true
+  },
   "assets": {
-    "directory": "./",
-    "not_found_handling": "404-page"
-  }
+    "directory": "."
+  },
+  "compatibility_flags": [
+    "nodejs_compat"
+  ]
 }
