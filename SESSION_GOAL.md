@@ -1,4 +1,4 @@
 PROJECT: Big7Construction
-GOAL:    Real 1200×630 branded OG card lands at `images/og-card.png`; homepage `og:image` + `twitter:image` point at it; `og:image:width`/`height` declared; `404.html` gains OG + Twitter card meta tags; a fresh view of the homepage `<head>` shows a `summary_large_image` twitter card + `og:image` that would render cleanly if pasted into iMessage/Slack today (verified by inspecting bytes + PIL open, not just tag presence). Committed locally, no push.
-BUDGET:  25 min (auto-improve tick 4/8)
-STARTED: 2026-07-06 21:23
+GOAL:    Rung 2 PROVE fourth bite (tick 11) — swap JSON-LD `image` + `logo` off the 206×206 `jobsite-01.jpg` placeholder onto the 1200×630 branded `og-card.png` (real asset shipped tick 4, LAW-6 clean, no fabrication). `image` becomes an array with og-card first; `logo` becomes a `schema.org/ImageObject` with `width`/`height`. Extend `tests/test_jsonld.py` — add `image` + `logo` to `REQUIRED_TOP`, assert both are absolute https, assert logo's ImageObject has `@type`, `url`/`contentUrl` https, `width ≥ 112` (Google's org-logo floor), `height > 0`. Add `--selftest` mode with 10 broken-mutation cases; wire into `make test-jsonld`. All three test suites still PASS end-to-end. Commit locally, no push.
+BUDGET:  25 min (auto-improve tick 11/9999)
+STARTED: 2026-07-07 (dynamic)

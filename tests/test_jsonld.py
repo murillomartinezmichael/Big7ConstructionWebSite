@@ -37,7 +37,14 @@ REQUIRED_TOP = {
     "priceRange",
     "openingHoursSpecification",
     "hasOfferCatalog",
+    "image",
+    "logo",
 }
+
+# Google Rich Results guidance: LocalBusiness images should be ≥1200 px wide.
+# We only assert dimensions when logo is an ImageObject (URL-only form is
+# tolerated for back-compat, but the branded og-card path IS an ImageObject).
+LOGO_MIN_WIDTH = 112  # Google's absolute minimum for organization logo
 
 LOCAL_BUSINESS_TYPES = {
     "LocalBusiness",
@@ -101,10 +108,101 @@ def assert_local_business(block: dict) -> list[str]:
     if not re.match(r"^\+?[\d\-\s\(\)]+$", tel):
         errors.append(f"telephone shape looks wrong: {tel!r}")
 
+    image = block.get("image")
+    image_urls = [image] if isinstance(image, str) else (image if isinstance(image, list) else [])
+    if not image_urls:
+        errors.append("image must be a non-empty https URL or list of URLs")
+    else:
+        for i, u in enumerate(image_urls):
+            if not (isinstance(u, str) and u.startswith("https://")):
+                errors.append(f"image[{i}] must be an absolute https URL, got {u!r}")
+
+    logo = block.get("logo")
+    if isinstance(logo, str):
+        if not logo.startswith("https://"):
+            errors.append(f"logo (string form) must be absolute https, got {logo!r}")
+    elif isinstance(logo, dict):
+        if logo.get("@type") != "ImageObject":
+            errors.append(f'logo.@type must be "ImageObject", got {logo.get("@type")!r}')
+        url = logo.get("url") or logo.get("contentUrl")
+        if not (isinstance(url, str) and url.startswith("https://")):
+            errors.append(f"logo.url/contentUrl must be absolute https, got {url!r}")
+        w, h = logo.get("width"), logo.get("height")
+        if not (isinstance(w, int) and w >= LOGO_MIN_WIDTH):
+            errors.append(f"logo.width must be int ≥ {LOGO_MIN_WIDTH}, got {w!r}")
+        if not (isinstance(h, int) and h > 0):
+            errors.append(f"logo.height must be positive int, got {h!r}")
+    else:
+        errors.append(f"logo must be a URL string or ImageObject, got {type(logo).__name__}")
+
     return errors
 
 
+def _valid_block() -> dict:
+    """Minimal-but-valid LocalBusiness block used as the selftest baseline."""
+    return {
+        "@context": "https://schema.org",
+        "@type": "GeneralContractor",
+        "name": "Big 7 Construction",
+        "description": "Metro Atlanta general contractor.",
+        "url": "https://big7construction.com",
+        "telephone": "+1-555-700-0007",
+        "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "Atlanta",
+            "addressRegion": "GA",
+            "addressCountry": "US",
+        },
+        "geo": {"@type": "GeoCoordinates", "latitude": 33.749, "longitude": -84.388},
+        "areaServed": [{"@type": "City", "name": "Atlanta"}],
+        "priceRange": "$$-$$$$",
+        "openingHoursSpecification": [{"@type": "OpeningHoursSpecification"}],
+        "hasOfferCatalog": {"@type": "OfferCatalog", "itemListElement": [{}]},
+        "image": ["https://big7construction.com/images/og-card.png"],
+        "logo": {
+            "@type": "ImageObject",
+            "url": "https://big7construction.com/images/og-card.png",
+            "width": 1200,
+            "height": 630,
+        },
+    }
+
+
+def selftest() -> int:
+    """Mutate the valid block into known-broken shapes; every mutation must FAIL."""
+    baseline = _valid_block()
+    if assert_local_business(baseline):
+        print("SELFTEST FAIL: baseline block should be valid", file=sys.stderr)
+        return 1
+
+    cases: list[tuple[str, dict]] = []
+    # image mutations
+    b = _valid_block(); b.pop("image"); cases.append(("image missing", b))
+    b = _valid_block(); b["image"] = []; cases.append(("image empty list", b))
+    b = _valid_block(); b["image"] = ["http://insecure.example/img.png"]; cases.append(("image not https", b))
+    b = _valid_block(); b["image"] = [42]; cases.append(("image non-string", b))
+    # logo mutations
+    b = _valid_block(); b.pop("logo"); cases.append(("logo missing", b))
+    b = _valid_block(); b["logo"] = "http://insecure.example/logo.png"; cases.append(("logo string not https", b))
+    b = _valid_block(); b["logo"] = {"url": "https://x/y.png", "width": 1200, "height": 630}; cases.append(("logo dict missing @type", b))
+    b = _valid_block(); b["logo"] = {"@type": "ImageObject", "url": "https://x/y.png", "width": 50, "height": 50}; cases.append(("logo width below min", b))
+    b = _valid_block(); b["logo"] = {"@type": "ImageObject", "url": "https://x/y.png", "width": 1200}; cases.append(("logo missing height", b))
+    b = _valid_block(); b["logo"] = 123; cases.append(("logo wrong type", b))
+
+    failures = [name for name, block in cases if not assert_local_business(block)]
+    if failures:
+        for name in failures:
+            print(f"SELFTEST FAIL: mutation not caught: {name}", file=sys.stderr)
+        return 1
+
+    print(f"SELFTEST OK: baseline PASS + {len(cases)}/{len(cases)} mutations caught")
+    return 0
+
+
 def main() -> int:
+    if "--selftest" in sys.argv:
+        return selftest()
+
     if not INDEX.exists():
         print(f"FAIL: {INDEX} not found", file=sys.stderr)
         return 1

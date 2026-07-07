@@ -25,6 +25,7 @@ test: test-jsonld test-seo-files test-conversion ## Run all tests (stdlib-only s
 
 test-jsonld: ## Validate LocalBusiness JSON-LD parses + has required fields
 	python tests/test_jsonld.py
+	python tests/test_jsonld.py --selftest
 
 test-seo-files: ## sitemap.xml + robots.txt parse; canonical origin agrees across index.html
 	python tests/test_seo_files.py
