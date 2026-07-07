@@ -259,6 +259,14 @@
     .divider { padding: 24px 0; }
     .divider.dark { background: var(--ink-950); color: var(--ink-400); }
     .divider.light { background: var(--paper); color: var(--ink-500); }
+    /* AA-contrast override for dark-divider tabular spans. Inherited color of
+       --ink-500 (#4C5258) on --ink-950 (#08090B) sits at ~3.15 — fails WCAG AA
+       for small text (4.5:1). --ink-200 (#CBCFD3) on --ink-950 clears ~11.5,
+       comfortably passes AA even with the inline `opacity:0.8` on the "of 08"
+       counter spans (effective L drops but still >7). Light-divider case
+       (--paper bg) already passes and is intentionally untouched. Closes
+       TODO PARKED §2 (dark-divider tabular contrast). */
+    .divider.dark .section-marker span.tabular { color: var(--ink-200); }
 
     /* ─── BUTTONS ────────────────────────────────────────────── */
     .btn {

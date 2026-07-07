@@ -1,8 +1,10 @@
 FROM nginx:alpine
 
-COPY index.html /usr/share/nginx/html/index.html
-COPY 404.html   /usr/share/nginx/html/404.html
-COPY images/    /usr/share/nginx/html/images/
+COPY index.html   /usr/share/nginx/html/index.html
+COPY 404.html     /usr/share/nginx/html/404.html
+COPY robots.txt   /usr/share/nginx/html/robots.txt
+COPY sitemap.xml  /usr/share/nginx/html/sitemap.xml
+COPY images/      /usr/share/nginx/html/images/
 
 RUN rm /etc/nginx/conf.d/default.conf
 COPY nginx.conf /etc/nginx/conf.d/default.conf

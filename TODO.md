@@ -1,8 +1,28 @@
 # Big7Construction — TODO
 
-**Last updated:** 2026-07-06 (auto-improve tick 4/8)
-**Stack (locked by ADR-0001):** single-file `index.html` + embedded CSS + nginx:alpine on Railway. Now with a real `/404.html`. No JS framework, no build step.
-**Ladder position:** RUNG 3 CLEAN (a11y) + RUNG 5 INSCRIBE (JSON-LD completeness) advancing. RUNG 6 UPGRADE now taking a bite (conversion loop closed + shareable preview card landed). RUNG 4 QUICKEN Lighthouse re-measurement still pending (Michael-side).
+**Last updated:** 2026-07-07 (fleet all-day ignition session — Rungs III + V twin strike)
+**Stack (locked by ADR-0001):** single-file `index.html` + embedded CSS + nginx:alpine on Railway. Now with a real `/404.html`, `/robots.txt`, and `/sitemap.xml`. No JS framework, no build step.
+**Ladder position:** RUNG 3 CLEAN — final AA fail (dark-divider tabular) closed 2026-07-07. RUNG 5 INSCRIBE — `robots.txt` + `sitemap.xml` shipped 2026-07-07 (only remaining doc-tier gap was crawler files). RUNG 6 UPGRADE still taking a bite (conversion loop closed + shareable preview card landed). RUNG 4 QUICKEN Lighthouse re-measurement still pending (Michael-side).
+
+## SHIPPED (2026-07-07, fleet all-day ignition — Rungs III + V twin strike, zero client blockers)
+
+- **`/robots.txt` + `/sitemap.xml` shipped end-to-end** — closes the two crawler-file PARKED items with a single deploy.
+  - `robots.txt`: `User-agent: *` + `Allow: /` + `Sitemap: https://big7construction.com/sitemap.xml` (matches the site's existing canonical + `og:url`).
+  - `sitemap.xml`: single `<url>` at `https://big7construction.com/` — `404.html` deliberately excluded (it's `noindex` and served via nginx `error_page ... internal;`, not crawlable per sitemap.org guidance). Comment inline points at TODO PARKED "Service pages per offering (7) + per area (12)" as the moment to add more `<url>` entries — never hypothetical URLs.
+  - Parses as valid XML: `xml.etree.ElementTree.parse` reports the sitemap.org 0.9 namespace + 1 url element.
+  - `Dockerfile`: two new `COPY` lines land the files into `/usr/share/nginx/html/`.
+  - `nginx.conf`: explicit `location = /robots.txt` + `location = /sitemap.xml` blocks with `Cache-Control: public, max-age=3600` (server default of 1-year immutable is wrong for crawler-facing files; downstream CDNs must not pin them for a year) + the 5 defense-in-depth headers re-added inline (SECURITY_AUDIT.md § M3-M6, same reset pattern already used for `/index.html`).
+  - Smoke: `python -m http.server 8765` on the repo folder — both files return 200 with correct bytes.
+
+- **Dark-divider `.section-marker span.tabular` contrast fix — closes the last-known AA fail (Rung III CLEAN).**
+  Inherited color of `--ink-500` (#4C5258) on `--ink-950` (#08090B) sits at ~3.15 — fails WCAG AA for small text (4.5:1). New rule
+  `.divider.dark .section-marker span.tabular { color: var(--ink-200); }`
+  puts `#CBCFD3` on `#08090B` at ~11.5 — comfortably passes AA even for the "of 08" counter spans that still carry inline `opacity:0.8` (effective L still >7 with the brighter base). Rule is scoped to `.divider.dark` so the light-divider spans (§03–§07, on `--paper`) are intentionally untouched — they already pass. Predicted a11y ceiling: 96 → 98 (this was the last "known and named" contrast fail on the a11y audit).
+
+- **Deploy delta vs. tick 4 (Michael-side re-measure):**
+  a11y predicted 93 → 96 or 98 (dark-divider tabular was the last-known AA fail).
+  SEO predicted 100 → 100 in the emulator (Lighthouse doesn't grade robots/sitemap presence directly), but real-crawler impact = Google now knows what to fetch + what schedule.
+  Perf unchanged — still root-caused on the 206 px placeholder images (PARKED, client-blocked).
 
 ## SHIPPED (2026-07-06 tick 4)
 
@@ -72,7 +92,7 @@ Wrangler auto-ignores `.git/`, `node_modules/`, `Dockerfile`, and any file liste
 ## PARKED (do NOT start without a session goal)
 
 - **Real photos** — `images/jobsite-01.jpg` + `jobsite-02.jpg` are 206×206 px, upscaled 3-5× in CSS. Deepest quality issue. Blocked on client sending 6+ real jobsite photos ≥1600 px long edge. Perf 95 won't clear without this. **Note (tick 4): the OG/Twitter card no longer relies on these — social previews are now a proper 1200×630 branded PNG (`images/og-card.png`). The in-page hero + gallery + JSON-LD `image`/`logo` still do.**
-- **Section-marker tabular contrast on DARK dividers** (was 1.61; now ~2.14 after opacity bump — still fails AA). Root: `--ink-400` (#6E757C) on `--ink-950` (#08090B) is a color-pick problem, not opacity. Fix: use `--ink-300` (#9CA3AA) or lighter for tabular specifically on `.divider.dark .section-marker span.tabular`. ~10 min. Named separately so it doesn't slip.
+<!-- SHIPPED 2026-07-07: dark-divider tabular contrast fix landed as `.divider.dark .section-marker span.tabular { color: var(--ink-200); }` — ratio ~11.5 on the dark bg, well above AA. See SHIPPED block above. -->
 - **Unminified / unused CSS** (both Lighthouse audits at 50). Truly fixing means a build step, ADR-1 rejects it. Hand-audit for definitely-dead rules is possible (5-10 min).
 - **Service pages per offering (7) + per area (12)** for local SEO. Highest local-search lever remaining. 4-6 hrs shaped as separate `.html` files. Only justified once Google Business Profile is claimed. Note: `try_files ... =404` now correctly 404s non-existent service paths.
 - **Trust section with real content** (line 2134 credentials §). Blocked on client input.
@@ -80,7 +100,7 @@ Wrangler auto-ignores `.git/`, `node_modules/`, `Dockerfile`, and any file liste
 - **Placeholder phone `(555) 700-0007`** — nav (1688), CTA closer (2405), contact (2572, 2612, 2648), JSON-LD (44).
 - **Placeholder email `info@big7construction.com`** — verify domain + inbox.
 - **HTTP 200 verification of the live Railway URL.** URL not on file. `PENDING_MIKE.md § J` covers the dashboard lookup.
-- **`/robots.txt` + `/sitemap.xml`.** Neither exists at repo root. Both are SEO wins. `nginx try_files =404` now correctly 404s these — Google will re-crawl once wired. ~15 min. Bundle with service-pages work.
+<!-- SHIPPED 2026-07-07: robots.txt + sitemap.xml shipped end-to-end with Dockerfile + nginx cache/header overrides. When service or per-city pages ship (PARKED §4), extend sitemap.xml with real `<url>` entries. -->
 - **JSON-LD `sameAs` social links.** Skipped in 2026-07-06 tick — no confirmed handles. Once client hands over Facebook / Instagram / LinkedIn / Google Business Profile URLs, add them as a `"sameAs": [...]` array right after `hasMap` in the `<script type="application/ld+json">` block (~44–95 in index.html). ~2 min.
 - **JSON-LD `aggregateRating`.** Skipped — no real Google/BBB reviews yet. Once ≥3 real reviews exist, add `"aggregateRating": {"@type": "AggregateRating", "ratingValue": <n>, "reviewCount": <n>}`. Sourced from Google Business Profile once claimed. LAW 6 blocks fabricating this.
 - **Generic-CTA attribution** — hero "Request a bid →", nav CTA, footer CTAs, "Start a scoping call", "Start at Station 01" etc. all still route to `#contact` without `data-intent`. Adding requires extending the shared standards namespace list (`cta:hero-primary`, `cta:nav-primary`, `cta:footer`, `cta:scoping`) — cannot do without touching `../docs/CONVERSION_STANDARDS.md`, which is out-of-scope for this project's tick. Batch this into the next cross-repo standards pass. ~10 min at that point.
