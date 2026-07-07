@@ -39,3 +39,9 @@ This project follows the cross-repo engineering standards:
 - `../docs/*_STANDARDS.md` — API, testing, observability, security, database, hosting, microservices, accessibility, performance, release
 - Local doc-tier: `BRD.md` · `TRD.md` · `RUNBOOK.md` · `ONBOARDING.md` · `CHANGELOG.md` · `CONTRIBUTING.md` · `SECURITY.md`
 - ADRs in `docs/adr/`, postmortems in `docs/postmortems/`
+
+---
+
+## End-of-chunk: log to Cockpit
+
+Every shipped chunk (feature end-to-end, doc rolled out, deploy that survives smoke test) gets a Work Log entry in `../COCKPIT.html` — press `l`. No entry = the chunk didn't happen. Full protocol in `../CLAUDE.md § DEFINITION OF DONE — Cockpit Work Log`.
