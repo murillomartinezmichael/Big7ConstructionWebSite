@@ -1,6 +1,6 @@
 # Big7Construction — STATUS
 
-**Last verified:** 2026-07-07 (fleet all-day ignition session — Rungs III + V twin strike)
+**Last verified:** 2026-07-07 (tick 5 — Rung IV QUICKEN micro-wins)
 
 ## Runtime
 
@@ -14,7 +14,7 @@
 - Rung 1 HARDEN ✅ — non-root nginx user, security headers (`Strict-Transport-Security`, `X-Content-Type-Options`, `X-Frame-Options: DENY`, `Referrer-Policy`, `Permissions-Policy`), no dynamic input surface (static site).
 - Rung 2 TEST ⚠ — no automated tests (n/a for a single-file static site; STANDARDS §3 says "manual verification is fine" for glue/UI).
 - Rung 3 CLEAN ✅ (as of 2026-07-07) — a11y contrast + `<dl>` semantic + real 404 landed prior block; dark-divider `.section-marker span.tabular` contrast fixed 2026-07-07 by scoped `--ink-200` override (11.5 contrast, comfortably passes AA). Only outstanding item is dead-CSS sweep, which ADR-0001 rejects at build-tool level and hand-audit ROI is low. Rung CLEAN closed pending Michael-side Lighthouse verification.
-- Rung 4 QUICKEN 🔄 — block-1 async-fonts + preload-hero landed the `render-blocking-insight` audit PASS. Emulated Perf score stuck ~70 under Lighthouse's simulated slow-4G throttling. Real bottleneck = 206×206 px placeholder images upscaled 3-5× in CSS (see PARKED §1). Not a code fix.
+- Rung 4 QUICKEN 🔄 — block-1 async-fonts + preload-hero landed the `render-blocking-insight` audit PASS. Tick 5 (2026-07-07, `e22f148`) added three safe no-visual-change hints: `decoding="async"` on all 7 `<img>` tags, `fetchpriority="high"` on hero `<img>` matching the existing preload, and `preconnect`+`dns-prefetch` for `formspree.io` (form action target). Emulated Perf still bounded by 206×206 px placeholder images upscaled 3-5× in CSS (see PARKED §1) — not a code fix; real-world win from tick 5 comes from unambiguous LCP-element hint + form-submit TLS/DNS shave, both invisible in slow-4G emulator throttling.
 - Rung 5 INSCRIBE ✅ — README/CLAUDE/BRD/TRD/RUNBOOK/ONBOARDING/CHANGELOG/CONTRIBUTING/SECURITY doc-tier full. Crawler files (`robots.txt` + `sitemap.xml`) shipped 2026-07-07 with correct nginx cache/header overrides; site is now fully addressable to Googlebot on the canonical `big7construction.com/` origin the moment the domain resolves.
 - Rung 6 UPGRADE 🔄 — tick 3 landed the conversion loop: `data-intent` on 13 CTAs, project-type radio prefill from click, `cta_click` + `intake_submit` pushed to `window.dataLayer` (GA4-compatible). Tick 4 landed a real 1200×630 branded OG card (`images/og-card.png` via `scripts/gen-og-card.py`) — social previews now render cleanly on both top-level pages instead of a 206px placeholder crop. Remaining under this rung: (a) wire an actual analytics consumer to `dataLayer` (see TODO NEXT), (b) 12 service-area + 7 offering pages waits on Google Business Profile claim.
 - Rung 7 ENVISION 🔜 — see PROPOSAL below.
@@ -44,8 +44,9 @@ Next measurement:
 
 ## Recent commits (heads)
 
-Most recent through 2026-07-06 tick 3:
-- `c6edb41` feat(conv): data-intent + form prefill + cta_click on service/portfolio CTAs (this tick)
+Most recent through 2026-07-07 tick 5:
+- `e22f148` perf(rung4): decoding=async + formspree preconnect + hero fetchpriority (tick 5)
+- `c6edb41` feat(conv): data-intent + form prefill + cta_click on service/portfolio CTAs
 - `a2708c9` docs(state): record JSON-LD geo/hasMap ship + park sameAs/aggregateRating
 - `b9450ce` feat(seo): add geo + hasMap to GeneralContractor JSON-LD (tick 2)
 - `1f971b2` docs(claude): append Cockpit Work Log DoD reminder to project CLAUDE.md

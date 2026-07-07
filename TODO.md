@@ -1,8 +1,17 @@
 # Big7Construction — TODO
 
-**Last updated:** 2026-07-07 (fleet all-day ignition session — Rungs III + V twin strike)
+**Last updated:** 2026-07-07 (tick 5 — Rung IV QUICKEN micro-wins)
 **Stack (locked by ADR-0001):** single-file `index.html` + embedded CSS + nginx:alpine on Railway. Now with a real `/404.html`, `/robots.txt`, and `/sitemap.xml`. No JS framework, no build step.
-**Ladder position:** RUNG 3 CLEAN — final AA fail (dark-divider tabular) closed 2026-07-07. RUNG 5 INSCRIBE — `robots.txt` + `sitemap.xml` shipped 2026-07-07 (only remaining doc-tier gap was crawler files). RUNG 6 UPGRADE still taking a bite (conversion loop closed + shareable preview card landed). RUNG 4 QUICKEN Lighthouse re-measurement still pending (Michael-side).
+**Ladder position:** RUNG 3 CLEAN — closed. RUNG 5 INSCRIBE — closed. RUNG 6 UPGRADE — half-shipped (analytics adapter waits on Michael's one-tag activation). RUNG 4 QUICKEN — tick 5 added three safe no-visual-change micro-wins (`decoding=async` × 7 imgs, `fetchpriority=high` on hero `<img>`, `preconnect`+`dns-prefetch` for formspree). Root-cause 206px placeholder images still client-blocked. Michael-side Lighthouse re-measure still pending.
+
+## SHIPPED (2026-07-07 tick 5 — Rung IV QUICKEN micro-wins, e22f148)
+
+- **Three safe no-visual-change perf hints on `index.html`.** All root-cause-independent, all shippable without waiting on client photos:
+  - `decoding="async"` on all 7 `<img>` tags (1 hero portrait at line 1806 + 6 portfolio at lines 2061/2081/2101/2121/2141/2161). Signals off-main-thread decode; compounds with the existing `loading="lazy"` on the six below-fold cards (they're orthogonal — lazy defers the fetch, async defers the decode).
+  - `fetchpriority="high"` on the hero-photo `<img>` (index.html:1806). The preload at line 43 already declares high priority for the same URL; matching it on the actual `<img>` gives Chrome an unambiguous LCP-element hint and prevents priority downgrade at layout time.
+  - `<link rel="preconnect">` + `<link rel="dns-prefetch">` for `https://formspree.io` (the quote-form action target, index.html:2498). Trims TLS + DNS from the primary money-lever's submit critical path. Preconnect is dropped after ~10s if unused, so no cost when the form isn't submitted.
+- **Verified:** stdlib `html.parser` sweep confirms 7 imgs carry `decoding=async` and 2 formspree link hints are present. No image bytes changed, no CSS changed, no layout changed.
+- **Predicted delta:** Perf category likely +2 to +5 in Lighthouse mobile emulator (largest single driver is still the 206px placeholder issue — PARKED §1); real-world LCP shave will be observable on the client's phone but hard to prove in emulator throttling noise. Michael-side re-measure step in NEXT ACTION below.
 
 ## SHIPPED (2026-07-07, fleet all-day ignition — Rungs III + V + VI triple strike, zero client blockers)
 
