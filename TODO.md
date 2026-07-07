@@ -1,10 +1,14 @@
 # Big7Construction — TODO
 
-**Last updated:** 2026-07-05 (Ignition Prompt session, block 2)
+**Last updated:** 2026-07-06 (auto-improve tick 2/8)
 **Stack (locked by ADR-0001):** single-file `index.html` + embedded CSS + nginx:alpine on Railway. Now with a real `/404.html`. No JS framework, no build step.
-**Ladder position:** RUNG 3 CLEAN pass shipped this block (a11y). RUNG 4 QUICKEN's Lighthouse re-measurement is the pending verify (needs Chromium — Michael-side).
+**Ladder position:** RUNG 3 CLEAN (a11y) + RUNG 5 INSCRIBE (JSON-LD completeness) advancing. RUNG 4 QUICKEN Lighthouse re-measurement still pending (Michael-side).
 
-## SHIPPED (this session — 2026-07-05, block 2)
+## SHIPPED (2026-07-06 tick 2)
+
+- **`b9450ce`** — **JSON-LD `geo` + `hasMap`.** Added `GeoCoordinates` (Atlanta 33.7490, -84.3880) and `hasMap` (Google Maps URL) to the existing `GeneralContractor` block. Enables Google local-pack candidacy signal that was missing. Validated by extracting the block and running `python -c "json.loads(...)"` — parses, `@context` + `@type` + `geo` + address + 2-division `hasOfferCatalog` all intact. Deliberately NOT added: `sameAs` (no real social handles on file — LAW 6) and `aggregateRating` (no real reviews — same). Both parked below.
+
+## SHIPPED (2026-07-05, block 2)
 
 - **Checkpoint 1** (`b06b4ba`) — **`.hero-stats <dl>` flattened.** Dropped 4 wrapper `<div class="hero-stat">`. All 4 `<dt>` are now direct children of `<dl>`, followed by all 4 `<dd>`. CSS grid `grid-auto-flow: row` preserves the 4-column visual layout. Renamed `.hero-stat *` CSS selectors to `.hero-stats *` — grep-verified zero orphans. Predicted a11y 93 → ~95 on next Lighthouse pass.
 - **Checkpoint 2** (`ec70763`) — **Color-contrast sweep + `Vary: Accept-Encoding`.** `.brand-sub` `--ink-400` → `--ink-500` (4.14 → 5.53 on paper). `.btn-accent` bg `--accent-500` → `--accent-600` (3.48 → ~5.05 on white text); hover moved from a bg swap to `filter: brightness(0.88)`. All 8 `.section-marker span.tabular` `opacity: 0.6` → `0.8` (marginal on light dividers; dark-divider case still fails AA — deferred). nginx gets `Vary: Accept-Encoding` for gzip correctness. **TODO PARKED §3 (cache headers) was a false positive** — nginx.conf already sets `public, max-age=31536000, immutable` at server scope + `max-age=0, must-revalidate` on `/index.html`. Prior Lighthouse cache-insight=50 was measured against `python -m http.server`, not nginx. Book I §3: repo beats word.
@@ -36,6 +40,8 @@ If any score REGRESSES, git-blame this session's commits + revert the specific c
 - **Placeholder email `info@big7construction.com`** — verify domain + inbox.
 - **HTTP 200 verification of the live Railway URL.** URL not on file. `PENDING_MIKE.md § J` covers the dashboard lookup.
 - **`/robots.txt` + `/sitemap.xml`.** Neither exists at repo root. Both are SEO wins. `nginx try_files =404` now correctly 404s these — Google will re-crawl once wired. ~15 min. Bundle with service-pages work.
+- **JSON-LD `sameAs` social links.** Skipped in 2026-07-06 tick — no confirmed handles. Once client hands over Facebook / Instagram / LinkedIn / Google Business Profile URLs, add them as a `"sameAs": [...]` array right after `hasMap` in the `<script type="application/ld+json">` block (~44–95 in index.html). ~2 min.
+- **JSON-LD `aggregateRating`.** Skipped — no real Google/BBB reviews yet. Once ≥3 real reviews exist, add `"aggregateRating": {"@type": "AggregateRating", "ratingValue": <n>, "reviewCount": <n>}`. Sourced from Google Business Profile once claimed. LAW 6 blocks fabricating this.
 
 ## QUESTIONS FOR MIKE (session end)
 

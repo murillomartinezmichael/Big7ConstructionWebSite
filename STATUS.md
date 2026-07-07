@@ -1,6 +1,6 @@
 # Big7Construction — STATUS
 
-**Last verified:** 2026-07-05 (fleet ignition block 2)
+**Last verified:** 2026-07-06 (auto-improve tick 2/8)
 
 ## Runtime
 
@@ -44,7 +44,11 @@ Next measurement:
 
 ## Recent commits (heads)
 
-Most recent through 2026-07-05 block 2:
+Most recent through 2026-07-06 tick 2:
+- `b9450ce` feat(seo): add geo + hasMap to GeneralContractor JSON-LD (this tick)
+- `1f971b2` docs(claude): append Cockpit Work Log DoD reminder to project CLAUDE.md
+- `7ef08e4` docs(TODO): rewrite for block-2 SHIPPED + Lighthouse-re-measure NEXT ACTION
+- `712edae` docs(state): TODO/STATUS/DECISIONS rewritten + CONTENT + CHANGELOG for block-2 ships
 - `d921703` feat(404): real 404 page + nginx no longer rewrites broken links to /
 - `ec70763` fix(a11y+cdn): color-contrast pass + Vary: Accept-Encoding
 - `b06b4ba` fix(a11y): flatten hero-stats <dl> — dt/dd are direct children now

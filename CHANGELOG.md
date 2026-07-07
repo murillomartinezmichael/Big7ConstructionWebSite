@@ -8,6 +8,7 @@ Adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [Unreleased]
 
 ### Added
+- **JSON-LD `geo` + `hasMap` on `GeneralContractor` block.** `GeoCoordinates` (Atlanta 33.7490, -84.3880) and `hasMap` (Google Maps URL) added as top-level properties inside the existing `<script type="application/ld+json">`. These were the last two easy fields Google reads for local-pack candidacy signal. Deliberately did NOT add `sameAs` (no confirmed social handles on file) or `aggregateRating` (no real reviews yet) — LAW 6 blocks fabricating either; both parked in `TODO.md`. JSON validated via `python -c "json.loads(...)"`; two-division `hasOfferCatalog` intact. Commit `b9450ce`.
 - **Real `/404.html` + no-more-SPA-shim.** Editorial 404 page in brand type + palette + one CTA + `noindex` meta + fonts preloaded via Filament pattern (no render-block regression). `nginx.conf` `try_files` falls through to `=404`; `error_page 404 /404.html;` with `internal;` location prevents direct access. `Dockerfile` copies the file. Was silently rewriting typos + broken inbound links to `/` with HTTP 200 — bad for SEO, user trust, and analytics honesty. Closes STANDARDS §6 deploy-checklist "404 page exists." Commit `d921703`.
 - **Project state scaffolding.** `TODO.md`, `STATUS.md`, `DECISIONS.md` per canon Book I §2 (CONTENT.md and CHANGELOG.md already existed). TODO carries the exact Lighthouse re-measurement micro-steps for a 60-second cold start.
 
