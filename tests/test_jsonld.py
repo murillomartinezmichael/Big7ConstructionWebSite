@@ -53,6 +53,11 @@ LOCAL_BUSINESS_TYPES = {
     "Contractor",
 }
 
+# On-page <details class="faq-item"> blocks — the FAQPage schema must expose
+# exactly one Question per rendered FAQ. Prevents schema drift when someone
+# edits the visible copy without touching the ld+json.
+FAQ_DETAILS_RE = re.compile(r'<details\s+class="faq-item"', re.IGNORECASE)
+
 
 def extract_blocks(html: str) -> list[dict]:
     return [json.loads(m.group("body")) for m in SCRIPT_RE.finditer(html)]
@@ -138,6 +143,48 @@ def assert_local_business(block: dict) -> list[str]:
     return errors
 
 
+def assert_faq_page(block: dict, on_page_count: int | None = None) -> list[str]:
+    errors: list[str] = []
+
+    if block.get("@context") != "https://schema.org":
+        errors.append(f'FAQ @context must be "https://schema.org", got {block.get("@context")!r}')
+
+    if block.get("@type") != "FAQPage":
+        errors.append(f'FAQ @type must be "FAQPage", got {block.get("@type")!r}')
+
+    entities = block.get("mainEntity")
+    if not isinstance(entities, list) or not entities:
+        errors.append("FAQ mainEntity must be a non-empty list")
+        return errors
+
+    for i, q in enumerate(entities):
+        if not isinstance(q, dict):
+            errors.append(f"FAQ mainEntity[{i}] must be an object, got {type(q).__name__}")
+            continue
+        if q.get("@type") != "Question":
+            errors.append(f'FAQ mainEntity[{i}].@type must be "Question", got {q.get("@type")!r}')
+        name = q.get("name")
+        if not (isinstance(name, str) and name.strip()):
+            errors.append(f"FAQ mainEntity[{i}].name must be a non-empty string")
+        answer = q.get("acceptedAnswer")
+        if not isinstance(answer, dict):
+            errors.append(f"FAQ mainEntity[{i}].acceptedAnswer must be an object")
+            continue
+        if answer.get("@type") != "Answer":
+            errors.append(f'FAQ mainEntity[{i}].acceptedAnswer.@type must be "Answer", got {answer.get("@type")!r}')
+        text = answer.get("text")
+        if not (isinstance(text, str) and text.strip()):
+            errors.append(f"FAQ mainEntity[{i}].acceptedAnswer.text must be a non-empty string")
+
+    if on_page_count is not None and on_page_count != len(entities):
+        errors.append(
+            f"FAQ schema/on-page drift: {len(entities)} Question(s) in ld+json vs "
+            f"{on_page_count} <details class=\"faq-item\"> in rendered HTML"
+        )
+
+    return errors
+
+
 def _valid_block() -> dict:
     """Minimal-but-valid LocalBusiness block used as the selftest baseline."""
     return {
@@ -168,6 +215,26 @@ def _valid_block() -> dict:
     }
 
 
+def _valid_faq_block() -> dict:
+    """Minimal-but-valid FAQPage with two Questions — selftest baseline."""
+    return {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+            {
+                "@type": "Question",
+                "name": "Do you provide fixed-price bids?",
+                "acceptedAnswer": {"@type": "Answer", "text": "Yes — fixed bids are the default."},
+            },
+            {
+                "@type": "Question",
+                "name": "How does payment work?",
+                "acceptedAnswer": {"@type": "Answer", "text": "Milestone-based, not time-based."},
+            },
+        ],
+    }
+
+
 def selftest() -> int:
     """Mutate the valid block into known-broken shapes; every mutation must FAIL."""
     baseline = _valid_block()
@@ -195,7 +262,30 @@ def selftest() -> int:
             print(f"SELFTEST FAIL: mutation not caught: {name}", file=sys.stderr)
         return 1
 
-    print(f"SELFTEST OK: baseline PASS + {len(cases)}/{len(cases)} mutations caught")
+    faq_baseline = _valid_faq_block()
+    if assert_faq_page(faq_baseline, on_page_count=2):
+        print("SELFTEST FAIL: FAQ baseline should be valid", file=sys.stderr)
+        return 1
+
+    faq_cases: list[tuple[str, dict, int | None]] = []
+    b = _valid_faq_block(); b["@type"] = "Article"; faq_cases.append(("FAQ wrong @type", b, 2))
+    b = _valid_faq_block(); b.pop("mainEntity"); faq_cases.append(("FAQ missing mainEntity", b, 2))
+    b = _valid_faq_block(); b["mainEntity"] = []; faq_cases.append(("FAQ empty mainEntity", b, 2))
+    b = _valid_faq_block(); b["mainEntity"][0].pop("name"); faq_cases.append(("FAQ question missing name", b, 2))
+    b = _valid_faq_block(); b["mainEntity"][0]["acceptedAnswer"].pop("text"); faq_cases.append(("FAQ answer missing text", b, 2))
+    b = _valid_faq_block(); b["mainEntity"][0]["acceptedAnswer"]["@type"] = "Comment"; faq_cases.append(("FAQ answer wrong @type", b, 2))
+    b = _valid_faq_block(); faq_cases.append(("FAQ count drift (2 in schema vs 3 on-page)", b, 3))
+
+    faq_failures = [name for name, block, cnt in faq_cases if not assert_faq_page(block, cnt)]
+    if faq_failures:
+        for name in faq_failures:
+            print(f"SELFTEST FAIL: FAQ mutation not caught: {name}", file=sys.stderr)
+        return 1
+
+    print(
+        f"SELFTEST OK: LB baseline PASS + {len(cases)}/{len(cases)} LB mutations caught; "
+        f"FAQ baseline PASS + {len(faq_cases)}/{len(faq_cases)} FAQ mutations caught"
+    )
     return 0
 
 
@@ -215,15 +305,28 @@ def main() -> int:
 
     errors: list[str] = []
     lb_seen = False
+    faq_seen = False
+    on_page_faq_count = len(FAQ_DETAILS_RE.findall(html))
     for i, block in enumerate(blocks):
         types = block.get("@type")
         type_set = set(types) if isinstance(types, list) else {types}
         if type_set & LOCAL_BUSINESS_TYPES:
             lb_seen = True
             errors.extend(f"block[{i}]: {e}" for e in assert_local_business(block))
+        if "FAQPage" in type_set:
+            faq_seen = True
+            errors.extend(f"block[{i}]: {e}" for e in assert_faq_page(block, on_page_faq_count))
 
     if not lb_seen:
         print("FAIL: no LocalBusiness / GeneralContractor JSON-LD block found", file=sys.stderr)
+        return 1
+
+    if on_page_faq_count > 0 and not faq_seen:
+        print(
+            f"FAIL: {on_page_faq_count} on-page <details class=\"faq-item\"> present but no "
+            "FAQPage JSON-LD block found",
+            file=sys.stderr,
+        )
         return 1
 
     if errors:
@@ -231,7 +334,10 @@ def main() -> int:
             print(f"FAIL: {e}", file=sys.stderr)
         return 1
 
-    print(f"OK: {len(blocks)} JSON-LD block(s) parsed, LocalBusiness schema valid")
+    print(
+        f"OK: {len(blocks)} JSON-LD block(s) parsed, LocalBusiness valid"
+        + (f", FAQPage valid ({on_page_faq_count} Q's in sync)" if faq_seen else "")
+    )
     return 0
 
 

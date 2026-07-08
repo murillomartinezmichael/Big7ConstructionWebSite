@@ -136,6 +136,85 @@
   }
   </script>
 
+  <!--
+    FAQPage schema. Mirrors the eight §07 FAQ answers verbatim so Google can
+    surface them as a rich result on branded / "atlanta general contractor"
+    queries. Keep in lockstep with the rendered §07 accordion — the
+    tests/test_jsonld.py contract asserts the Question count matches.
+  -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Do you provide fixed-price bids?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes — fixed bids are the default. Every scope of work we quote comes with a hard number, a line-item breakdown, and a schedule. Time-and-materials is reserved for genuine unknowns (deep-cut renovations where the wall might hide anything). If your scope has T&M in it, we'll flag exactly which line items and why."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Do I own the drawings, permits, and closeout docs?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. Final permits, warranties, closeout binders, and any project-specific drawings transfer to you at final payment. If we prepared design-assist drawings, you own those too. We keep archival copies for our records; you get the originals."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What if I need something that isn't on your services list?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Ask. Our list covers 90% of what commercial, industrial, and residential clients need. Anything outside it, we'll tell you honestly whether we can self-perform or should bring in a specialist trade partner. Either way, it stays under one contract, one PM, one point of accountability."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can we scale the scope up or down mid-project?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Change orders happen; how we handle them is what matters. Every change gets a written change order with a fixed cost and a schedule impact, signed before work resumes. No surprises on the final invoice."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What warranty do you offer after completion?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "One-year workmanship warranty on every trade we self-perform. Material and manufacturer warranties pass through to you in the closeout binder. If a defect is on us, we come back and fix it — full stop, no invoice."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Do you require a written contract?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "For every project over $5,000, yes. Standard AIA-style contract or a plain-English version — your preference. Under $5k, a signed one-page scope-of-work with milestones is enough. It protects both of us."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How does payment work?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Milestone-based, not time-based. Typical schedule: 15% deposit at signing, 25% at material delivery / demo, 40% at rough-in complete, 20% at final walk-through. Progress payments align with visible milestones, so you're never paying for work that hasn't happened yet."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Do you take rush jobs — and what does that add?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes, when the calendar allows. Rush work runs 15–25% above standard bid, depending on trade availability and material lead time. You'll see the rush premium as its own line item — not folded into the base — so you know exactly what you're paying for."
+        }
+      }
+    ]
+  }
+  </script>
+
   <style>
     /* ─── RESET & BASE ───────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
