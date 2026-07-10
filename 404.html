@@ -75,15 +75,33 @@
       font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase;
       color: var(--ink-500); text-align: center;
     }
+    footer a { color: var(--ink-500); text-decoration: underline; margin-left: 8px; }
+    .skip-link {
+      position: absolute; top: -100px; left: 8px;
+      background: var(--ink-950); color: #fff;
+      padding: 10px 16px; text-decoration: none; font-weight: 600;
+      border-radius: 2px; z-index: 100;
+    }
+    .skip-link:focus { top: 8px; outline: 3px solid var(--accent-600); outline-offset: 2px; }
+    a:focus-visible, .btn:focus-visible {
+      outline: 3px solid var(--accent-600); outline-offset: 3px;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
   </style>
 </head>
 <body>
-  <div class="wrap">
+  <a href="#main" class="skip-link">Skip to main content</a>
+  <main id="main" class="wrap">
     <p class="badge">Big 7 Construction · Error 404</p>
     <h1>Not here.</h1>
     <p>The page you were looking for isn't at this address. If a link on our own site is broken, we'd like to know — the fastest fix goes through the front door.</p>
     <a class="btn" href="/">Back to Big 7</a>
-  </div>
-  <footer>Bonded &amp; insured · Metro Atlanta commercial + residential</footer>
+  </main>
+  <footer>Bonded &amp; insured · Metro Atlanta commercial + residential<a href="/accessibility.html">Accessibility</a></footer>
 </body>
 </html>
