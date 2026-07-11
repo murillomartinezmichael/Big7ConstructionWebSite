@@ -1,6 +1,16 @@
 # Big7Construction — TODO
 
-**Last updated:** 2026-07-11 (tick 22 — second lane page `commercial-industrial.html` shipped end-to-end with OG contract lock)
+**Last updated:** 2026-07-11 (tick 23 — third lane page `residential-construction.html` shipped; three-lane IA now complete)
+
+## SHIPPED (2026-07-11 tick 23 — Rung VI UPGRADE fifteenth bite: third lane page `/residential-construction.html`)
+
+- **`residential-construction.html` — third and final top-level lane page; the three-lane IA the 2026-07-09 AI Hub sync + `BRD.md § "Site Architecture Direction"` committed the project to is now complete.** Same head shell as `home-repair.html` + `commercial-industrial.html` (async Google Fonts, `lang="en"`, skip-link, `<main>` landmark, `prefers-reduced-motion`, `:focus-visible`) so LAW 11 accessibility baseline holds without duplicating a shared build tool. Full OG + Twitter card block pointing at branded `og-card.png` — locked by the extended `tests/test_og_twitter.py` `TARGETS` tuple. Canonical `https://big7construction.com/residential-construction.html`. Copy targets homeowners planning larger builds — custom homes, additions, structural remodels touching foundation/roof — and explicitly redirects punch-list-scale work back to `/home-repair.html` (protects estimator time and keeps the two residential lanes distinct rather than colliding). Three service rows deep-link to `/?intent=service:{custom-home,structural-repair,trades-only}&src=residential-construction-lane#contact` — every intent slug already exists in `INTENT_TO_TYPE` (locked by `tests/test_conversion.py`), so the URL-param prefill IIFE seeds the correct radio + textarea hint on landing with zero contract expansion.
+
+- **`sitemap.xml` — `<url>` entry for `residential-construction.html` at priority 0.85 (between commercial 0.9 and home-repair 0.8, reflecting BRD lane ordering: commercial+enterprise is top-tier, then residential larger builds, then home-repair smaller work).** `lastmod` 2026-07-11.
+
+- **`Dockerfile` — COPY `residential-construction.html` into `/usr/share/nginx/html/`.** Column alignment on the three lane-page COPY lines kept as a block. Same class of fix the tick-17 `accessibility.html` gap surfaced — a lane page in the repo but not in the container ships nothing.
+
+- **`tests/test_og_twitter.py` — extend `TARGETS` to include `residential-construction.html`.** Docstring updated to name all six top-level pages now covered. First run PASS: `residential-construction.html` carries a valid OG + Twitter tag set, `og:image` + `twitter:image` both point at the branded 1200x630 `og-card.png` (guards reversion). `--selftest` still catches 12/12 mutations. Full 12-suite test chain (`jsonld` + selftest, `seo-files`, `conversion` + selftest, `primary-ctas` + selftest, `url-prefill` + selftest, `og` + selftest, `assets` + selftest, `anchors` + selftest, `nginx` + selftest, `form` + selftest, `font-preload` + selftest, `images` + selftest) — end-to-end green.
 
 ## SHIPPED (2026-07-11 tick 22 — Rung VI UPGRADE fourteenth bite: second lane page `/commercial-industrial.html`)
 
@@ -263,3 +273,9 @@ Source of product truth: ..\AI_HUB.md.
 
 **Verification gate:** make test; anchor/SEO/schema/form/CTA smoke; mobile Lighthouse when URL is known.
 <!-- AI-HUB-SYNC:END -->
+- [ ] RESUME (2026-07-11 12:53): auto-improve worker crashed. Last commit: 7af3993 feat(rung6)+test(rung2): second lane page commercial-industrial.html; OG contract locks 5 top-level pages (tick 22). See C:\Users\Michael\Documents\GitHub\Big7Construction\.autoimprove\crash-2026-07-11_12-53-32.json.
+- [ ] Ship third lane page `residential-construction.html` to close the three-lane IA the BRD committed to
+- [ ] Mirror the LAW 11 accessibility head shell + OG/Twitter card block used on `commercial-industrial.html`
+- [ ] Wire five service rows with `?intent=service:*&src=residential-construction-lane#contact` deep-links using existing `INTENT_TO_TYPE` slugs
+- [ ] Add `<url>` entry to `sitemap.xml` (match top-tier lane priority)
+- [ ] Add `Dockerfile` COPY line for the new page
