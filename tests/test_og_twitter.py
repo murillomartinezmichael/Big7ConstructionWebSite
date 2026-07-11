@@ -12,7 +12,8 @@ placeholder (Slack/iMessage/Facebook crop the placeholder into a smear).
 Same guard doctrine as `test_jsonld.py`'s image/logo lock.
 
 Runs against every top-level HTML file: `index.html`, `404.html`,
-`accessibility.html`. Adding a new top-level page? Append it to `TARGETS`.
+`accessibility.html`, `home-repair.html`. Adding a new top-level page? Append
+it to `TARGETS`.
 
 Python 3.11+ stdlib only (`re`, `pathlib`). No pip install, no network.
 """
@@ -26,7 +27,8 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 INDEX = REPO_ROOT / "index.html"
 NOT_FOUND = REPO_ROOT / "404.html"
 ACCESSIBILITY = REPO_ROOT / "accessibility.html"
-TARGETS = (INDEX, NOT_FOUND, ACCESSIBILITY)
+HOME_REPAIR = REPO_ROOT / "home-repair.html"
+TARGETS = (INDEX, NOT_FOUND, ACCESSIBILITY, HOME_REPAIR)
 
 # Match each <meta ...> tag broadly, then pull attributes in a second pass.
 # Attribute regexes use a matched-quote backreference so an apostrophe inside a

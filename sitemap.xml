@@ -1,16 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Single-page marketing site. Only index.html is a valid crawler target.
-  404.html is `noindex` (nginx returns it as internal via error_page) and
-  is deliberately excluded per sitemap.org guidance.
-  When per-service or per-city pages ship (TODO PARKED §4), add one <url>
-  per real path here — do NOT list hypothetical URLs.
+  Real crawler targets only — 404.html is `noindex` (nginx returns it as
+  internal via error_page) and is deliberately excluded per sitemap.org
+  guidance. Same origin (https://big7construction.com/) as index.html's
+  canonical + robots.txt Sitemap: — locked by tests/test_seo_files.py.
 -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://big7construction.com/</loc>
-    <lastmod>2026-07-07</lastmod>
+    <lastmod>2026-07-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://big7construction.com/home-repair.html</loc>
+    <lastmod>2026-07-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
   </url>
 </urlset>
