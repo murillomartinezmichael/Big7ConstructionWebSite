@@ -11,7 +11,8 @@ at the 1200x630 `images/og-card.png` and NOT the 206px `images/jobsite-01.jpg`
 placeholder (Slack/iMessage/Facebook crop the placeholder into a smear).
 Same guard doctrine as `test_jsonld.py`'s image/logo lock.
 
-Runs against both top-level HTML files: `index.html` + `404.html`.
+Runs against every top-level HTML file: `index.html`, `404.html`,
+`accessibility.html`. Adding a new top-level page? Append it to `TARGETS`.
 
 Python 3.11+ stdlib only (`re`, `pathlib`). No pip install, no network.
 """
@@ -24,6 +25,8 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parent.parent
 INDEX = REPO_ROOT / "index.html"
 NOT_FOUND = REPO_ROOT / "404.html"
+ACCESSIBILITY = REPO_ROOT / "accessibility.html"
+TARGETS = (INDEX, NOT_FOUND, ACCESSIBILITY)
 
 # Match each <meta ...> tag broadly, then pull attributes in a second pass.
 # Attribute regexes use a matched-quote backreference so an apostrophe inside a
@@ -177,7 +180,7 @@ def main() -> int:
         return selftest()
 
     errors: list[str] = []
-    for path in (INDEX, NOT_FOUND):
+    for path in TARGETS:
         if not path.exists():
             errors.append(f"{path.name} not found at {path}")
             continue
@@ -190,9 +193,10 @@ def main() -> int:
             print(f"FAIL: {e}", file=sys.stderr)
         return 1
 
+    names = ", ".join(p.name for p in TARGETS)
     print(
-        f"OK: {INDEX.name} + {NOT_FOUND.name} carry valid OG + Twitter tags; "
-        f"og:image + twitter:image both point at branded {BRAND_CARD} (1200x630 image/png)"
+        f"OK: {names} carry valid OG + Twitter tags; "
+        f"og:image + twitter:image point at branded {BRAND_CARD} (1200x630 image/png)"
     )
     return 0
 
