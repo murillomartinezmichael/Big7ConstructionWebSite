@@ -30,6 +30,22 @@
   <meta name="twitter:image" content="https://big7construction.com/images/og-card.png" />
   <meta name="twitter:image:alt" content="Big 7 Construction — Commercial, Industrial, Residential general contractor, Metro Atlanta. Licensed, bonded, insured." />
 
+  <!--
+    BreadcrumbList JSON-LD. Google renders "Home > Residential Construction" in
+    SERP results instead of a raw URL — drives higher CTR on branded /
+    lane-specific service queries. Locked by tests/test_breadcrumbs.py.
+  -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://big7construction.com/" },
+      { "@type": "ListItem", "position": 2, "name": "Residential Construction", "item": "https://big7construction.com/residential-construction.html" }
+    ]
+  }
+  </script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow+Condensed:wght@400;600&family=Fraunces:wght@500&display=swap" onload="this.rel='stylesheet'" />
