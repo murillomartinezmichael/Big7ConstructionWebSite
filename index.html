@@ -3037,6 +3037,55 @@
           });
         }, true);
       }
+
+      // ─── URL-param prefill (bio-link landing) ────────────────
+      // Money path: a TikTok / Instagram / email-footer bio link like
+      //   https://big7construction.com/?intent=service:tenant-improvement&src=tiktok-bio
+      // lands the visitor on a form that already knows why they came.
+      // Also accepts `?type=<projectType>` (direct radio value — bio-link
+      // authors can pick from the 6 radio values without knowing the
+      // internal intent slug) and `?src=<slug>` OR `?utm_source=<slug>`
+      // for attribution. Every param is whitelisted through SAFE_PARAM
+      // before touching the DOM — a URL param NEVER hits querySelector raw.
+      // Reuses INTENT_TO_TYPE / PREFILL_MARK / labelFor / track from the
+      // closure above so the mapping stays single-source-of-truth (a slug
+      // rename locked by test_conversion.py auto-propagates to landing).
+      (function () {
+        try {
+          const params = new URLSearchParams(window.location.search);
+          const SAFE_PARAM = /^[a-z0-9:_\-]{1,64}$/i;
+          const safe = (v) => (v && SAFE_PARAM.test(v)) ? v : '';
+          const intent = safe(params.get('intent'));
+          const type = safe(params.get('type'));
+          const src = safe(params.get('src')) || safe(params.get('utm_source'));
+          if (!intent && !type && !src) return;
+          const resolvedType = type || (intent && INTENT_TO_TYPE[intent]) || '';
+          let didRadio = false;
+          if (resolvedType) {
+            const radio = document.querySelector('input[name="projectType"][value="' + resolvedType + '"]');
+            const already = document.querySelector('input[name="projectType"]:checked');
+            if (radio && !already) { radio.checked = true; didRadio = true; }
+          }
+          let didText = false;
+          if (intent) {
+            const cta = document.querySelector('[data-intent="' + intent + '"]');
+            let label = cta ? labelFor(cta) : '';
+            if (!label) {
+              const slug = intent.split(':')[1] || intent;
+              label = slug.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+            }
+            const ta = document.querySelector('form.cform textarea[name="message"]');
+            if (ta && (!ta.value || !ta.value.trim())) {
+              ta.value = PREFILL_MARK + label + '\n\n';
+              didText = true;
+            }
+          }
+          track('landing_prefill', {
+            intent: intent, type: resolvedType, src: src, page: 'home',
+            did_radio: didRadio, did_text: didText
+          });
+        } catch (_) { /* never break the page on a malformed URL */ }
+      })();
     })();
 
     // ─── Analytics adapter: dataLayer → gtag/plausible bridge ─

@@ -1,8 +1,33 @@
 # Big7Construction — TODO
 
-**Last updated:** 2026-07-07 (tick 20 — FAQPage JSON-LD block + on-page↔schema drift-lock in `test_jsonld.py`)
+**Last updated:** 2026-07-11 (tick 21 — URL-param intake prefill: bio links can carry `?intent=service:*` / `?type=<projectType>` / `?src=<slug>` and land visitors on a pre-filled form + `test_url_prefill.py` contract)
 
-## SHIPPED (2026-07-07 tick 20 — Rung VI UPGRADE + Rung II PROVE twelfth bite: FAQPage rich-result schema + drift lock)
+## SHIPPED (2026-07-11 tick 21 — Rung VI UPGRADE thirteenth bite: URL-param intake prefill)
+
+- **`index.html` — URL-param prefill IIFE nested inside the conversion IIFE.** Bio-link money path opened: `https://big7construction.com/?intent=service:tenant-improvement&src=tiktok-bio` now lands the visitor on an intake form that already has the correct `projectType` radio checked AND `— Interested in: Tenant Improvement` seeded in the textarea. Also accepts `?type=<projectType>` (direct radio value — 6 choices) and `?src=<slug>` / `?utm_source=<slug>` for attribution. New `landing_prefill` event pushed to `dataLayer` (adapter forwards to gtag/plausible if loaded). Nested INSIDE the click IIFE for closure access to `INTENT_TO_TYPE` / `PREFILL_MARK` / `labelFor` / `track` — a slug rename (locked by `test_conversion.py`) auto-propagates with zero duplication. Every URL param passes `SAFE_PARAM = /^[a-z0-9:_\-]{1,64}$/i` before hitting `querySelector` — DOM injection blocked. Wrapped in `try/catch` so malformed URLs cannot break the page.
+
+- **`tests/test_url_prefill.py` + `make test-url-prefill` — stdlib contract, wired into `make test`.** Locks: (1) `URLSearchParams` parse; (2) 13 required substrings including `SAFE_PARAM.test(` — whitelist APPLIED, not just declared; (3) SAFE_PARAM regex literal anchored `^…$` with no `.*`/`.+` wildcard; (4) no `querySelector(...params.get(...))` — grep-level DOM-injection guard; (5) `try {` opens BEFORE the URL parse. `--selftest` mutates 6 ways (URLSearchParams stripped, event renamed, utm_source dropped, whitelist call replaced with literal `true`, IIFE marker removed, INTENT_TO_TYPE lookup killed) — all 6 caught. First-draft bug: initial mutation `SAFE_PARAM` → `UNSAFE_PARAM` was a no-op (rename, not kill); tightened to `SAFE_PARAM.test(v)` → `true` which actually bypasses the whitelist. Full 12-suite `make test` all PASS.
+
+## NEXT ACTION (current scope decision)
+
+**Big7 IA cleanup before tech upgrade.** Do not split into three sites and do not add microservices yet. Build one parent site with three clear lanes:
+
+1. Commercial & Industrial - GC / facilities / enterprise buyer language.
+2. Residential Construction - homeowner bigger-build language.
+3. Home Repair & Improvements - smaller homeowner repair/replace work, but filtered away from low-value handyman jobs.
+
+Implementation path:
+
+- Add three static landing pages on the same domain: `/commercial-industrial/`, `/residential-construction/`, `/home-repair/`.
+- Keep one brand, one phone, one form, one analytics stream.
+- Add lane-specific CTA intents and hidden form prefill.
+- Extend `sitemap.xml` only after the pages exist.
+- Upgrade to Astro static only if duplicating sections across pages becomes painful.
+- No microservices unless Big7 needs auth, a client portal, payments, scheduling, or lead-management workflows.
+
+---
+
+ (2026-07-07 tick 20 — Rung VI UPGRADE + Rung II PROVE twelfth bite: FAQPage rich-result schema + drift lock)
 
 - **`index.html` — second `<script type="application/ld+json">` block with `@type: "FAQPage"`, mirroring all eight §07 accordion answers verbatim.** Site already had a solid `GeneralContractor` LocalBusiness block, complete OG + Twitter tags, and rich on-page FAQ HTML (`<details class="faq-item">` × 8) — but no FAQPage schema, so Google could not surface the answers as a rich result on branded / "atlanta general contractor" queries. Rich FAQ results dominate SERP real estate for local-service intent and click through at 2–4× the plain listing rate; adding the schema is the highest-leverage single edit still on the table for this page. Answer text is stripped-to-plain (no inline `<strong>`) so the JSON parses in any validator and no `</script>` sequence risks breaking the outer parser. Block placed in `<head>` next to the LocalBusiness block for consistency with existing structured-data grouping. Zero new imagery, zero new copy, zero fabricated content — every Q/A pair is what the visible accordion already says.
 
@@ -198,3 +223,23 @@ Wrangler auto-ignores `.git/`, `node_modules/`, `Dockerfile`, and any file liste
 - `404.html` — real 404
 - `../docs/CONVERSION_STANDARDS.md` — the standard this tick audited against
 - `STATUS.md § Lighthouse timeline` — score history + next entry pending
+
+
+<!-- AI-HUB-SYNC:START -->
+## AI Hub Sync - 2026-07-09
+
+Source of product truth: ..\AI_HUB.md.
+
+**Lane:** large construction brand site
+
+**UI/design verdict:** One parent brand is right. The design should feel sturdy, premium, and operational, with clear buyer lanes rather than three separate brands. Separate sites would split trust and SEO too early.
+
+**Product improvement:** Add three lane pages on the same domain: Commercial & Industrial, Residential Construction, Home Repair & Improvements. Use real proof, job photos, FAQ schema, service areas, shared quote form, and lane-specific CTA intents.
+
+**Next action:**
+- [ ] Write and build the three-lane IA before any stack or microservice upgrade.
+
+**Combine/separate call:** Separate pages, not separate sites. No microservices unless auth, portal, payments, scheduling, or CRM workflows appear.
+
+**Verification gate:** make test; anchor/SEO/schema/form/CTA smoke; mobile Lighthouse when URL is known.
+<!-- AI-HUB-SYNC:END -->

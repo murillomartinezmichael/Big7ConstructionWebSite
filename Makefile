@@ -10,7 +10,7 @@
 # =============================================================================
 
 .DEFAULT_GOAL := help
-.PHONY: help build run test test-jsonld test-seo-files test-conversion test-primary-ctas test-og test-assets test-anchors test-nginx test-form test-font-preload test-images test-unit test-integration test-e2e lint fmt clean docker docker-run deploy
+.PHONY: help build run test test-jsonld test-seo-files test-conversion test-primary-ctas test-url-prefill test-og test-assets test-anchors test-nginx test-form test-font-preload test-images test-unit test-integration test-e2e lint fmt clean docker docker-run deploy
 
 help: ## Show this help
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -21,7 +21,7 @@ build: ## Clean-clone -> running prerequisites met (delegates to build.sh)
 run: ## Run the service locally
 	./scripts/run.sh
 
-test: test-jsonld test-seo-files test-conversion test-primary-ctas test-og test-assets test-anchors test-nginx test-form test-font-preload test-images ## Run all tests (stdlib-only smoke suite)
+test: test-jsonld test-seo-files test-conversion test-primary-ctas test-url-prefill test-og test-assets test-anchors test-nginx test-form test-font-preload test-images ## Run all tests (stdlib-only smoke suite)
 
 test-jsonld: ## Validate LocalBusiness JSON-LD parses + has required fields
 	python tests/test_jsonld.py
@@ -37,6 +37,10 @@ test-conversion: ## CTA data-intent <-> INTENT_TO_TYPE <-> projectType radio con
 test-primary-ctas: ## Every primary "Request a bid" / btn-accent CTA carries data-intent; cta_click position emitted
 	python tests/test_primary_ctas.py
 	python tests/test_primary_ctas.py --selftest
+
+test-url-prefill: ## URL-param prefill IIFE: SAFE_PARAM whitelist gates params before DOM; landing_prefill emitted; utm_source accepted
+	python tests/test_url_prefill.py
+	python tests/test_url_prefill.py --selftest
 
 test-og: ## OG + Twitter meta tags valid on index.html + 404.html; og:image = branded card
 	python tests/test_og_twitter.py
