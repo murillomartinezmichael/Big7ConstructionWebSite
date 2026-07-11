@@ -39,7 +39,23 @@ REQUIRED_TOP = {
     "hasOfferCatalog",
     "image",
     "logo",
+    "contactPoint",
 }
+
+VALID_CONTACT_TYPES = {
+    "customer service",
+    "sales",
+    "technical support",
+    "billing support",
+    "bill payment",
+    "emergency",
+    "reservations",
+}
+
+# ContactPoint.telephone must agree with the top-level telephone at the
+# last-10-digit level so Google's Knowledge Panel + SGE surface one canonical
+# number. Same drift class the test_form.py tel:<->JSON-LD lock closes.
+_DIGITS_RE = re.compile(r"\D+")
 
 # Google Rich Results guidance: LocalBusiness images should be ≥1200 px wide.
 # We only assert dimensions when logo is an ImageObject (URL-only form is
@@ -122,6 +138,8 @@ def assert_local_business(block: dict) -> list[str]:
             if not (isinstance(u, str) and u.startswith("https://")):
                 errors.append(f"image[{i}] must be an absolute https URL, got {u!r}")
 
+    errors.extend(_assert_contact_points(block))
+
     logo = block.get("logo")
     if isinstance(logo, str):
         if not logo.startswith("https://"):
@@ -139,6 +157,63 @@ def assert_local_business(block: dict) -> list[str]:
             errors.append(f"logo.height must be positive int, got {h!r}")
     else:
         errors.append(f"logo must be a URL string or ImageObject, got {type(logo).__name__}")
+
+    return errors
+
+
+def _assert_contact_points(block: dict) -> list[str]:
+    errors: list[str] = []
+    top_tel_digits = _DIGITS_RE.sub("", block.get("telephone", ""))[-10:]
+
+    cps = block.get("contactPoint")
+    if not isinstance(cps, list) or not cps:
+        errors.append("contactPoint must be a non-empty list of ContactPoint objects")
+        return errors
+
+    seen_types: set[str] = set()
+    for i, cp in enumerate(cps):
+        if not isinstance(cp, dict):
+            errors.append(f"contactPoint[{i}] must be an object, got {type(cp).__name__}")
+            continue
+        if cp.get("@type") != "ContactPoint":
+            errors.append(f'contactPoint[{i}].@type must be "ContactPoint", got {cp.get("@type")!r}')
+        ctype = cp.get("contactType")
+        if not (isinstance(ctype, str) and ctype.strip()):
+            errors.append(f"contactPoint[{i}].contactType must be a non-empty string")
+        elif ctype not in VALID_CONTACT_TYPES:
+            errors.append(
+                f"contactPoint[{i}].contactType {ctype!r} not in Google-recommended set "
+                f"{sorted(VALID_CONTACT_TYPES)}"
+            )
+        else:
+            if ctype in seen_types:
+                errors.append(f"contactPoint[{i}].contactType {ctype!r} duplicated across entries")
+            seen_types.add(ctype)
+
+        tel = cp.get("telephone", "")
+        if not re.match(r"^\+?[\d\-\s\(\)]+$", tel):
+            errors.append(f"contactPoint[{i}].telephone shape looks wrong: {tel!r}")
+        elif top_tel_digits:
+            cp_digits = _DIGITS_RE.sub("", tel)[-10:]
+            if cp_digits != top_tel_digits:
+                errors.append(
+                    f"contactPoint[{i}].telephone last-10-digits {cp_digits!r} != top-level "
+                    f"telephone last-10-digits {top_tel_digits!r} (drift)"
+                )
+
+        langs = cp.get("availableLanguage")
+        lang_list = [langs] if isinstance(langs, str) else langs
+        if not (isinstance(lang_list, list) and lang_list and all(
+            isinstance(l, str) and l.strip() for l in lang_list
+        )):
+            errors.append(
+                f"contactPoint[{i}].availableLanguage must be a non-empty string or list of strings"
+            )
+
+        if "email" in cp:
+            email = cp["email"]
+            if not (isinstance(email, str) and "@" in email and "." in email.split("@")[-1]):
+                errors.append(f"contactPoint[{i}].email shape looks wrong: {email!r}")
 
     return errors
 
@@ -212,6 +287,24 @@ def _valid_block() -> dict:
             "width": 1200,
             "height": 630,
         },
+        "contactPoint": [
+            {
+                "@type": "ContactPoint",
+                "contactType": "customer service",
+                "telephone": "+1-555-700-0007",
+                "email": "info@big7construction.com",
+                "areaServed": "US-GA",
+                "availableLanguage": ["English"],
+            },
+            {
+                "@type": "ContactPoint",
+                "contactType": "sales",
+                "telephone": "+1-555-700-0007",
+                "email": "info@big7construction.com",
+                "areaServed": "US-GA",
+                "availableLanguage": ["English"],
+            },
+        ],
     }
 
 
@@ -255,6 +348,20 @@ def selftest() -> int:
     b = _valid_block(); b["logo"] = {"@type": "ImageObject", "url": "https://x/y.png", "width": 50, "height": 50}; cases.append(("logo width below min", b))
     b = _valid_block(); b["logo"] = {"@type": "ImageObject", "url": "https://x/y.png", "width": 1200}; cases.append(("logo missing height", b))
     b = _valid_block(); b["logo"] = 123; cases.append(("logo wrong type", b))
+    # contactPoint mutations
+    b = _valid_block(); b.pop("contactPoint"); cases.append(("contactPoint missing", b))
+    b = _valid_block(); b["contactPoint"] = []; cases.append(("contactPoint empty list", b))
+    b = _valid_block(); b["contactPoint"] = "info@big7construction.com"; cases.append(("contactPoint not a list", b))
+    b = _valid_block(); b["contactPoint"][0].pop("@type"); cases.append(("contactPoint[0] missing @type", b))
+    b = _valid_block(); b["contactPoint"][0]["@type"] = "Person"; cases.append(("contactPoint[0] wrong @type", b))
+    b = _valid_block(); b["contactPoint"][0]["contactType"] = "grillmaster"; cases.append(("contactPoint[0] contactType not in Google set", b))
+    b = _valid_block(); b["contactPoint"][0].pop("contactType"); cases.append(("contactPoint[0] missing contactType", b))
+    b = _valid_block(); b["contactPoint"][0]["telephone"] = "+1-555-123-4567"; cases.append(("contactPoint[0] telephone drifts from top-level", b))
+    b = _valid_block(); b["contactPoint"][0]["telephone"] = "call-us"; cases.append(("contactPoint[0] telephone bad shape", b))
+    b = _valid_block(); b["contactPoint"][0].pop("availableLanguage"); cases.append(("contactPoint[0] availableLanguage missing", b))
+    b = _valid_block(); b["contactPoint"][0]["availableLanguage"] = []; cases.append(("contactPoint[0] availableLanguage empty", b))
+    b = _valid_block(); b["contactPoint"][0]["email"] = "not-an-email"; cases.append(("contactPoint[0] email bad shape", b))
+    b = _valid_block(); b["contactPoint"][1]["contactType"] = "customer service"; cases.append(("contactPoint duplicate contactType across entries", b))
 
     failures = [name for name, block in cases if not assert_local_business(block)]
     if failures:
