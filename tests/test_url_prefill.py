@@ -28,8 +28,21 @@ REQUIRED_SUBSTRINGS = (
     "track('landing_prefill'",
     "did_radio",
     "did_text",
+    # `src` must land in the hidden form field, not just dataLayer — otherwise
+    # Formspree receives no lane attribution and the estimator can't see which
+    # bio link / lane page drove the intake.
+    "did_source",
+    'input[name="source"]',
     "try {",
     "catch (_)",
+)
+
+# The form MUST carry the hidden `source` input the IIFE writes into. If a
+# refactor drops the hidden field, the JS silently no-ops (querySelector returns
+# null, handled) and every intake ships with blank attribution.
+HIDDEN_SOURCE_INPUT_RE = re.compile(
+    r'<input\s+type="hidden"\s+name="source"\s+value=""\s*/?>',
+    re.IGNORECASE,
 )
 
 
@@ -64,6 +77,11 @@ def check(html: str) -> list[str]:
     for needle in REQUIRED_SUBSTRINGS:
         if needle not in body:
             errors.append(f"URL-param IIFE missing substring {needle!r}")
+    if not HIDDEN_SOURCE_INPUT_RE.search(html):
+        errors.append(
+            'hidden <input name="source"> missing from index.html — URL-param '
+            "IIFE writes into this field to persist lane attribution to Formspree"
+        )
     if "SAFE_PARAM" in body:
         m = re.search(r"SAFE_PARAM\s*=\s*(/[^/]+/[a-z]*)", body)
         if not m:
@@ -97,6 +115,21 @@ def _selftest(html: str) -> int:
         ("SAFE_PARAM call stripped", html.replace("SAFE_PARAM.test(v)", "true"), "SAFE_PARAM.test("),
         ("IIFE marker removed", html.replace(IIFE_MARKER, "removed marker"), IIFE_MARKER),
         ("INTENT_TO_TYPE lookup killed", html.replace("INTENT_TO_TYPE[intent]", "null"), "INTENT_TO_TYPE[intent]"),
+        (
+            "hidden source input deleted",
+            HIDDEN_SOURCE_INPUT_RE.sub("", html, count=1),
+            'hidden <input name="source">',
+        ),
+        (
+            "did_source telemetry dropped",
+            html.replace("did_source", "did_nope"),
+            "did_source",
+        ),
+        (
+            "IIFE stops writing into input[name=source]",
+            html.replace('input[name="source"]', 'input[name="nope"]'),
+            'input[name="source"]',
+        ),
     ]
     failures: list[str] = []
     for label, mutated, needle in cases:

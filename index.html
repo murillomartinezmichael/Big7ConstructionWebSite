@@ -2613,6 +2613,7 @@
         <form class="cform" action="https://formspree.io/f/xykabwog" method="POST" onsubmit="submitForm(event)" aria-label="Request a bid">
           <input type="hidden" name="_subject" value="New bid request via Big 7 Construction" />
           <input type="hidden" name="_replyto" value="" />
+          <input type="hidden" name="source" value="" />
           <fieldset class="cform-set">
             <div class="cform-legend">
               <span class="lbl">01 · Who&rsquo;s asking</span>
@@ -3098,9 +3099,18 @@
               didText = true;
             }
           }
+          // Persist `src` into the hidden `source` input so Formspree receives
+          // lane attribution on submit. Without this the value is dataLayer-only
+          // and never leaves the browser; the estimator sees an intake with no
+          // idea which lane page (or bio link) drove the click.
+          let didSource = false;
+          if (src) {
+            const srcField = document.querySelector('form.cform input[name="source"]');
+            if (srcField && !srcField.value) { srcField.value = src; didSource = true; }
+          }
           track('landing_prefill', {
             intent: intent, type: resolvedType, src: src, page: 'home',
-            did_radio: didRadio, did_text: didText
+            did_radio: didRadio, did_text: didText, did_source: didSource
           });
         } catch (_) { /* never break the page on a malformed URL */ }
       })();
