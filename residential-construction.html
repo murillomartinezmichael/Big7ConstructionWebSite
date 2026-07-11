@@ -46,6 +46,44 @@
   }
   </script>
 
+  <!--
+    Service JSON-LD. Lane pages need their own service schema pointing back at
+    the LocalBusiness on `/` so lane-specific queries ("custom home builder
+    atlanta", "home addition atlanta") get a chance at a per-lane rich result
+    instead of relying on the parent page's GeneralContractor block alone.
+    Locked by tests/test_service_schema.py.
+  -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "name": "Residential Construction",
+    "serviceType": "Residential General Contracting",
+    "description": "Larger residential builds in Metro Atlanta — custom homes, additions, and structural remodels touching foundation, framing, or roof. One accountable GC, fixed-price milestones, licensed, bonded, insured.",
+    "url": "https://big7construction.com/residential-construction.html",
+    "provider": {
+      "@type": "GeneralContractor",
+      "name": "Big 7 Construction",
+      "url": "https://big7construction.com/",
+      "telephone": "+1-555-700-0007",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Atlanta",
+        "addressRegion": "GA",
+        "addressCountry": "US"
+      }
+    },
+    "areaServed": [
+      { "@type": "City", "name": "Atlanta" },
+      { "@type": "City", "name": "Sandy Springs" },
+      { "@type": "City", "name": "Marietta" },
+      { "@type": "City", "name": "Alpharetta" },
+      { "@type": "City", "name": "Decatur" },
+      { "@type": "State", "name": "Georgia" }
+    ]
+  }
+  </script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow+Condensed:wght@400;600&family=Fraunces:wght@500&display=swap" onload="this.rel='stylesheet'" />

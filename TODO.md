@@ -1,6 +1,14 @@
 # Big7Construction — TODO
 
-**Last updated:** 2026-07-11 (tick 23 — third lane page `residential-construction.html` shipped; three-lane IA now complete)
+**Last updated:** 2026-07-11 (tick 25 — per-lane `Service` JSON-LD on the three lane pages, each pointing back at Big 7 as `provider`; locked by new `tests/test_service_schema.py`)
+
+## SHIPPED (2026-07-11 tick 25 — Rung VI UPGRADE sixteenth bite: per-lane `Service` structured-data)
+
+- **`home-repair.html` / `commercial-industrial.html` / `residential-construction.html` — new `Service` JSON-LD block on each lane page, inserted right after the existing BreadcrumbList block.** Each Service points back at Big 7 Construction as the `provider` (LocalBusiness subtype `GeneralContractor`, matching the homepage block), carries a `serviceType` label ("Home Repair and Renovation" / "Commercial and Industrial General Contracting" / "Residential General Contracting"), an authentic description sourced from the page's own `<meta name="description">` copy, canonical `url`, and the six-item `areaServed` list (Atlanta + five suburbs + Georgia). Existing homepage `GeneralContractor` block on `/` unchanged — the lane blocks nest a compact provider stub so a lane URL crawled in isolation still identifies the parent business without duplicating the full OfferCatalog. Rationale: lane-specific queries ("home repair atlanta", "commercial gc atlanta", "custom home builder atlanta") now have their own rich-result candidate instead of leaning on the parent page's GeneralContractor block alone.
+
+- **`tests/test_service_schema.py` — new stdlib-only contract test.** Golden run walks the three lane files, finds the first `@type: Service` `<script type="application/ld+json">` block, and asserts: `@context`, `@type`, `name`, `url` match the target file exactly (name/URL drift catches typos + wrong-file copy/paste); `serviceType` is a non-empty string; `description` is ≥40 chars (silent empty descriptions are just as bad as missing); `provider.@type` is one of `{LocalBusiness, GeneralContractor, HomeAndConstructionBusiness, Contractor}`; `provider.name` == "Big 7 Construction"; `provider.url` == canonical origin `/`; `provider.telephone` matches E.164-ish shape; `provider.address` is `PostalAddress` with locality/region/country all populated; `areaServed` is a non-empty list of `{City, State, AdministrativeArea, Place}` items each carrying a name. `--selftest` mutates a valid baseline 17 ways (bad @context, wrong type, name drift, wrong-origin url, missing serviceType, too-short description, missing provider, wrong provider type/name/url/telephone, missing/wrong address, missing/empty areaServed, wrong area-item type, missing area-item name) — all 17 caught first run. First run PASS on all three lane files.
+
+- **Test-suite delta.** Total 13 test files in `tests/` now (added test_service_schema.py to the 12 that were green last tick). Adjacent suites re-run to guard against regression from the JSON-LD insertions: `test_breadcrumbs.py` (BreadcrumbList still valid on the same three files), `test_jsonld.py` (index.html LocalBusiness + FAQPage still valid — the SCRIPT_RE now matches multiple blocks per page but the lane-page Service blocks aren't in scope for that suite since it only walks `index.html`), `test_og_twitter.py` (six top-level pages still carry valid OG + Twitter), `test_conversion.py` (13 intents / 13 mappings / 6 radios — contract still holds). Everything green.
 
 ## SHIPPED (2026-07-11 tick 23 — Rung VI UPGRADE fifteenth bite: third lane page `/residential-construction.html`)
 
@@ -279,3 +287,9 @@ Source of product truth: ..\AI_HUB.md.
 - [ ] Wire five service rows with `?intent=service:*&src=residential-construction-lane#contact` deep-links using existing `INTENT_TO_TYPE` slugs
 - [ ] Add `<url>` entry to `sitemap.xml` (match top-tier lane priority)
 - [ ] Add `Dockerfile` COPY line for the new page
+- [ ] Add `Service` schema JSON-LD to each of the three lane pages
+- [ ] Extend `BreadcrumbList` JSON-LD to `accessibility.html`
+- [ ] Pick next bite from `MONEY_LADDER.md` (ladder is deterministic ΓÇö do not freelance)
+- [ ] Push local commit `7c7c835` to remote when harness permits
+- [ ] Resolve session-guard vs WORKER brief goal mismatch (see Blockers)
+- [ ] RESUME (2026-07-11 13:25): auto-improve worker crashed. Last commit: 7c7c835 feat(rung6)+test(rung2): BreadcrumbList JSON-LD on the three lane pages (tick 24). See C:\Users\Michael\Documents\GitHub\Big7Construction\.autoimprove\crash-2026-07-11_13-25-02.json.
