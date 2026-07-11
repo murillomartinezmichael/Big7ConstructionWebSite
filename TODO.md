@@ -1,6 +1,16 @@
 # Big7Construction — TODO
 
-**Last updated:** 2026-07-11 (tick 17 mid-session — first lane page `home-repair.html` shipped end-to-end + accessibility.html Dockerfile deploy gap closed)
+**Last updated:** 2026-07-11 (tick 22 — second lane page `commercial-industrial.html` shipped end-to-end with OG contract lock)
+
+## SHIPPED (2026-07-11 tick 22 — Rung VI UPGRADE fourteenth bite: second lane page `/commercial-industrial.html`)
+
+- **`commercial-industrial.html` — new top-level page for the Commercial & Industrial buyer lane.** Second of the three lane pages the AI Hub sync + `BRD.md § "Site Architecture Direction"` committed the project to (home-repair shipped tick 17; residential-construction is the remaining third). Same head shell as `home-repair.html` (async Google Fonts, `lang="en"`, skip-link, `<main>` landmark, `prefers-reduced-motion`, `:focus-visible`) so LAW 11 accessibility baseline holds without duplicating a shared build tool. Full OG + Twitter card block pointing at the branded `og-card.png` — locked by the extended `tests/test_og_twitter.py` `TARGETS` tuple below. Canonical `https://big7construction.com/commercial-industrial.html`. Copy targets GC / facilities / enterprise buyer language per the AI Hub verdict: bond capacity, one accountable PM, weekly owner-schedule call, submittals + RFIs + close-out package delivered rather than chased. Five service rows deep-link to `/?intent=service:{commercial-new,industrial-warehouse,tenant-improvement,enterprise-framing,trades-only}&src=commercial-industrial-lane#contact` — every intent slug matches an existing `INTENT_TO_TYPE` entry (locked by `tests/test_conversion.py`), so the URL-param prefill IIFE seeds the correct radio + textarea hint on landing.
+
+- **`sitemap.xml` — `<url>` entry for `commercial-industrial.html` at priority 0.9 (higher than home-repair 0.8 because commercial is the top-tier buyer lane per BRD).** `lastmod` 2026-07-11.
+
+- **`Dockerfile` — COPY `commercial-industrial.html` into `/usr/share/nginx/html/`.** Column alignment on the five HTML COPY lines cleaned up so the file reads as a block. Same class of fix the tick-17 `accessibility.html` gap surfaced — a lane page in the repo but not in the container ships nothing.
+
+- **`tests/test_og_twitter.py` — extend `TARGETS` to include `commercial-industrial.html`.** Docstring updated to name all five top-level pages now covered. First run PASS: `commercial-industrial.html` carries a valid OG + Twitter tag set, `og:image` + `twitter:image` both point at the branded 1200x630 `og-card.png` (guards reversion). `--selftest` still catches 12/12 mutations. Full 12-suite test chain (`jsonld` + selftest, `seo-files`, `conversion` + selftest, `primary-ctas` + selftest, `url-prefill` + selftest, `og` + selftest, `assets` + selftest, `anchors` + selftest, `nginx` + selftest, `form` + selftest, `font-preload` + selftest, `images` + selftest) — end-to-end green.
 
 ## SHIPPED (2026-07-11 tick 17 mid-session — Rung VI UPGRADE thirteenth bite: first lane page `/home-repair.html`)
 
