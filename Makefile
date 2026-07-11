@@ -27,8 +27,9 @@ test-jsonld: ## Validate LocalBusiness JSON-LD parses + has required fields
 	python tests/test_jsonld.py
 	python tests/test_jsonld.py --selftest
 
-test-seo-files: ## sitemap.xml + robots.txt parse; canonical origin agrees across index.html
+test-seo-files: ## sitemap.xml + robots.txt parse; canonical origin agrees; every <loc> on disk; every indexable *.html listed
 	python tests/test_seo_files.py
+	python tests/test_seo_files.py --selftest
 
 test-conversion: ## CTA data-intent <-> INTENT_TO_TYPE <-> projectType radio contract holds
 	python tests/test_conversion.py
