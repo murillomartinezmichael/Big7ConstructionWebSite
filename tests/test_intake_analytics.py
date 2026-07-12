@@ -11,6 +11,7 @@ CONVERSION_STANDARDS.md § 4 declares these required fields:
 | Stage         | Event           | Required fields                                 |
 |---------------|-----------------|--------------------------------------------------|
 | CTA clicked   | `cta_click`     | intent, page, position                          |
+| Intake started| `intake_start`  | intent, page                                    |
 | Intake sent   | `intake_submit` | intent, has_prefill (bool), message_length      |
 
 A silent regression that drops `has_prefill` (or renames it to `prefill`, or
@@ -36,6 +37,18 @@ Contract (all must hold on index.html):
      `true`). Without it, a `preventDefault()` in an earlier handler skips
      the analytics event before Formspree fetch fires — silent attribution
      drop.
+  8. Exactly one `track('intake_start'` call site. Without this event the
+     funnel has a hidden hole between `cta_click` and `intake_submit`:
+     "clicked but bailed on the form" is indistinguishable from "never
+     touched the form" and every conversion-rate delta is off by that gap.
+  9. That `intake_start` payload literal declares keys: `intent`, `page`
+     (CONVERSION_STANDARDS.md § 4 minimum). Extra keys allowed.
+ 10. `intake_start` is wired via `focusin` on the form (not `focus` — `focus`
+     does not bubble and would miss the vast majority of first-touch events
+     since it fires on the field, not the form). A per-page-view guard
+     (`intakeStarted` boolean in the closure) must exist so a user tabbing
+     across every field does not re-fire the event dozens of times and
+     corrupt the funnel numerator.
 """
 from __future__ import annotations
 
@@ -57,17 +70,35 @@ INTAKE_SUBMIT_RE = re.compile(
     r"track\(\s*'intake_submit'\s*,\s*\{(?P<body>[^{}]*(?:\{[^{}]*\}[^{}]*)*)\}\s*\)",
     re.DOTALL,
 )
+INTAKE_START_RE = re.compile(
+    r"track\(\s*'intake_start'\s*,\s*\{(?P<body>[^}]*)\}\s*\)",
+    re.DOTALL,
+)
 # Key names in an object literal: `foo:` at start of tokenish position.
 PAYLOAD_KEY_RE = re.compile(r"(?:^|[,{\s])(?P<key>[A-Za-z_][A-Za-z0-9_]*)\s*:")
 
 CTA_CLICK_REQUIRED = {"intent", "page", "position", "label"}
 INTAKE_SUBMIT_REQUIRED = {"intent", "has_prefill", "message_length"}
+INTAKE_START_REQUIRED = {"intent", "page"}
 
 # Submit listener must be wired in capture phase. Without it, a preventDefault
 # in a nested handler skips analytics silently.
 SUBMIT_LISTENER_CAPTURE_RE = re.compile(
     r"form\.addEventListener\(\s*'submit'\s*,\s*function\s*\([^)]*\)\s*\{",
     re.DOTALL,
+)
+
+# Intake-start must attach to the form via `focusin` (which bubbles) —
+# `focus` (which does not bubble) would only fire when the form itself
+# receives focus, which never happens in practice.
+FOCUSIN_LISTENER_RE = re.compile(
+    r"form\.addEventListener\(\s*'focusin'\s*,",
+    re.DOTALL,
+)
+# Guard flag must live in the closure so the event fires at most once per
+# page view — otherwise every tab-jump across the ~9-field form re-fires it.
+INTAKE_START_GUARD_RE = re.compile(
+    r"\blet\s+intakeStarted\s*=\s*false\b",
 )
 
 
@@ -171,6 +202,40 @@ def check(html: str) -> list[str]:  # noqa: C901 - single flat contract by desig
                     "preventDefault() will skip the intake_submit event"
                 )
 
+    # (8) exactly one intake_start site
+    start_matches = list(INTAKE_START_RE.finditer(html))
+    if len(start_matches) != 1:
+        errors.append(
+            f"expected exactly 1 `track('intake_start', {{...}})` call, found {len(start_matches)} "
+            f"— duplicates double the funnel numerator; zero leaves a hidden hole between "
+            f"cta_click and intake_submit"
+        )
+    # (9) intake_start payload keys
+    if start_matches:
+        keys = _payload_keys(start_matches[0].group("body"))
+        missing = INTAKE_START_REQUIRED - keys
+        if missing:
+            errors.append(
+                f"intake_start payload missing required key(s) {sorted(missing)} "
+                f"(payload had {sorted(keys)}); CONVERSION_STANDARDS.md § 4 requires "
+                f"{sorted(INTAKE_START_REQUIRED)}"
+            )
+
+    # (10) intake_start wired via `focusin` on the form (not `focus`)
+    if not FOCUSIN_LISTENER_RE.search(html):
+        errors.append(
+            "intake_start must attach via `form.addEventListener('focusin', ...)` — `focus` "
+            "does not bubble, so a listener on the form element would never fire when the "
+            "user focuses a nested field"
+        )
+    # (10b) guard flag must exist so the event fires at most once per page view
+    if not INTAKE_START_GUARD_RE.search(html):
+        errors.append(
+            "intake_start needs a `let intakeStarted = false` guard in the closure — without "
+            "it, every tab-jump across the ~9-field form re-fires intake_start and inflates "
+            "the funnel numerator"
+        )
+
     return errors
 
 
@@ -191,6 +256,16 @@ def _baseline_html() -> str:
   });
   const form = document.querySelector('form.cform');
   if (form) {
+    let intakeStarted = false;
+    form.addEventListener('focusin', function () {
+      if (intakeStarted) return;
+      intakeStarted = true;
+      const checked = document.querySelector('input[name="projectType"]:checked');
+      track('intake_start', {
+        intent: checked ? 'type:' + checked.value : 'type:unset',
+        page: 'home'
+      });
+    }, true);
     form.addEventListener('submit', function () {
       const checked = document.querySelector('input[name="projectType"]:checked');
       const ta = form.querySelector('textarea[name="message"]');
@@ -271,6 +346,26 @@ def _selftest(_live_html: str) -> int:
             re.sub(r"track\('intake_submit'[^)]+\)[^;]*;", "", baseline, flags=re.DOTALL),
             "found 0",
         ),
+        (
+            "intake_start call removed entirely (funnel hole)",
+            re.sub(r"track\('intake_start'[^)]+\)[^;]*;", "", baseline, flags=re.DOTALL),
+            "expected exactly 1 `track('intake_start'",
+        ),
+        (
+            "intake_start.page dropped",
+            baseline.replace("page: 'home'\n", "\n"),
+            "intake_start payload missing required key(s) ['page']",
+        ),
+        (
+            "intake_start listener uses `focus` (non-bubbling) instead of `focusin`",
+            baseline.replace("'focusin'", "'focus'"),
+            "must attach via `form.addEventListener('focusin'",
+        ),
+        (
+            "intake_start guard removed (event re-fires on every field tab-jump)",
+            baseline.replace("let intakeStarted = false;\n    ", ""),
+            "`let intakeStarted = false` guard",
+        ),
     ]
 
     failures: list[str] = []
@@ -314,9 +409,11 @@ def main(argv: list[str]) -> int:
 
     print(
         f"OK: intake analytics payload contract holds — cta_click carries "
-        f"{sorted(CTA_CLICK_REQUIRED)}, intake_submit carries "
-        f"{sorted(INTAKE_SUBMIT_REQUIRED)}, has_prefill derived from PREFILL_MARK, "
-        f"message_length uses .trim().length, submit listener registered with capture=true."
+        f"{sorted(CTA_CLICK_REQUIRED)}, intake_start carries "
+        f"{sorted(INTAKE_START_REQUIRED)} (focusin + intakeStarted guard), "
+        f"intake_submit carries {sorted(INTAKE_SUBMIT_REQUIRED)}, "
+        f"has_prefill derived from PREFILL_MARK, message_length uses .trim().length, "
+        f"submit listener registered with capture=true."
     )
     return 0
 

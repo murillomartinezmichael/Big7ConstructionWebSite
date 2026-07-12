@@ -3055,6 +3055,23 @@
       });
       const form = document.querySelector('form.cform');
       if (form) {
+        // intake_start — CONVERSION_STANDARDS.md § 4. Fires once, on the
+        // visitor's first focus into any intake-form field. Without it, the
+        // funnel has a hidden hole between cta_click and intake_submit: we
+        // cannot tell "clicked CTA but bailed on the form" from "never
+        // touched the form at all." The `intakeStarted` guard is a
+        // closure-scoped boolean (not a data-attribute) so a DOM re-render
+        // cannot silently un-guard it and re-fire.
+        let intakeStarted = false;
+        form.addEventListener('focusin', function () {
+          if (intakeStarted) return;
+          intakeStarted = true;
+          const checked = document.querySelector('input[name="projectType"]:checked');
+          track('intake_start', {
+            intent: checked ? 'type:' + checked.value : 'type:unset',
+            page: 'home'
+          });
+        }, true);
         form.addEventListener('submit', function () {
           const checked = document.querySelector('input[name="projectType"]:checked');
           const ta = form.querySelector('textarea[name="message"]');
