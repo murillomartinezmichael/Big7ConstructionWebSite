@@ -37,10 +37,18 @@ REQUIRED_TOP = {
     "priceRange",
     "openingHoursSpecification",
     "hasOfferCatalog",
+    "hasMap",
     "image",
     "logo",
     "contactPoint",
 }
+
+# hasMap doubles as our "sameAs Google" signal for local-pack candidacy: without
+# a real Google Business Profile URL we can't populate sameAs honestly (LAW #6:
+# never fake it), but hasMap → maps.google.com/maps.apple.com is a first-party
+# fact about a physical business. Locking it keeps future JSON-LD rewrites from
+# silently dropping the local-SEO hint.
+_HTTPS_MAPS_HOSTS = ("google.com/maps", "goo.gl/maps", "maps.apple.com")
 
 VALID_CONTACT_TYPES = {
     "customer service",
@@ -139,6 +147,25 @@ def assert_local_business(block: dict) -> list[str]:
                 errors.append(f"image[{i}] must be an absolute https URL, got {u!r}")
 
     errors.extend(_assert_contact_points(block))
+
+    has_map = block.get("hasMap")
+    if not (isinstance(has_map, str) and has_map.startswith("https://")):
+        errors.append(f"hasMap must be an absolute https URL, got {has_map!r}")
+    elif not any(host in has_map for host in _HTTPS_MAPS_HOSTS):
+        errors.append(
+            f"hasMap {has_map!r} must point to a maps provider "
+            f"({', '.join(_HTTPS_MAPS_HOSTS)}) — it's the local-pack signal"
+        )
+
+    same_as = block.get("sameAs")
+    if same_as is not None:
+        same_as_list = [same_as] if isinstance(same_as, str) else same_as
+        if not isinstance(same_as_list, list) or not same_as_list:
+            errors.append(f"sameAs, when present, must be a non-empty string or list, got {same_as!r}")
+        else:
+            for i, u in enumerate(same_as_list):
+                if not (isinstance(u, str) and u.startswith("https://")):
+                    errors.append(f"sameAs[{i}] must be an absolute https URL, got {u!r}")
 
     logo = block.get("logo")
     if isinstance(logo, str):
@@ -280,6 +307,7 @@ def _valid_block() -> dict:
         "priceRange": "$$-$$$$",
         "openingHoursSpecification": [{"@type": "OpeningHoursSpecification"}],
         "hasOfferCatalog": {"@type": "OfferCatalog", "itemListElement": [{}]},
+        "hasMap": "https://www.google.com/maps/place/Atlanta,+GA",
         "image": ["https://big7construction.com/images/og-card.png"],
         "logo": {
             "@type": "ImageObject",
@@ -362,6 +390,15 @@ def selftest() -> int:
     b = _valid_block(); b["contactPoint"][0]["availableLanguage"] = []; cases.append(("contactPoint[0] availableLanguage empty", b))
     b = _valid_block(); b["contactPoint"][0]["email"] = "not-an-email"; cases.append(("contactPoint[0] email bad shape", b))
     b = _valid_block(); b["contactPoint"][1]["contactType"] = "customer service"; cases.append(("contactPoint duplicate contactType across entries", b))
+    # hasMap mutations — local-pack drift lock
+    b = _valid_block(); b.pop("hasMap"); cases.append(("hasMap missing", b))
+    b = _valid_block(); b["hasMap"] = "http://insecure.example/map"; cases.append(("hasMap not https", b))
+    b = _valid_block(); b["hasMap"] = "https://not-a-map.example/place"; cases.append(("hasMap not a maps provider", b))
+    b = _valid_block(); b["hasMap"] = 12345; cases.append(("hasMap wrong type", b))
+    # sameAs mutations — future social-link shape lock (optional field)
+    b = _valid_block(); b["sameAs"] = []; cases.append(("sameAs empty list", b))
+    b = _valid_block(); b["sameAs"] = ["http://insecure.example/facebook"]; cases.append(("sameAs entry not https", b))
+    b = _valid_block(); b["sameAs"] = [42]; cases.append(("sameAs entry non-string", b))
 
     failures = [name for name, block in cases if not assert_local_business(block)]
     if failures:
