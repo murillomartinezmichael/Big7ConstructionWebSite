@@ -10,7 +10,7 @@
 # =============================================================================
 
 .DEFAULT_GOAL := help
-.PHONY: help build run test test-jsonld test-seo-files test-conversion test-primary-ctas test-url-prefill test-og test-assets test-anchors test-nginx test-form test-font-preload test-images test-breadcrumbs test-service-schema test-dockerfile test-unit test-integration test-e2e lint fmt clean docker docker-run deploy
+.PHONY: help build run test test-jsonld test-seo-files test-conversion test-primary-ctas test-url-prefill test-og test-assets test-anchors test-nginx test-form test-font-preload test-images test-breadcrumbs test-service-schema test-offer-catalog test-dockerfile test-unit test-integration test-e2e lint fmt clean docker docker-run deploy
 
 help: ## Show this help
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -21,7 +21,7 @@ build: ## Clean-clone -> running prerequisites met (delegates to build.sh)
 run: ## Run the service locally
 	./scripts/run.sh
 
-test: test-jsonld test-seo-files test-conversion test-primary-ctas test-url-prefill test-og test-assets test-anchors test-nginx test-form test-font-preload test-images test-breadcrumbs test-service-schema test-dockerfile ## Run all tests (stdlib-only smoke suite)
+test: test-jsonld test-seo-files test-conversion test-primary-ctas test-url-prefill test-og test-assets test-anchors test-nginx test-form test-font-preload test-images test-breadcrumbs test-service-schema test-offer-catalog test-dockerfile ## Run all tests (stdlib-only smoke suite)
 
 test-jsonld: ## Validate LocalBusiness JSON-LD parses + has required fields
 	python tests/test_jsonld.py
@@ -78,6 +78,10 @@ test-breadcrumbs: ## BreadcrumbList JSON-LD on the three lane pages: parses, Hom
 test-service-schema: ## Service JSON-LD on the three lane pages: provider points at Big 7 LocalBusiness, areaServed populated
 	python tests/test_service_schema.py
 	python tests/test_service_schema.py --selftest
+
+test-offer-catalog: ## Parent GeneralContractor `hasOfferCatalog` mirrors three-lane IA; each nested OfferCatalog.url == the lane page's Service.url (drift lock)
+	python tests/test_offer_catalog.py
+	python tests/test_offer_catalog.py --selftest
 
 test-dockerfile: ## Dockerfile-vs-repo drift lock: every root *.html has a matching COPY line into /usr/share/nginx/html/
 	python tests/test_dockerfile_html.py
