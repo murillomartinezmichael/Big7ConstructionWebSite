@@ -11,10 +11,16 @@ at the 1200x630 `images/og-card.png` and NOT the 206px `images/jobsite-01.jpg`
 placeholder (Slack/iMessage/Facebook crop the placeholder into a smear).
 Same guard doctrine as `test_jsonld.py`'s image/logo lock.
 
+Also locks (tick 19) the <link rel="canonical" href="..."> ↔ og:url agreement
+per page. If they disagree, Google indexes one URL while every social share
+previews under another — a classic silent SEO leak. Exception: 404.html carries
+NO canonical link (Google's "soft-404 canonicals confuse crawlers" guidance)
+while its og:url still points social clicks at the homepage.
+
 Runs against every top-level HTML file: `index.html`, `404.html`,
 `accessibility.html`, `home-repair.html`, `commercial-industrial.html`,
 `residential-construction.html`. Adding a new top-level page? Append it to
-`TARGETS`.
+`TARGETS` and — unless it's a 404-style error page — to `TARGETS_WITH_CANONICAL`.
 
 Python 3.11+ stdlib only (`re`, `pathlib`). No pip install, no network.
 """
@@ -32,6 +38,15 @@ HOME_REPAIR = REPO_ROOT / "home-repair.html"
 COMMERCIAL_INDUSTRIAL = REPO_ROOT / "commercial-industrial.html"
 RESIDENTIAL_CONSTRUCTION = REPO_ROOT / "residential-construction.html"
 TARGETS = (INDEX, NOT_FOUND, ACCESSIBILITY, HOME_REPAIR, COMMERCIAL_INDUSTRIAL, RESIDENTIAL_CONSTRUCTION)
+# Pages that MUST carry <link rel="canonical" href="..."> matching og:url.
+# 404.html is excluded on purpose — see NO_CANONICAL_PAGES below.
+TARGETS_WITH_CANONICAL = (INDEX, ACCESSIBILITY, HOME_REPAIR, COMMERCIAL_INDUSTRIAL, RESIDENTIAL_CONSTRUCTION)
+# Pages that MUST NOT carry a canonical link at all. Google's guidance is that
+# soft-404s pointing at themselves confuse the crawler; pointing at the homepage
+# risks the 404 URL absorbing homepage rankings on strange edge cases. Simplest
+# safe answer: no canonical on the 404, but keep og:url → homepage so social
+# clicks still land somewhere real.
+NO_CANONICAL_PAGES = (NOT_FOUND,)
 
 # Match each <meta ...> tag broadly, then pull attributes in a second pass.
 # Attribute regexes use a matched-quote backreference so an apostrophe inside a
@@ -44,6 +59,15 @@ ATTR_KEY_RE = re.compile(
 ATTR_CONTENT_RE = re.compile(
     r'\bcontent\s*=\s*(?P<q>["\'])(?P<val>.*?)(?P=q)',
     re.IGNORECASE | re.DOTALL,
+)
+LINK_TAG_RE = re.compile(r'<link\b[^>]*/?>', re.IGNORECASE)
+LINK_REL_RE = re.compile(
+    r'\brel\s*=\s*(?P<q>["\'])(?P<val>[^"\']+)(?P=q)',
+    re.IGNORECASE,
+)
+LINK_HREF_RE = re.compile(
+    r'\bhref\s*=\s*(?P<q>["\'])(?P<val>[^"\']+)(?P=q)',
+    re.IGNORECASE,
 )
 
 REQUIRED_OG = {"og:type", "og:title", "og:description", "og:url", "og:image"}
@@ -66,6 +90,25 @@ def extract_meta(html: str) -> dict[str, str]:
             continue
         tags[key_m.group("val").lower()] = content_m.group("val")
     return tags
+
+
+def extract_canonicals(html: str) -> list[str]:
+    """Return every <link rel="canonical" href="..."> href on the page.
+
+    Returns a list (not a single value) so the test can catch the "two conflicting
+    canonicals were left on the page" case, which some CMS copy-paste bugs cause.
+    """
+    hrefs: list[str] = []
+    for tag in LINK_TAG_RE.findall(html):
+        rel_m = LINK_REL_RE.search(tag)
+        href_m = LINK_HREF_RE.search(tag)
+        if rel_m is None or href_m is None:
+            continue
+        # rel can be space-separated ("canonical alternate"); check tokens.
+        rel_tokens = rel_m.group("val").lower().split()
+        if "canonical" in rel_tokens:
+            hrefs.append(href_m.group("val"))
+    return hrefs
 
 
 def assert_og_twitter(tags: dict[str, str], label: str) -> list[str]:
@@ -132,6 +175,50 @@ def assert_og_twitter(tags: dict[str, str], label: str) -> list[str]:
     return errors
 
 
+def assert_canonical(
+    canonicals: list[str],
+    og_url: str,
+    label: str,
+    *,
+    must_have_canonical: bool,
+) -> list[str]:
+    """Enforce the canonical/og:url contract.
+
+    - Pages in TARGETS_WITH_CANONICAL: exactly one canonical link, equal to og:url.
+    - Pages in NO_CANONICAL_PAGES: zero canonical links (see NO_CANONICAL_PAGES doc).
+    """
+    errors: list[str] = []
+    if must_have_canonical:
+        if not canonicals:
+            errors.append(
+                f"{label}: missing <link rel=\"canonical\" href=\"...\"> — "
+                f"required so Google indexes the URL that og:url promises social clicks"
+            )
+            return errors
+        if len(canonicals) > 1:
+            errors.append(
+                f"{label}: {len(canonicals)} canonical <link> tags found "
+                f"({canonicals!r}) — only one is allowed; Google will pick nondeterministically"
+            )
+        canonical = canonicals[0]
+        if not canonical.startswith("https://"):
+            errors.append(f"{label}: canonical must be absolute https, got {canonical!r}")
+        if og_url and canonical != og_url:
+            errors.append(
+                f"{label}: canonical / og:url disagree — "
+                f"canonical={canonical!r} vs og:url={og_url!r}. "
+                f"Google will index one URL while social shares preview under another."
+            )
+    else:
+        if canonicals:
+            errors.append(
+                f"{label}: page is in NO_CANONICAL_PAGES but carries "
+                f"{len(canonicals)} canonical link(s) ({canonicals!r}). "
+                f"404s must not self-canonicalize; see NO_CANONICAL_PAGES doc."
+            )
+    return errors
+
+
 def _valid_tags() -> dict[str, str]:
     """Minimal-but-valid tag set used as the selftest baseline."""
     return {
@@ -176,7 +263,41 @@ def selftest() -> int:
             print(f"SELFTEST FAIL: mutation not caught: {name}", file=sys.stderr)
         return 1
 
-    print(f"SELFTEST OK: baseline PASS + {len(cases)}/{len(cases)} mutations caught")
+    # Canonical/og:url contract selftest — baseline + mutations.
+    good_og_url = "https://big7construction.com/commercial-industrial.html"
+    good_canonical = ["https://big7construction.com/commercial-industrial.html"]
+    if assert_canonical(good_canonical, good_og_url, "selftest-canonical-baseline", must_have_canonical=True):
+        print("SELFTEST FAIL: canonical baseline should be valid", file=sys.stderr)
+        return 1
+    if assert_canonical([], "https://big7construction.com/", "selftest-canonical-404-baseline", must_have_canonical=False):
+        print("SELFTEST FAIL: canonical 404-baseline should be valid", file=sys.stderr)
+        return 1
+
+    canon_cases: list[tuple[str, list[str], str, bool]] = [
+        ("canonical missing on indexable page", [], good_og_url, True),
+        ("canonical / og:url mismatch",
+         ["https://big7construction.com/"], good_og_url, True),
+        ("canonical not https",
+         ["http://big7construction.com/commercial-industrial.html"], good_og_url, True),
+        ("two canonicals on one page",
+         [good_og_url, good_og_url], good_og_url, True),
+        ("404 accidentally sprouted a canonical",
+         ["https://big7construction.com/"], "https://big7construction.com/", False),
+    ]
+    canon_failures = [
+        name for name, canonicals, og_url, must in canon_cases
+        if not assert_canonical(canonicals, og_url, "selftest-canonical", must_have_canonical=must)
+    ]
+    if canon_failures:
+        for name in canon_failures:
+            print(f"SELFTEST FAIL: canonical mutation not caught: {name}", file=sys.stderr)
+        return 1
+
+    total = len(cases) + len(canon_cases)
+    print(
+        f"SELFTEST OK: baseline PASS + {len(cases)}/{len(cases)} OG/Twitter mutations caught + "
+        f"{len(canon_cases)}/{len(canon_cases)} canonical mutations caught ({total} total)"
+    )
     return 0
 
 
@@ -192,6 +313,15 @@ def main() -> int:
         html = path.read_text(encoding="utf-8")
         tags = extract_meta(html)
         errors.extend(assert_og_twitter(tags, path.name))
+        canonicals = extract_canonicals(html)
+        errors.extend(
+            assert_canonical(
+                canonicals,
+                tags.get("og:url", ""),
+                path.name,
+                must_have_canonical=(path in TARGETS_WITH_CANONICAL),
+            )
+        )
 
     if errors:
         for e in errors:
@@ -201,7 +331,8 @@ def main() -> int:
     names = ", ".join(p.name for p in TARGETS)
     print(
         f"OK: {names} carry valid OG + Twitter tags; "
-        f"og:image + twitter:image point at branded {BRAND_CARD} (1200x630 image/png)"
+        f"og:image + twitter:image point at branded {BRAND_CARD} (1200x630 image/png); "
+        f"canonical <link> agrees with og:url on {len(TARGETS_WITH_CANONICAL)} indexable pages"
     )
     return 0
 

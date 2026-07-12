@@ -43,7 +43,7 @@ test-url-prefill: ## URL-param prefill IIFE: SAFE_PARAM whitelist gates params b
 	python tests/test_url_prefill.py
 	python tests/test_url_prefill.py --selftest
 
-test-og: ## OG + Twitter meta tags valid on index.html + 404.html; og:image = branded card
+test-og: ## OG + Twitter meta tags valid on all 6 top-level HTMLs; og:image = branded card; <link rel="canonical"> agrees with og:url on 5 indexable pages, absent on 404
 	python tests/test_og_twitter.py
 	python tests/test_og_twitter.py --selftest
 
