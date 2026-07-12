@@ -11,6 +11,7 @@ Runs on both index.html (GeneralContractor / LocalBusiness) and 404.html
 """
 from __future__ import annotations
 
+import html
 import json
 import re
 import sys
@@ -81,6 +82,33 @@ LOCAL_BUSINESS_TYPES = {
 # exactly one Question per rendered FAQ. Prevents schema drift when someone
 # edits the visible copy without touching the ld+json.
 FAQ_DETAILS_RE = re.compile(r'<details\s+class="faq-item"', re.IGNORECASE)
+
+# Visible summary text per rendered FAQ. Used to lock JSON-LD Question.name
+# against the visible <summary> in the same order. Counts alone let content
+# drift (rewrite a summary, forget to touch ld+json) go unnoticed — Google's
+# rich result then quotes text the user never sees on the page.
+FAQ_SUMMARY_RE = re.compile(
+    r'<details\s+class="faq-item"[^>]*>\s*<summary[^>]*>(?P<text>.*?)</summary>',
+    re.IGNORECASE | re.DOTALL,
+)
+# Any inline tag inside a <summary> (e.g. <em>, <strong>). Stripped before
+# comparing so a future stylistic <em>bid</em> doesn't cause false drift.
+INLINE_TAG_RE = re.compile(r"<[^>]+>")
+
+
+def extract_faq_summaries(html_text: str) -> list[str]:
+    """Return the visible text of every <summary> under a .faq-item, in order.
+
+    Strips inline tags and decodes HTML entities so the comparison matches what
+    a user actually reads. Whitespace is normalized to a single space.
+    """
+    out: list[str] = []
+    for m in FAQ_SUMMARY_RE.finditer(html_text):
+        raw = m.group("text")
+        stripped = INLINE_TAG_RE.sub("", raw)
+        decoded = html.unescape(stripped)
+        out.append(" ".join(decoded.split()))
+    return out
 
 
 def extract_blocks(html: str) -> list[dict]:
@@ -245,7 +273,11 @@ def _assert_contact_points(block: dict) -> list[str]:
     return errors
 
 
-def assert_faq_page(block: dict, on_page_count: int | None = None) -> list[str]:
+def assert_faq_page(
+    block: dict,
+    on_page_count: int | None = None,
+    on_page_summaries: list[str] | None = None,
+) -> list[str]:
     errors: list[str] = []
 
     if block.get("@context") != "https://schema.org":
@@ -283,6 +315,17 @@ def assert_faq_page(block: dict, on_page_count: int | None = None) -> list[str]:
             f"FAQ schema/on-page drift: {len(entities)} Question(s) in ld+json vs "
             f"{on_page_count} <details class=\"faq-item\"> in rendered HTML"
         )
+
+    if on_page_summaries is not None:
+        schema_names = [q.get("name", "") for q in entities if isinstance(q, dict)]
+        pairs = min(len(schema_names), len(on_page_summaries))
+        for i in range(pairs):
+            if schema_names[i] != on_page_summaries[i]:
+                errors.append(
+                    f"FAQ Question[{i}].name drifts from rendered <summary>: "
+                    f"schema={schema_names[i]!r} vs page={on_page_summaries[i]!r}. "
+                    f"Google will quote text the user never sees."
+                )
 
     return errors
 
@@ -407,7 +450,8 @@ def selftest() -> int:
         return 1
 
     faq_baseline = _valid_faq_block()
-    if assert_faq_page(faq_baseline, on_page_count=2):
+    valid_summaries = ["Do you provide fixed-price bids?", "How does payment work?"]
+    if assert_faq_page(faq_baseline, on_page_count=2, on_page_summaries=valid_summaries):
         print("SELFTEST FAIL: FAQ baseline should be valid", file=sys.stderr)
         return 1
 
@@ -426,11 +470,39 @@ def selftest() -> int:
             print(f"SELFTEST FAIL: FAQ mutation not caught: {name}", file=sys.stderr)
         return 1
 
+    # Summary <-> Question.name drift mutations. Each pair (schema, page) must fail.
+    summary_cases: list[tuple[str, dict, list[str]]] = [
+        ("FAQ name drift: schema Q0 rewritten, page Q0 unchanged",
+         _mutated_faq(0, "Do you take Bitcoin?"),
+         valid_summaries),
+        ("FAQ summary drift: page Q1 rewritten, schema Q1 unchanged",
+         _valid_faq_block(),
+         ["Do you provide fixed-price bids?", "Payment schedule?"]),
+        ("FAQ order swap: page order flipped, schema unchanged",
+         _valid_faq_block(),
+         ["How does payment work?", "Do you provide fixed-price bids?"]),
+    ]
+    summary_failures = [
+        name for name, block, page in summary_cases
+        if not assert_faq_page(block, on_page_count=len(page), on_page_summaries=page)
+    ]
+    if summary_failures:
+        for name in summary_failures:
+            print(f"SELFTEST FAIL: FAQ summary drift not caught: {name}", file=sys.stderr)
+        return 1
+
     print(
         f"SELFTEST OK: LB baseline PASS + {len(cases)}/{len(cases)} LB mutations caught; "
-        f"FAQ baseline PASS + {len(faq_cases)}/{len(faq_cases)} FAQ mutations caught"
+        f"FAQ baseline PASS + {len(faq_cases)}/{len(faq_cases)} FAQ mutations + "
+        f"{len(summary_cases)}/{len(summary_cases)} summary-drift mutations caught"
     )
     return 0
+
+
+def _mutated_faq(idx: int, new_name: str) -> dict:
+    b = _valid_faq_block()
+    b["mainEntity"][idx]["name"] = new_name
+    return b
 
 
 def main() -> int:
@@ -451,6 +523,7 @@ def main() -> int:
     lb_seen = False
     faq_seen = False
     on_page_faq_count = len(FAQ_DETAILS_RE.findall(html))
+    on_page_summaries = extract_faq_summaries(html)
     for i, block in enumerate(blocks):
         types = block.get("@type")
         type_set = set(types) if isinstance(types, list) else {types}
@@ -459,7 +532,10 @@ def main() -> int:
             errors.extend(f"block[{i}]: {e}" for e in assert_local_business(block))
         if "FAQPage" in type_set:
             faq_seen = True
-            errors.extend(f"block[{i}]: {e}" for e in assert_faq_page(block, on_page_faq_count))
+            errors.extend(
+                f"block[{i}]: {e}"
+                for e in assert_faq_page(block, on_page_faq_count, on_page_summaries)
+            )
 
     if not lb_seen:
         print("FAIL: no LocalBusiness / GeneralContractor JSON-LD block found", file=sys.stderr)
@@ -480,7 +556,10 @@ def main() -> int:
 
     print(
         f"OK: {len(blocks)} JSON-LD block(s) parsed, LocalBusiness valid"
-        + (f", FAQPage valid ({on_page_faq_count} Q's in sync)" if faq_seen else "")
+        + (
+            f", FAQPage valid ({on_page_faq_count} Q's; name<->summary text agrees in order)"
+            if faq_seen else ""
+        )
     )
     return 0
 

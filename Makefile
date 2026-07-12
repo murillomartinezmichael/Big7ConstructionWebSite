@@ -23,7 +23,7 @@ run: ## Run the service locally
 
 test: test-jsonld test-seo-files test-conversion test-primary-ctas test-url-prefill test-og test-assets test-anchors test-nginx test-form test-font-preload test-images test-breadcrumbs test-service-schema test-offer-catalog test-dockerfile test-meta-descriptions ## Run all tests (stdlib-only smoke suite)
 
-test-jsonld: ## Validate LocalBusiness JSON-LD parses + has required fields
+test-jsonld: ## LocalBusiness JSON-LD parses + required fields; FAQPage Q.name agrees with visible <summary> text in order (schema/page drift lock)
 	python tests/test_jsonld.py
 	python tests/test_jsonld.py --selftest
 
