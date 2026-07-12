@@ -10,7 +10,7 @@
 # =============================================================================
 
 .DEFAULT_GOAL := help
-.PHONY: help build run test test-jsonld test-seo-files test-conversion test-primary-ctas test-url-prefill test-og test-assets test-anchors test-nginx test-form test-font-preload test-images test-breadcrumbs test-service-schema test-offer-catalog test-dockerfile test-meta-descriptions test-unit test-integration test-e2e lint fmt clean docker docker-run deploy
+.PHONY: help build run test test-jsonld test-seo-files test-conversion test-primary-ctas test-url-prefill test-og test-assets test-anchors test-nginx test-form test-font-preload test-images test-breadcrumbs test-service-schema test-offer-catalog test-dockerfile test-meta-descriptions test-intake-analytics test-unit test-integration test-e2e lint fmt clean docker docker-run deploy
 
 help: ## Show this help
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -21,7 +21,7 @@ build: ## Clean-clone -> running prerequisites met (delegates to build.sh)
 run: ## Run the service locally
 	./scripts/run.sh
 
-test: test-jsonld test-seo-files test-conversion test-primary-ctas test-url-prefill test-og test-assets test-anchors test-nginx test-form test-font-preload test-images test-breadcrumbs test-service-schema test-offer-catalog test-dockerfile test-meta-descriptions ## Run all tests (stdlib-only smoke suite)
+test: test-jsonld test-seo-files test-conversion test-primary-ctas test-url-prefill test-og test-assets test-anchors test-nginx test-form test-font-preload test-images test-breadcrumbs test-service-schema test-offer-catalog test-dockerfile test-meta-descriptions test-intake-analytics ## Run all tests (stdlib-only smoke suite)
 
 test-jsonld: ## LocalBusiness JSON-LD parses + required fields; FAQPage Q.name agrees with visible <summary> text in order (schema/page drift lock)
 	python tests/test_jsonld.py
@@ -90,6 +90,10 @@ test-dockerfile: ## Dockerfile-vs-repo drift lock: every root *.html has a match
 test-meta-descriptions: ## <meta name="description"> present on every top-level page, length [40, 220], unique across pages, not identical to <title>
 	python tests/test_meta_descriptions.py
 	python tests/test_meta_descriptions.py --selftest
+
+test-intake-analytics: ## cta_click + intake_submit payload keys locked; has_prefill derived from PREFILL_MARK; message_length uses .trim().length; submit listener capture=true
+	python tests/test_intake_analytics.py
+	python tests/test_intake_analytics.py --selftest
 
 test-unit: ## Run unit tests only
 	./scripts/test.sh unit
