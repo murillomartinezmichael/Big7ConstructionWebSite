@@ -31,6 +31,18 @@ Cross-checks:
      (SAFE_PARAM passes, `INTENT_TO_TYPE[intent]` is undefined) — the
      visitor lands on `/#contact` with no radio checked, no textarea seed,
      and no attribution. No other test catches this cross-file drift.
+  7. (tick 20d) Every lane deep-link's `src=` value on lane page P equals
+     LANE_SRC_MAP[P]. Before this: `src=` merely had to be non-empty, so a
+     copy-paste of a service row from commercial-industrial.html into
+     home-repair.html that leaves `src=commercial-industrial-lane` in place
+     ships silently and mislabels every home-repair intake as commercial
+     in the funnel view — the lane-attribution loop (tick 27 Formspree +
+     tick 20c dataLayer) points at the wrong lane and every A/B decision
+     downstream is based on a poisoned split.
+  8. (tick 20d) Each lane page carries ≥ MIN_LANE_CTAS deep-link CTAs so a
+     slow gutting of the funnel (delete one service row per session) can't
+     ship silently — the tick-19 "at least one" floor is too permissive to
+     catch drift below the shipped counts of 4-6 per lane.
 """
 from __future__ import annotations
 
@@ -45,6 +57,23 @@ LANE_PAGES = (
     "commercial-industrial.html",
     "residential-construction.html",
 )
+
+# The single canonical attribution slug per lane page. The dataLayer + Formspree
+# funnel splits on this string exactly; a lane page shipping with the wrong
+# slug (typo, or copy-paste from a sibling lane) collapses two lanes into one
+# in every downstream funnel view. Locking the page↔slug pair here means a
+# rename anywhere requires touching the test — grep-scannable, review-visible.
+LANE_SRC_MAP: dict[str, str] = {
+    "home-repair.html": "home-repair-lane",
+    "commercial-industrial.html": "commercial-industrial-lane",
+    "residential-construction.html": "residential-construction-lane",
+}
+
+# Floor for lane-page deep-link CTAs. Shipped counts are 4-6 per lane
+# (2026-07-13); floor of 3 catches a slow gutting below shipped level while
+# leaving room for a lane page that legitimately trims to a shorter service
+# menu. Tighten to 4 the next time the lane pages are re-audited.
+MIN_LANE_CTAS = 3
 
 INTENT_TO_TYPE_BLOCK_RE = re.compile(
     r"const\s+INTENT_TO_TYPE\s*=\s*\{(?P<body>[^}]*)\}",
@@ -145,24 +174,30 @@ def check_lane_deep_links(
     mapping: dict[str, str],
     lane_html: str,
     lane_name: str,
+    expected_src: str | None = None,
+    min_ctas: int = 1,
 ) -> list[str]:
     """Validate lane-page CTA deep-links against the INTENT_TO_TYPE mapping.
 
-    - At least one deep-link href="/?..." must be present (else the lane
-      page ships no working funnel back to the intake form).
+    - At least `min_ctas` deep-link href="/?..." must be present (else the
+      lane page ships a gutted or missing funnel back to the intake form).
     - Every deep-link's `intent=` value (when present) must be a key in
       the mapping — else URL-param prefill silently no-ops.
     - Every deep-link must carry `src=` — the tick-27 lane-attribution loop
       needs a source slug on every lane CTA to survive Formspree round-trip.
+    - When `expected_src` is provided, every deep-link's `src=` value must
+      equal it (tick-20d cross-lane paste lock).
     """
     errors: list[str] = []
     links = parse_lane_deep_links(lane_html)
-    if not links:
+    if len(links) < min_ctas:
         errors.append(
-            f"{lane_name}: no lane deep-link href=\"/?...\" CTAs found — "
-            f"lane page ships no working funnel back to intake"
+            f"{lane_name}: only {len(links)} lane deep-link href=\"/?...\" "
+            f"CTA(s) found, below floor of {min_ctas} — slow gutting of the "
+            f"funnel is shipping without a signal"
         )
-        return errors
+        if not links:
+            return errors
     for link in links:
         if link["intent"] and link["intent"] not in mapping:
             errors.append(
@@ -174,6 +209,13 @@ def check_lane_deep_links(
             errors.append(
                 f"{lane_name}: deep-link missing src= attribution param "
                 f"({link['raw']}) — lane attribution collapses at Formspree"
+            )
+        elif expected_src is not None and link["src"] != expected_src:
+            errors.append(
+                f"{lane_name}: deep-link src={link['src']!r} does not match "
+                f"expected lane slug {expected_src!r} — copy-paste from a "
+                f"sibling lane will mislabel every intake in the funnel "
+                f"({link['raw']})"
             )
     return errors
 
@@ -337,12 +379,23 @@ def _selftest(html: str) -> int:
     good_intent = a_key if a_key.startswith("service:") else next(
         (k for k in mapping if k.startswith("service:")), a_key
     )
-    lane_baseline = (
+    # Lane baseline: MIN_LANE_CTAS deep-links (service rows) + 1 bottom CTA,
+    # all carrying the canonical `lane-selftest` slug. Sized so the mutation
+    # that removes one CTA still leaves MIN_LANE_CTAS-1 (below floor) and
+    # trips the count check.
+    lane_row_snippet = (
         f'<a class="service-row" href="/?intent={good_intent}'
         f'&amp;src=lane-selftest#contact">row</a>\n'
-        f'<a class="btn-accent" href="/?src=lane-selftest#contact">Request a bid</a>\n'
     )
-    lane_baseline_errs = check_lane_deep_links(mapping, lane_baseline, "lane-baseline")
+    lane_baseline = (
+        lane_row_snippet * MIN_LANE_CTAS
+        + f'<a class="btn-accent" href="/?src=lane-selftest#contact">Request a bid</a>\n'
+    )
+    lane_baseline_errs = check_lane_deep_links(
+        mapping, lane_baseline, "lane-baseline",
+        expected_src="lane-selftest",
+        min_ctas=MIN_LANE_CTAS,
+    )
     if lane_baseline_errs:
         print("SELFTEST ABORT: lane baseline itself fails:", file=sys.stderr)
         for e in lane_baseline_errs:
@@ -363,7 +416,18 @@ def _selftest(html: str) -> int:
         (
             "lane page ships zero deep-link CTAs (funnel broken)",
             "<p>lane page with no deep-links</p>",
-            "no lane deep-link",
+            "below floor of",
+        ),
+        (
+            "lane deep-link src= drifts to a sibling lane slug (cross-lane paste)",
+            lane_baseline.replace("src=lane-selftest", "src=some-other-lane"),
+            "does not match expected lane slug 'lane-selftest'",
+        ),
+        (
+            "lane page gutted to below MIN_LANE_CTAS (slow funnel decay)",
+            # Keep only the bottom btn-accent CTA — well below the floor.
+            f'<a class="btn-accent" href="/?src=lane-selftest#contact">Request a bid</a>\n',
+            f"below floor of {MIN_LANE_CTAS}",
         ),
     ]
 
@@ -372,7 +436,11 @@ def _selftest(html: str) -> int:
         if mutated == lane_baseline:
             lane_failures.append(f"{label}: mutation was a no-op")
             continue
-        errs = check_lane_deep_links(mapping, mutated, "lane-mutation")
+        errs = check_lane_deep_links(
+            mapping, mutated, "lane-mutation",
+            expected_src="lane-selftest",
+            min_ctas=MIN_LANE_CTAS,
+        )
         if not errs:
             lane_failures.append(f"{label}: mutation slipped through")
             continue
@@ -414,7 +482,17 @@ def main(argv: list[str]) -> int:
             errors.append(f"{lane}: not found at {lane_path}")
             continue
         lane_html = lane_path.read_text(encoding="utf-8")
-        lane_errors = check_lane_deep_links(mapping, lane_html, lane)
+        expected_src = LANE_SRC_MAP.get(lane)
+        if expected_src is None:
+            errors.append(
+                f"{lane}: no entry in LANE_SRC_MAP — add the canonical "
+                f"attribution slug for this lane page"
+            )
+        lane_errors = check_lane_deep_links(
+            mapping, lane_html, lane,
+            expected_src=expected_src,
+            min_ctas=MIN_LANE_CTAS,
+        )
         errors.extend(lane_errors)
         lane_link_count += len(parse_lane_deep_links(lane_html))
 
@@ -427,7 +505,8 @@ def main(argv: list[str]) -> int:
         f"OK: {len(mapping)} INTENT_TO_TYPE entries, {len(intents)} CTA intents, "
         f"{len(radios)} projectType radios — contract holds; attribution loop wired. "
         f"{lane_link_count} lane deep-link(s) across {len(LANE_PAGES)} lane page(s) "
-        f"all map to INTENT_TO_TYPE + carry src= attribution."
+        f"all map to INTENT_TO_TYPE + carry the per-lane src slug from "
+        f"LANE_SRC_MAP (floor {MIN_LANE_CTAS} CTAs per lane)."
     )
     return 0
 

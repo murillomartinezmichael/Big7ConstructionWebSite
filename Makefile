@@ -31,7 +31,7 @@ test-seo-files: ## sitemap.xml + robots.txt parse; canonical origin agrees; ever
 	python tests/test_seo_files.py
 	python tests/test_seo_files.py --selftest
 
-test-conversion: ## CTA data-intent <-> INTENT_TO_TYPE <-> projectType radio contract holds; lane-page deep-link intents + src attribution locked
+test-conversion: ## CTA data-intent <-> INTENT_TO_TYPE <-> projectType radio contract holds; lane-page deep-link intents + per-lane src slug (LANE_SRC_MAP) + MIN_LANE_CTAS floor locked
 	python tests/test_conversion.py
 	python tests/test_conversion.py --selftest
 
