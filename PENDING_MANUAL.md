@@ -3,6 +3,27 @@
 Tick-level items only Mike can complete. Sweep at will; each ends in a
 checkbox so it clears with a stroke.
 
+## 2026-07-12 tick 20 (SHIPPED — commit `7aef7c1`)
+
+- [ ] **Log this tick to Cockpit Work Log** (COCKPIT.html — press `l`)
+  - **Card:** Big7Construction
+  - **What shipped:** Per-indexable-page OG uniqueness lock on `og:url` /
+    `og:title` / `og:description` across the 5 indexable pages, wired into
+    the existing `test-og` recipe. Catches the copy-paste class of drift
+    where a new lane page ships with an older page's OG boilerplate — every
+    per-page presence + canonical check still passes in that state; only
+    cross-page comparison surfaces the mistake. `--selftest` now 20/20
+    (12 OG + 5 canonical + 3 uniqueness). Full 19-suite golden chain green.
+  - **Files touched:** `tests/test_og_twitter.py`, `Makefile`, `TODO.md`
+  - **Next up:** Same rung — natural follow-ups are (a) social-links
+    `sameAs` on the homepage LocalBusiness when Mike stands up handles, or
+    (b) an `aggregateRating` JSON-LD block once real reviews exist.
+  - **Move card to:** In Progress (Big7 is a rolling site; no "Done" state).
+  - **Why blocked on Mike:** COCKPIT.html work log lives in browser
+    `localStorage` — cannot be written from CLI. 30 seconds in the browser.
+  - **Resumes:** Cockpit shows the entry; next Big7 tick can proceed with a
+    clean log timeline.
+
 ## 2026-07-11 tick 26 (SHIPPED — commit `b288398`)
 
 - [ ] **Log this tick to Cockpit Work Log** (COCKPIT.html — press `l`)
