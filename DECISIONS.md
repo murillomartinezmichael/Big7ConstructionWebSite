@@ -4,6 +4,16 @@ Reversible + small choices only. Load-bearing choices live in `docs/adr/`.
 
 ---
 
+## 2026-07-09 - One parent site with three buyer lanes, not three separate sites
+
+**What:** Big7 is a large company, but the next cleanup should be one parent site with three lane pages: Commercial & Industrial, Residential Construction, and Home Repair & Improvements. Do not split into separate domains/sites yet. Do not introduce microservices for the marketing surface.
+
+**Why:** the buyers differ, but the brand, trust signals, phone number, quote form, and proof all compound better on one domain. Three separate sites would multiply maintenance, SEO, analytics, and trust work before there is evidence that the lanes need separate brands. Microservices solve runtime complexity; Big7's current problem is positioning and page structure.
+
+**How to escalate if wrong:** split later only if Big7 has separate brands, teams, phone numbers, ad budgets, or SEO campaigns per lane. Upgrade from single-file HTML to Astro static if the page count or repeated sections become painful. Add backend services only for auth, scheduling, client portals, payments, or CRM/lead workflows.
+
+---
+
 ## 2026-07-05 · `<dl>` semantic flatten over `<ul>` rewrite
 
 **What:** the hero stat block was `<dl>` → `<div class="hero-stat">` wrappers → `<dt>`/`<dd>` inside. Lighthouse's `definition-list` a11y audit + WCAG both want `<dt>` and `<dd>` as direct children of `<dl>`. Options were (a) drop the wrapper divs, keep semantics, use CSS `grid-auto-flow: row` to place all 4 dts on row 1 and all 4 dds on row 2; or (b) switch to `<ul>` of `<li>` and give up the "term/definition" semantic. Picked (a).

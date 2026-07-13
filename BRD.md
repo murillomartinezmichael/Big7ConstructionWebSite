@@ -7,6 +7,18 @@
 
 ---
 
+## Site Architecture Direction (2026-07-09)
+
+Do not split Big7 into three separate sites yet, and do not introduce microservices for a marketing site. Big7 should read like one large company with three clear buyer lanes:
+
+1. **Commercial & Industrial** - GCs, facilities, enterprise/commercial buyers.
+2. **Residential Construction** - homeowners planning larger builds, additions, remodels, structural work.
+3. **Home Repair & Improvements** - smaller homeowner work that is still profitable: repair, replace, punch-list, exterior/interior fixes.
+
+Recommended next shape: one parent homepage plus real static landing pages for each lane (`/commercial-industrial/`, `/residential-construction/`, `/home-repair/`). Shared brand, shared phone, shared quote form, shared analytics. Split into separate domains/sites only if the company has separate brands, teams, phone numbers, ad budgets, or SEO strategy for each lane.
+
+Tech rule: stay static until the content volume forces a change. If Big7 grows past one page + a few lane pages, upgrade to Astro static pages with content collections. Do not build microservices unless Big7 needs auth, client portals, payments, scheduling, or lead-management workflows.
+
 ## 1. Problem
 
 Big7 Construction is positioning to grow from six-figure operation toward multi-seven-figure revenue. Their existing online presence doesn't communicate scale. Prospective residential clients, GCs, and commercial/industrial partners need a site that:
@@ -80,3 +92,20 @@ Big7 Construction is positioning to grow from six-figure operation toward multi-
 - Custom domain
 - Hosting (Railway min tier; CF Pages as $0 alternative)
 - Real project photography
+
+
+<!-- AI-HUB-SYNC:START -->
+## AI Product Research Update - 2026-07-09
+
+Source of product truth: ..\AI_HUB.md.
+
+**Lane:** large construction brand site
+
+**Design decision:** One parent brand is right. The design should feel sturdy, premium, and operational, with clear buyer lanes rather than three separate brands. Separate sites would split trust and SEO too early.
+
+**Product direction:** Add three lane pages on the same domain: Commercial & Industrial, Residential Construction, Home Repair & Improvements. Use real proof, job photos, FAQ schema, service areas, shared quote form, and lane-specific CTA intents.
+
+**Scope boundary:** Separate pages, not separate sites. No microservices unless auth, portal, payments, scheduling, or CRM workflows appear.
+
+**Acceptance evidence:** make test; anchor/SEO/schema/form/CTA smoke; mobile Lighthouse when URL is known.
+<!-- AI-HUB-SYNC:END -->

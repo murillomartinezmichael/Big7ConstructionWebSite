@@ -1,6 +1,16 @@
 # Big7Construction
 Marketing website for Big 7 Construction — full-service commercial, industrial, and residential contractor. Static HTML site on Railway.
 
+## Recommended Information Architecture
+
+Big7 should stay one parent company site with three buyer lanes, not three separate sites yet:
+
+- Commercial & Industrial
+- Residential Construction
+- Home Repair & Improvements
+
+Next build step is static landing pages for those lanes with shared branding, shared quote form, shared analytics, and cross-links back to the parent homepage. Split into separate sites only if the business operates them as separate brands or ad funnels. If page count grows, migrate to Astro static; do not add microservices for a marketing site.
+
 ## Stack
 - HTML5 + embedded CSS (no build step, no JS framework)
 - Google Fonts: Anton + Barlow

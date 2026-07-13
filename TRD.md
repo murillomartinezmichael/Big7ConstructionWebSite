@@ -20,6 +20,19 @@ Static HTML marketing site for Big7 Construction. Served via `nginx:alpine` on R
 | Cost | minimum tier (~$5/mo Railway or $0 on CF Pages) |
 | Availability | 99.5% (single instance is fine for marketing) |
 
+## 2.1 Architecture Direction (2026-07-09)
+
+Current static nginx site remains the right runtime. The cleanup needed is information architecture, not distributed systems.
+
+Recommended path:
+
+1. Keep one domain and one deploy.
+2. Add three static lane pages: `/commercial-industrial/`, `/residential-construction/`, `/home-repair/`.
+3. Keep one quote form and one analytics adapter. Add hidden `projectType`/`data-intent` values per lane.
+4. Extend sitemap only with real pages.
+5. If maintaining duplicated HTML becomes painful, migrate to Astro static components.
+6. Only add backend/microservices for auth, payments, scheduling, client portal, or lead-management workflows.
+
 ## 3. Architecture
 
 ```

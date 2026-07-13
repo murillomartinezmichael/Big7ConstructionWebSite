@@ -1,19 +1,7 @@
-# CLAUDE.md
+# AGENTS.md
 
 ## What This Is
 Static marketing website for Big 7 Construction — a full-service commercial, industrial, and residential contractor. Single-file HTML site served via nginx:alpine on Railway.
-
-## Site Architecture Direction (2026-07-09)
-
-Do not split Big7 into three separate sites yet, and do not introduce microservices for a marketing site. Big7 should read like one large company with three clear buyer lanes:
-
-1. **Commercial & Industrial** - GCs, facilities, enterprise/commercial buyers.
-2. **Residential Construction** - homeowners planning larger builds, additions, remodels, structural work.
-3. **Home Repair & Improvements** - smaller homeowner work that is still profitable: repair, replace, punch-list, exterior/interior fixes.
-
-Recommended next shape: one parent homepage plus real static landing pages for each lane (`/commercial-industrial/`, `/residential-construction/`, `/home-repair/`). Shared brand, shared phone, shared quote form, shared analytics. Split into separate domains/sites only if the company has separate brands, teams, phone numbers, ad budgets, or SEO strategy for each lane.
-
-Tech rule: stay static until the content volume forces a change. If Big7 grows past one page + a few lane pages, upgrade to Astro static pages with content collections. Do not build microservices unless Big7 needs auth, client portals, payments, scheduling, or lead-management workflows.
 
 ## Stack
 Single-file HTML5 + embedded CSS (no JS framework, no build step) → nginx:alpine Docker on Railway (port 8080)
@@ -56,15 +44,14 @@ This project follows the cross-repo engineering standards:
 
 ## End-of-chunk: log to Cockpit
 
-Every shipped chunk (feature end-to-end, doc rolled out, deploy that survives smoke test) gets a Work Log entry in `../COCKPIT.html` — press `l`. No entry = the chunk didn't happen. Full protocol in `../CLAUDE.md § DEFINITION OF DONE — Cockpit Work Log`.
+Every shipped chunk (feature end-to-end, doc rolled out, deploy that survives smoke test) gets a Work Log entry in `../COCKPIT.html` — press `l`. No entry = the chunk didn't happen. Full protocol in `../AGENTS.md § DEFINITION OF DONE — Cockpit Work Log`.
 
 
 <!-- AI-HUB-SYNC:START -->
 ## Shared AI Hub
 
-Read ../AI_HUB.md after root ../CLAUDE.md and before changing this project. Product lane, UI verdict, and combine/separate decisions are centralized there so Claude and Codex stay synced.
+This project inherits ../AGENTS.md and the shared product brain at ../AI_HUB.md. Read local CLAUDE.md, TODO.md, and BRD.md before edits.
 
 Current lane: large construction brand site
-
 Current next action: Write and build the three-lane IA before any stack or microservice upgrade.
 <!-- AI-HUB-SYNC:END -->
