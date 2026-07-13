@@ -3075,10 +3075,20 @@
         form.addEventListener('submit', function () {
           const checked = document.querySelector('input[name="projectType"]:checked');
           const ta = form.querySelector('textarea[name="message"]');
+          // `src` mirrors the hidden `source` input the landing IIFE writes
+          // from ?src= / ?utm_source=. Without it in the payload, Formspree
+          // gets the attribution but GA4/Plausible see intake_submit blind —
+          // "which lane page produced the intake?" is unanswerable at the
+          // funnel-view surface even though the data reached the estimator's
+          // inbox. Same drift class the tick-27 lane-attribution loop closed
+          // at the Formspree surface; this closes it at the dataLayer surface.
+          const srcField = form.querySelector('input[name="source"]');
           track('intake_submit', {
             intent: checked ? 'type:' + checked.value : 'type:unset',
             has_prefill: !!(ta && ta.value.indexOf(PREFILL_MARK) === 0),
-            message_length: ta ? ta.value.trim().length : 0
+            message_length: ta ? ta.value.trim().length : 0,
+            page: 'home',
+            src: (srcField && srcField.value) || ''
           });
         }, true);
       }

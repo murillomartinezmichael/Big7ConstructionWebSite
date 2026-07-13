@@ -78,7 +78,12 @@ INTAKE_START_RE = re.compile(
 PAYLOAD_KEY_RE = re.compile(r"(?:^|[,{\s])(?P<key>[A-Za-z_][A-Za-z0-9_]*)\s*:")
 
 CTA_CLICK_REQUIRED = {"intent", "page", "position", "label"}
-INTAKE_SUBMIT_REQUIRED = {"intent", "has_prefill", "message_length"}
+# `page` + `src` are project-local extensions above CONVERSION_STANDARDS.md § 4's
+# floor (intent / has_prefill / message_length). Locking them is what closes the
+# lane-attribution loop at the dataLayer surface — a landing from a lane
+# `?src=commercial-industrial-lane` link that later submits was invisible to
+# GA4/Plausible before, even though Formspree already got the `source` field.
+INTAKE_SUBMIT_REQUIRED = {"intent", "has_prefill", "message_length", "page", "src"}
 INTAKE_START_REQUIRED = {"intent", "page"}
 
 # Submit listener must be wired in capture phase. Without it, a preventDefault
@@ -269,10 +274,13 @@ def _baseline_html() -> str:
     form.addEventListener('submit', function () {
       const checked = document.querySelector('input[name="projectType"]:checked');
       const ta = form.querySelector('textarea[name="message"]');
+      const srcField = form.querySelector('input[name="source"]');
       track('intake_submit', {
         intent: checked ? 'type:' + checked.value : 'type:unset',
         has_prefill: !!(ta && ta.value.indexOf(PREFILL_MARK) === 0),
-        message_length: ta ? ta.value.trim().length : 0
+        message_length: ta ? ta.value.trim().length : 0,
+        page: 'home',
+        src: (srcField && srcField.value) || ''
       });
     }, true);
   }
@@ -310,6 +318,26 @@ def _selftest(_live_html: str) -> int:
             "intake_submit.message_length field dropped",
             re.sub(r"message_length:[^\n]+\n", "\n", baseline),
             "intake_submit payload missing required key(s) ['message_length']",
+        ),
+        (
+            "intake_submit.page field dropped (lane-attribution funnel goes dark)",
+            # Scoped to the intake_submit block via the message_length neighbor
+            # so the same `page: 'home',` in cta_click is not stripped by mistake.
+            baseline.replace(
+                "message_length: ta ? ta.value.trim().length : 0,\n        page: 'home',",
+                "message_length: ta ? ta.value.trim().length : 0,",
+                1,
+            ),
+            "intake_submit payload missing required key(s) ['page']",
+        ),
+        (
+            "intake_submit.src field dropped (lane attribution ends at Formspree only)",
+            baseline.replace(
+                "        page: 'home',\n        src: (srcField && srcField.value) || ''\n",
+                "        page: 'home'\n",
+                1,
+            ),
+            "intake_submit payload missing required key(s) ['src']",
         ),
         (
             "has_prefill hardcoded to true (loses signal)",

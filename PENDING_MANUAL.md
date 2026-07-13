@@ -3,6 +3,33 @@
 Tick-level items only Mike can complete. Sweep at will; each ends in a
 checkbox so it clears with a stroke.
 
+## 2026-07-12 tick 20c (SHIPPED — locally)
+
+- [ ] **Log this tick to Cockpit Work Log** (COCKPIT.html — press `l`)
+  - **Card:** Big7Construction
+  - **What shipped:** Lane-attribution loop closed at the dataLayer surface.
+    `intake_submit` payload in `index.html` now carries `page: 'home'` and
+    `src: <hidden source input value>` alongside the existing intent /
+    has_prefill / message_length. Before this tick, a visitor landing via
+    a lane link (`?src=commercial-industrial-lane`) whose submit reached
+    Formspree with the correct `source` attribution was still dark to
+    GA4/Plausible — the funnel view of "which lane page produced the most
+    intake submits" could not be answered without leaving analytics.
+    Extended `tests/test_intake_analytics.py` `INTAKE_SUBMIT_REQUIRED` to
+    include `page` + `src` and added 2 selftest mutations (drop `page`,
+    drop `src`) scoped to the intake_submit block so the shared
+    `page: 'home'` in cta_click is not stripped by mistake. Selftest now
+    15/15 (was 13/13). Full 20-suite chain green end-to-end.
+  - **Files touched:** `index.html`, `tests/test_intake_analytics.py`,
+    `PENDING_MANUAL.md`
+  - **Next up:** Rung VI UPGRADE — natural next bites are (a) mirror the
+    same `src`/`page` lock into `landing_prefill` payload contract (extend
+    `test_url_prefill.py` from substring checks to full payload-key
+    validation), (b) `sameAs` on the homepage LocalBusiness once socials
+    exist, (c) `aggregateRating` JSON-LD once real reviews exist.
+  - **Move card to:** In Progress (Big7 is a rolling site).
+  - **Why blocked on Mike:** COCKPIT.html work log lives in browser localStorage; only Mike's browser can write it.
+
 ## 2026-07-12 tick 20b (SHIPPED — locally)
 
 - [ ] **Log this tick to Cockpit Work Log** (COCKPIT.html — press `l`)
