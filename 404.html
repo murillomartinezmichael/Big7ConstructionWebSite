@@ -70,6 +70,26 @@
       transition: filter 0.2s, transform 0.2s;
     }
     .btn:hover { filter: brightness(0.88); transform: translateY(-1px); }
+    .lanes {
+      margin: 40px 0 0; padding: 24px 0 0;
+      border-top: 1px solid rgba(0,0,0,0.08);
+    }
+    .lanes h2 {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 12px; font-weight: 600; letter-spacing: 0.24em;
+      text-transform: uppercase; color: var(--ink-500);
+      margin: 0 0 16px;
+    }
+    .lanes ul { list-style: none; padding: 0; margin: 0; }
+    .lanes li { margin: 0 0 4px; }
+    .lanes a {
+      display: block; padding: 12px 0;
+      color: var(--ink-950); text-decoration: none;
+      font-family: 'Barlow Condensed', sans-serif; font-weight: 600;
+      font-size: 18px; letter-spacing: 0.02em;
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+    }
+    .lanes a:hover { color: var(--accent-600); }
     footer {
       padding: 24px; border-top: 1px solid rgba(0,0,0,0.08);
       font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase;
@@ -101,6 +121,14 @@
     <h1>Not here.</h1>
     <p>The page you were looking for isn't at this address. If a link on our own site is broken, we'd like to know — the fastest fix goes through the front door.</p>
     <a class="btn" href="/">Back to Big 7</a>
+    <nav class="lanes" aria-label="Popular pages">
+      <h2>Or head straight to a lane</h2>
+      <ul>
+        <li><a href="/commercial-industrial.html">Commercial &amp; Industrial &rarr;</a></li>
+        <li><a href="/residential-construction.html">Residential Construction &rarr;</a></li>
+        <li><a href="/home-repair.html">Home Repair &amp; Improvements &rarr;</a></li>
+      </ul>
+    </nav>
   </main>
   <footer>Bonded &amp; insured · Metro Atlanta commercial + residential<a href="/accessibility.html">Accessibility</a></footer>
 </body>
