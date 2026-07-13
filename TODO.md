@@ -1,6 +1,12 @@
 # Big7Construction — TODO
 
-**Last updated:** 2026-07-12 (tick 19 — `tests/test_meta_descriptions.py` locks `<meta name="description">` contract across all 6 top-level pages: presence, length bounds, uniqueness, and title-drift; wired into `make test` as suite 17)
+**Last updated:** 2026-07-12 (tick 20 — `tests/test_og_twitter.py` extended with per-indexable-page uniqueness lock on `og:url` / `og:title` / `og:description` across the 5 indexable pages; catches the copy-paste class of drift a new lane page shipped with an older page's OG boilerplate would otherwise slip through)
+
+## SHIPPED (2026-07-12 tick 20 — Rung II PROVE nineteenth bite: per-indexable-page OG uniqueness lock)
+
+- **`tests/test_og_twitter.py` — new `assert_indexable_uniqueness()` pass wired into `main()`.** Presence + branded-card + canonical/og:url tests all pass on well-formed individual pages, so a new lane page copy-pasted from an existing one that forgets to update `og:url` / `og:title` / `og:description` would preview on every social share as whichever page was copied — every per-page check still greens. Only cross-page comparison catches it. New pass collects tags for the 5 indexable pages (TARGETS_WITH_CANONICAL, skips 404 whose og:url intentionally == homepage), groups by value on each of the three fields, and fails on any value shared by two or more pages. `--selftest` gains 3 mutations (dup og:url, dup og:title, dup og:description across two synthetic pages) — all 3 caught first run alongside the existing 17 mutations (20 total).
+
+- **`Makefile` — `test-og` docstring updated to name the new uniqueness lock so `make help` reflects reality.** No new suite added — extends the existing `test-og` recipe. Full 19-suite golden chain still PASS end-to-end.
 
 ## SHIPPED (2026-07-12 tick 19 — Rung II PROVE eighteenth bite: `<meta name="description">` contract lock)
 

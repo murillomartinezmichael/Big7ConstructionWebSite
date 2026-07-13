@@ -17,6 +17,16 @@ previews under another — a classic silent SEO leak. Exception: 404.html carrie
 NO canonical link (Google's "soft-404 canonicals confuse crawlers" guidance)
 while its og:url still points social clicks at the homepage.
 
+Also locks (tick 20) per-page uniqueness across the 5 indexable pages on
+og:url, og:title, and og:description. Rationale: a new lane page copy-pasted
+from an existing one that forgets to update these three strings ships as a
+silent conversion leak — every social share of the new lane URL previews as
+whichever page was copied. The presence + canonical-agreement tests above
+still pass in that state (each individual page is well-formed); only a
+cross-page uniqueness lock catches it. 404.html is deliberately excluded from
+the og:url uniqueness lock: it shares og:url with the homepage on purpose so
+a shared 404 link previews as the homepage.
+
 Runs against every top-level HTML file: `index.html`, `404.html`,
 `accessibility.html`, `home-repair.html`, `commercial-industrial.html`,
 `residential-construction.html`. Adding a new top-level page? Append it to
@@ -219,6 +229,42 @@ def assert_canonical(
     return errors
 
 
+def assert_indexable_uniqueness(
+    per_page: dict[str, dict[str, str]],
+) -> list[str]:
+    """Enforce per-page uniqueness on og:url / og:title / og:description.
+
+    `per_page` maps page label -> tag dict. Only pages in TARGETS_WITH_CANONICAL
+    are passed in — the 404's og:url is deliberately homepage, so including it
+    would flag a false positive on the intentional share-safety behavior.
+
+    Catches the copy-paste class of drift: a new lane page shipped with an
+    older page's OG boilerplate still forgotten. Every individual per-page
+    check would pass; only cross-page comparison surfaces the mistake.
+    """
+    errors: list[str] = []
+    for key, human in (
+        ("og:url", "og:url"),
+        ("og:title", "og:title"),
+        ("og:description", "og:description"),
+    ):
+        seen: dict[str, list[str]] = {}
+        for label, tags in per_page.items():
+            value = tags.get(key, "").strip()
+            if not value:
+                continue
+            seen.setdefault(value, []).append(label)
+        for value, labels in seen.items():
+            if len(labels) > 1:
+                errors.append(
+                    f"duplicate {human} across indexable pages "
+                    f"{sorted(labels)!r}: {value!r} — every indexable page must "
+                    f"carry its own {human} or social shares of the newer page "
+                    f"preview as the older one"
+                )
+    return errors
+
+
 def _valid_tags() -> dict[str, str]:
     """Minimal-but-valid tag set used as the selftest baseline."""
     return {
@@ -293,10 +339,64 @@ def selftest() -> int:
             print(f"SELFTEST FAIL: canonical mutation not caught: {name}", file=sys.stderr)
         return 1
 
-    total = len(cases) + len(canon_cases)
+    # Per-indexable-page uniqueness contract — baseline + mutations.
+    def _page(url: str, title: str, desc: str) -> dict[str, str]:
+        t = _valid_tags()
+        t["og:url"] = url
+        t["og:title"] = title
+        t["og:description"] = desc
+        return t
+
+    unique_baseline = {
+        "index.html": _page("https://big7construction.com/", "Home", "Homepage copy"),
+        "home-repair.html": _page(
+            "https://big7construction.com/home-repair.html", "Home Repair", "Home repair copy"
+        ),
+        "commercial-industrial.html": _page(
+            "https://big7construction.com/commercial-industrial.html",
+            "Commercial", "Commercial copy",
+        ),
+    }
+    if assert_indexable_uniqueness(unique_baseline):
+        print("SELFTEST FAIL: uniqueness baseline should be valid", file=sys.stderr)
+        return 1
+
+    # Each mutation collapses one field on a second page onto the first.
+    dup_url = {
+        "index.html": _page("https://big7construction.com/", "Home", "Homepage copy"),
+        "home-repair.html": _page("https://big7construction.com/", "Home Repair", "Home repair copy"),
+    }
+    dup_title = {
+        "index.html": _page("https://big7construction.com/", "Big 7 Construction", "Homepage copy"),
+        "home-repair.html": _page(
+            "https://big7construction.com/home-repair.html", "Big 7 Construction", "Home repair copy"
+        ),
+    }
+    dup_desc = {
+        "index.html": _page("https://big7construction.com/", "Home", "Two divisions, in-house."),
+        "home-repair.html": _page(
+            "https://big7construction.com/home-repair.html", "Home Repair", "Two divisions, in-house."
+        ),
+    }
+    unique_cases: list[tuple[str, dict[str, dict[str, str]]]] = [
+        ("duplicate og:url across two indexable pages", dup_url),
+        ("duplicate og:title across two indexable pages", dup_title),
+        ("duplicate og:description across two indexable pages", dup_desc),
+    ]
+    unique_failures = [
+        name for name, per_page in unique_cases
+        if not assert_indexable_uniqueness(per_page)
+    ]
+    if unique_failures:
+        for name in unique_failures:
+            print(f"SELFTEST FAIL: uniqueness mutation not caught: {name}", file=sys.stderr)
+        return 1
+
+    total = len(cases) + len(canon_cases) + len(unique_cases)
     print(
         f"SELFTEST OK: baseline PASS + {len(cases)}/{len(cases)} OG/Twitter mutations caught + "
-        f"{len(canon_cases)}/{len(canon_cases)} canonical mutations caught ({total} total)"
+        f"{len(canon_cases)}/{len(canon_cases)} canonical mutations caught + "
+        f"{len(unique_cases)}/{len(unique_cases)} uniqueness mutations caught ({total} total)"
     )
     return 0
 
@@ -306,6 +406,7 @@ def main() -> int:
         return selftest()
 
     errors: list[str] = []
+    indexable_tags: dict[str, dict[str, str]] = {}
     for path in TARGETS:
         if not path.exists():
             errors.append(f"{path.name} not found at {path}")
@@ -322,6 +423,10 @@ def main() -> int:
                 must_have_canonical=(path in TARGETS_WITH_CANONICAL),
             )
         )
+        if path in TARGETS_WITH_CANONICAL:
+            indexable_tags[path.name] = tags
+
+    errors.extend(assert_indexable_uniqueness(indexable_tags))
 
     if errors:
         for e in errors:
