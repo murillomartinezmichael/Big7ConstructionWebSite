@@ -4,6 +4,13 @@ Money path: `?intent=service:*` / `?type=<projectType>` / `?src=<slug>` on the
 landing URL prefills the intake radio + textarea. A silent break here means
 every TikTok/IG/email bio click hits a blank form. Locks the IIFE shape,
 SAFE_PARAM whitelist, and `landing_prefill` attribution event.
+
+Tick 20e: the substring `"track('landing_prefill'"` was already required, but
+the *payload keys* of that event were not — a refactor that shipped
+`track('landing_prefill', { intent })` (dropping page/src/type/did_*) would
+still pass the substring check and silently gut the lane-attribution funnel
+at the dataLayer surface. `intake_submit` gained an equivalent key-set lock
+in tick 20c (`test_intake_analytics.py`); this test mirrors that pattern.
 """
 from __future__ import annotations
 
@@ -36,6 +43,29 @@ REQUIRED_SUBSTRINGS = (
     "try {",
     "catch (_)",
 )
+
+# `track('landing_prefill', { ... })` — payload literal ends at the matching `}`.
+# Flat object; a single-level brace match is enough (same shape used in
+# test_intake_analytics.CTA_CLICK_RE).
+LANDING_PREFILL_RE = re.compile(
+    r"track\(\s*'landing_prefill'\s*,\s*\{(?P<body>[^}]*)\}\s*\)",
+    re.DOTALL,
+)
+# Extract key names from an object literal — `foo:` at a tokenish position.
+PAYLOAD_KEY_RE = re.compile(r"(?:^|[,{\s])(?P<key>[A-Za-z_][A-Za-z0-9_]*)\s*:")
+
+# Every key downstream GA4/Plausible depends on to bucket lane-landing rates:
+#   intent      — what the user clicked in the bio link
+#   type        — the projectType that was pre-selected on the radio
+#   src         — lane attribution slug (drives Formspree "source" too)
+#   page        — landing page identifier (always 'home' — the IIFE only runs on `/`)
+#   did_radio   — did the radio prefill actually succeed (safety metric)
+#   did_text    — did the textarea prefill actually succeed
+#   did_source  — did the hidden `source` input get populated (attribution success)
+LANDING_PREFILL_REQUIRED = {
+    "intent", "type", "src", "page",
+    "did_radio", "did_text", "did_source",
+}
 
 # The form MUST carry the hidden `source` input the IIFE writes into. If a
 # refactor drops the hidden field, the JS silently no-ops (querySelector returns
@@ -98,6 +128,26 @@ def check(html: str) -> list[str]:
     url_idx = body.find("URLSearchParams")
     if try_idx >= 0 and url_idx >= 0 and try_idx > url_idx:
         errors.append("URLSearchParams parse not inside try/catch — malformed URL breaks page")
+
+    # landing_prefill payload contract — parse `track('landing_prefill', {...})`
+    # against the FULL html (not just the IIFE body) so a moved event that lands
+    # outside the IIFE still gets counted (dupe detection stays honest).
+    lp_matches = list(LANDING_PREFILL_RE.finditer(html))
+    if len(lp_matches) != 1:
+        errors.append(
+            f"expected exactly 1 `track('landing_prefill', {{...}})` call, found "
+            f"{len(lp_matches)} — a duplicate double-fires the lane-attribution event "
+            f"and inflates every landing-rate metric"
+        )
+    if lp_matches:
+        keys = {m.group("key") for m in PAYLOAD_KEY_RE.finditer(lp_matches[0].group("body"))}
+        missing = LANDING_PREFILL_REQUIRED - keys
+        if missing:
+            errors.append(
+                f"landing_prefill payload missing required key(s) {sorted(missing)} "
+                f"(payload had {sorted(keys)}); the lane-attribution funnel loses "
+                f"{sorted(missing)} at the dataLayer surface"
+            )
     return errors
 
 
@@ -130,6 +180,67 @@ def _selftest(html: str) -> int:
             html.replace('input[name="source"]', 'input[name="nope"]'),
             'input[name="source"]',
         ),
+        # landing_prefill payload contract — each key downstream analytics buckets on.
+        (
+            "landing_prefill.page dropped (lane funnel loses landing-page identity)",
+            html.replace(
+                "intent: intent, type: resolvedType, src: src, page: 'home',",
+                "intent: intent, type: resolvedType, src: src,",
+                1,
+            ),
+            "landing_prefill payload missing required key(s) ['page']",
+        ),
+        (
+            "landing_prefill.src dropped (lane attribution goes dark at dataLayer)",
+            html.replace(
+                "intent: intent, type: resolvedType, src: src, page: 'home',",
+                "intent: intent, type: resolvedType, page: 'home',",
+                1,
+            ),
+            "landing_prefill payload missing required key(s) ['src']",
+        ),
+        (
+            "landing_prefill.did_source dropped (attribution-success signal lost)",
+            html.replace(
+                "did_radio: didRadio, did_text: didText, did_source: didSource",
+                "did_radio: didRadio, did_text: didText",
+                1,
+            ),
+            "landing_prefill payload missing required key(s) ['did_source']",
+        ),
+        (
+            "landing_prefill.type dropped (radio-prefill success ambiguous)",
+            html.replace(
+                "intent: intent, type: resolvedType, src: src, page: 'home',",
+                "intent: intent, src: src, page: 'home',",
+                1,
+            ),
+            "landing_prefill payload missing required key(s) ['type']",
+        ),
+        (
+            "landing_prefill call duplicated (double-fires every landing)",
+            html.replace(
+                "track('landing_prefill', {\n"
+                "            intent: intent, type: resolvedType, src: src, page: 'home',\n"
+                "            did_radio: didRadio, did_text: didText, did_source: didSource\n"
+                "          });",
+                "track('landing_prefill', {\n"
+                "            intent: intent, type: resolvedType, src: src, page: 'home',\n"
+                "            did_radio: didRadio, did_text: didText, did_source: didSource\n"
+                "          });\n"
+                "          track('landing_prefill', {\n"
+                "            intent: intent, type: resolvedType, src: src, page: 'home',\n"
+                "            did_radio: didRadio, did_text: didText, did_source: didSource\n"
+                "          });",
+                1,
+            ),
+            "found 2",
+        ),
+        (
+            "landing_prefill call removed entirely (funnel entry-point invisible)",
+            re.sub(r"track\('landing_prefill'\s*,\s*\{[^}]*\}\s*\)\s*;?", "", html, count=1),
+            "found 0",
+        ),
     ]
     failures: list[str] = []
     for label, mutated, needle in cases:
@@ -160,7 +271,10 @@ def main(argv: list[str]) -> int:
         for e in errs:
             print(f"FAIL: {e}", file=sys.stderr)
         return 1
-    print("OK: URL-param prefill IIFE present, SAFE_PARAM gated, landing_prefill emitted.")
+    print(
+        f"OK: URL-param prefill IIFE present, SAFE_PARAM gated, landing_prefill emitted "
+        f"with payload keys {sorted(LANDING_PREFILL_REQUIRED)}."
+    )
     return 0
 
 

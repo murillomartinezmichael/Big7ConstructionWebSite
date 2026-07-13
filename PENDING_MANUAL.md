@@ -3,6 +3,39 @@
 Tick-level items only Mike can complete. Sweep at will; each ends in a
 checkbox so it clears with a stroke.
 
+## 2026-07-13 tick 20e (SHIPPED — locally)
+
+- [ ] **Log this tick to Cockpit Work Log** (COCKPIT.html — press `l`)
+  - **Card:** Big7Construction
+  - **What shipped:** `tests/test_url_prefill.py` gained a `landing_prefill`
+    payload-key contract lock. Before this tick the test only asserted the
+    substring `track('landing_prefill'` was present — a refactor that shipped
+    `track('landing_prefill', { intent })` (dropping page / src / type /
+    did_radio / did_text / did_source) would still pass and silently gut the
+    lane-attribution funnel at the dataLayer surface. Now: (a) exactly-one
+    call-site check (duplicates double-fire and inflate landing-rate metrics);
+    (b) required key set `{intent, type, src, page, did_radio, did_text,
+    did_source}` extracted from the payload literal via the same regex
+    pattern `test_intake_analytics.py` uses on `intake_submit`. Selftest
+    grew from 9 → 15 mutations (drop page / drop src / drop did_source /
+    drop type / duplicate call / delete call, all caught). Full 21-suite
+    chain still PASS end-to-end.
+  - **Files touched:** `tests/test_url_prefill.py`, `Makefile`,
+    `SESSION_GOAL.md`, `PENDING_MANUAL.md`
+  - **Next up:** Same Rung II PROVE lane. Follow-ups still open from prior
+    ticks: (a) `sameAs` social links on homepage LocalBusiness when Mike
+    stands up the socials; (b) `?type=<projectType>` CTA param on lane
+    pages (blocked on residential-custom / residential-remodel naming
+    decision); (c) `aggregateRating` JSON-LD block once real reviews exist.
+    All three key events (`cta_click`, `intake_start`, `intake_submit`,
+    `landing_prefill`) now have payload-key locks — the CONVERSION_STANDARDS
+    § 4 funnel contract is closed at the dataLayer surface.
+  - **Move card to:** In Progress (Big7 is a rolling site; no "Done" state).
+  - **Why blocked on Mike:** COCKPIT.html work log lives in browser
+    `localStorage` — cannot be written from CLI. 30 seconds in the browser.
+  - **Resumes:** Cockpit shows the entry; next Big7 tick can proceed with a
+    clean log timeline.
+
 ## 2026-07-13 tick 20d (SHIPPED — commit `851a187`)
 
 - [ ] **Log this tick to Cockpit Work Log** (COCKPIT.html — press `l`)

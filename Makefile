@@ -39,7 +39,7 @@ test-primary-ctas: ## Every primary "Request a bid" / btn-accent CTA carries dat
 	python tests/test_primary_ctas.py
 	python tests/test_primary_ctas.py --selftest
 
-test-url-prefill: ## URL-param prefill IIFE: SAFE_PARAM whitelist gates params before DOM; landing_prefill emitted; utm_source accepted
+test-url-prefill: ## URL-param prefill IIFE: SAFE_PARAM whitelist gates params before DOM; landing_prefill emitted with locked payload keys (intent/type/src/page/did_radio/did_text/did_source); utm_source accepted
 	python tests/test_url_prefill.py
 	python tests/test_url_prefill.py --selftest
 
