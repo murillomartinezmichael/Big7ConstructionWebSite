@@ -3,6 +3,35 @@
 Tick-level items only Mike can complete. Sweep at will; each ends in a
 checkbox so it clears with a stroke.
 
+## 2026-07-12 tick 20b (SHIPPED — locally)
+
+- [ ] **Log this tick to Cockpit Work Log** (COCKPIT.html — press `l`)
+  - **Card:** Big7Construction
+  - **What shipped:** Brand-identity social-preview lock in
+    `tests/test_og_twitter.py` — extends the OG contract with (a) per-page
+    presence of `og:site_name` / `og:locale` / `og:image:alt` /
+    `twitter:image:alt` across all 6 top-level pages, (b) per-page agreement
+    that `og:image:alt == twitter:image:alt` (LAW #11 — screen readers on
+    social previews must not read different text for the same PNG on FB vs
+    Twitter), (c) cross-page brand agreement — those four tags must be
+    identical across all 6 pages (they describe the *brand* + the shared
+    branded card, not the page). Every tag was already shipped on-page; the
+    tick locks them so a future silent edit that drops one now fails CI.
+    Selftest 30/30 (12 OG + 5 canonical + 3 uniqueness + 6 brand + 4
+    brand-agreement). Full 19-suite chain green.
+  - **Files touched:** `tests/test_og_twitter.py`, `Makefile`,
+    `SESSION_GOAL.md`, `PENDING_MANUAL.md`
+  - **Next up:** Rung VI UPGRADE — natural next bites are (a) `sameAs`
+    on the homepage LocalBusiness once socials exist, (b) `aggregateRating`
+    JSON-LD once real reviews exist, or (c) locking the on-page `<img alt>`
+    text against the shared brand alt-string so a future logo/card swap
+    can't drift the two apart.
+  - **Move card to:** In Progress (Big7 is a rolling site; no "Done" state).
+  - **Why blocked on Mike:** COCKPIT.html work log lives in browser
+    `localStorage` — cannot be written from CLI. 30 seconds in the browser.
+  - **Resumes:** Cockpit shows the entry; next Big7 tick can proceed with a
+    clean log timeline.
+
 ## 2026-07-12 tick 20 (SHIPPED — commit `7aef7c1`)
 
 - [ ] **Log this tick to Cockpit Work Log** (COCKPIT.html — press `l`)

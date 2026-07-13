@@ -1,4 +1,4 @@
 PROJECT: Big7Construction
-GOAL:    Extend tests/test_og_twitter.py so it locks each real top-level page's <link rel="canonical" href="..."> against its og:url. The 404 gets a documented exception (og:url points at homepage per Google's "404s should not carry a canonical to themselves" guidance; test asserts 404.html has NO canonical link at all). Add selftest mutations covering canonical missing, canonical/og:url mismatch, and 404 accidentally sprouting a canonical. `make test-og` PASS + full 15-target `make test` PASS. Commit locally, no push. Log to Cockpit.
-BUDGET:  25 min (auto-improve tick 19/9999)
-STARTED: 2026-07-12 (dynamic)
+GOAL:    Extend tests/test_og_twitter.py to lock the four social-preview tags every page already carries but nothing tests: og:site_name, og:locale, og:image:alt, twitter:image:alt. All 6 top-level pages must (a) carry them, (b) agree on brand-level values (site_name/locale identical across pages, image:alt identical across pages), (c) og:image:alt must equal twitter:image:alt on the same page (LAW #11 — screen readers on social previews). Add selftest mutations for missing tag, per-page mismatch, and cross-page brand drift. `make test-og` PASS + full `make test` PASS. Commit locally, no push. Log to Cockpit.
+BUDGET:  25 min (auto-improve tick 20/9999)
+STARTED: 2026-07-12
