@@ -3,6 +3,36 @@
 Tick-level items only Mike can complete. Sweep at will; each ends in a
 checkbox so it clears with a stroke.
 
+## 2026-07-13 tick 20d (SHIPPED — commit `851a187`)
+
+- [ ] **Log this tick to Cockpit Work Log** (COCKPIT.html — press `l`)
+  - **Card:** Big7Construction
+  - **What shipped:** `tests/test_conversion.py` extended with (a) `LANE_SRC_MAP`
+    per-page attribution-slug lock — every lane deep-link's `src=` value must
+    equal the canonical slug for the page it's on (home-repair-lane on
+    home-repair.html, etc.), catching the cross-lane copy-paste class where a
+    service row lifted from commercial-industrial.html into home-repair.html
+    with `src=commercial-industrial-lane` left in place would silently
+    mislabel every home-repair intake as commercial in dataLayer + Formspree;
+    (b) `MIN_LANE_CTAS = 3` floor per lane page — the tick-19 "≥ 1 deep-link"
+    floor was too permissive to catch a slow gutting from shipped 4-6 CTAs
+    down toward 1. `check_lane_deep_links()` signature grew `expected_src` +
+    `min_ctas` kwargs. Selftest 13/13 (8 mapping/attribution + 5 lane
+    deep-link; up from 11). Full 19-suite `make test` chain green.
+  - **Files touched:** `tests/test_conversion.py`, `Makefile`, `SESSION_GOAL.md`
+  - **Next up:** Same Rung II PROVE lane. Follow-ups still open from prior
+    ticks: (a) `sameAs` social links on homepage LocalBusiness when Mike
+    stands up the socials; (b) `?type=<projectType>` CTA param on lane pages
+    (blocked on residential-custom vs residential-remodel naming decision);
+    (c) an `aggregateRating` JSON-LD block once real reviews exist; (d)
+    mirror the same `page`/`src` lock into `landing_prefill` payload
+    contract in `test_url_prefill.py`.
+  - **Move card to:** In Progress (Big7 is a rolling site; no "Done" state).
+  - **Why blocked on Mike:** COCKPIT.html work log lives in browser
+    `localStorage` — cannot be written from CLI. 30 seconds in the browser.
+  - **Resumes:** Cockpit shows the entry; next Big7 tick can proceed with a
+    clean log timeline.
+
 ## 2026-07-12 tick 20c (SHIPPED — locally)
 
 - [ ] **Log this tick to Cockpit Work Log** (COCKPIT.html — press `l`)
