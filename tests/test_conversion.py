@@ -70,8 +70,20 @@ LANE_PAGES = (
 # rename anywhere requires touching the test — grep-scannable, review-visible.
 LANE_SRC_MAP: dict[str, str] = {
     "home-repair.html": "home-repair-lane",
-    "commercial-industrial.html": "commercial-industrial-lane",
     "residential-construction.html": "residential-construction-lane",
+}
+
+# Lane pages rebuilt as full destination pages (2026-07-17 two-path
+# restructure): each carries its OWN intake form, so service CTAs are
+# on-page `href="#contact"` + `data-intent` (no more `/?intent=` round-trip
+# through the homepage). The contract for these pages:
+#   1. >= MIN_LANE_CTAS on-page `data-intent="service:*|portfolio:*"` CTAs,
+#      every intent present in INTENT_TO_TYPE (else big7.js prefill no-ops).
+#   2. A hidden `<input name="source" value="<slug>">` whose default equals
+#      this map's slug — the Formspree lane-attribution replacement for the
+#      old per-deep-link `src=` param.
+REBUILT_LANE_SRC: dict[str, str] = {
+    "commercial-industrial.html": "commercial-industrial-page",
 }
 
 # Floor for lane-page deep-link CTAs. Shipped counts are 4-6 per lane
@@ -222,6 +234,57 @@ def check_lane_deep_links(
                 f"sibling lane will mislabel every intake in the funnel "
                 f"({link['raw']})"
             )
+    return errors
+
+
+HIDDEN_SOURCE_RE = re.compile(
+    r'<input\s+type="hidden"\s+name="source"\s+value="(?P<val>[^"]*)"',
+    re.IGNORECASE,
+)
+
+
+def check_rebuilt_lane(
+    mapping: dict[str, str],
+    lane_html: str,
+    lane_name: str,
+    expected_src: str,
+    min_ctas: int = 1,
+) -> list[str]:
+    """Validate a rebuilt destination lane page (own form, on-page CTAs).
+
+    - At least `min_ctas` on-page `data-intent` CTAs (service:*/portfolio:*)
+      must exist, each with its intent in INTENT_TO_TYPE — else the big7.js
+      click-prefill silently no-ops on this page.
+    - The page's hidden `source` input default must equal `expected_src` so
+      every Formspree intake from this page carries lane attribution without
+      relying on a `?src=` param.
+    """
+    errors: list[str] = []
+    intents = parse_intents(lane_html)
+    if len(intents) < min_ctas:
+        errors.append(
+            f"{lane_name}: only {len(intents)} on-page data-intent CTA(s) found, "
+            f"below floor of {min_ctas} — slow gutting of the funnel is shipping "
+            f"without a signal"
+        )
+    for intent in sorted(intents):
+        if intent not in mapping:
+            errors.append(
+                f"{lane_name}: CTA data-intent={intent!r} not in INTENT_TO_TYPE — "
+                f"big7.js prefill will silently no-op on click"
+            )
+    src_matches = HIDDEN_SOURCE_RE.findall(lane_html)
+    if not src_matches:
+        errors.append(
+            f"{lane_name}: no hidden <input name=\"source\"> found — every intake "
+            f"from this page ships with blank lane attribution"
+        )
+    elif src_matches[0] != expected_src:
+        errors.append(
+            f"{lane_name}: hidden source default {src_matches[0]!r} does not match "
+            f"expected lane slug {expected_src!r} — copy-paste from a sibling lane "
+            f"will mislabel every intake in the funnel"
+        )
     return errors
 
 
@@ -460,7 +523,75 @@ def _selftest(html: str) -> int:
             print(f"SELFTEST FAIL: {f}", file=sys.stderr)
         return 1
 
-    total = len(cases) + len(lane_cases)
+    # Rebuilt-lane contract mutations (2026-07-17 two-path restructure) —
+    # destination pages with their own form + on-page data-intent CTAs.
+    distinct_intents = [k for k in mapping if k.startswith(("service:", "portfolio:"))][:MIN_LANE_CTAS]
+    if len(distinct_intents) < MIN_LANE_CTAS:
+        print("SELFTEST ABORT: mapping has too few intents for rebuilt-lane baseline", file=sys.stderr)
+        return 1
+    rebuilt_baseline = (
+        "".join(
+            f'<a href="#contact" class="service-row" data-intent="{k}">row</a>\n'
+            for k in distinct_intents
+        )
+        + '<input type="hidden" name="source" value="lane-selftest-page" />\n'
+    )
+    rebuilt_baseline_errs = check_rebuilt_lane(
+        mapping, rebuilt_baseline, "rebuilt-baseline",
+        expected_src="lane-selftest-page", min_ctas=MIN_LANE_CTAS,
+    )
+    if rebuilt_baseline_errs:
+        print("SELFTEST ABORT: rebuilt-lane baseline itself fails:", file=sys.stderr)
+        for e in rebuilt_baseline_errs:
+            print(f"  {e}", file=sys.stderr)
+        return 1
+
+    rebuilt_cases: list[tuple[str, str, str]] = [
+        (
+            "rebuilt-lane CTA intent typo'd (big7.js prefill no-ops)",
+            rebuilt_baseline.replace(distinct_intents[0], f"{distinct_intents[0]}-typo", 1),
+            "not in INTENT_TO_TYPE",
+        ),
+        (
+            "rebuilt-lane hidden source input deleted (attribution goes blank)",
+            re.sub(r'<input\s+type="hidden"\s+name="source"[^>]*>', "", rebuilt_baseline),
+            'no hidden <input name="source">',
+        ),
+        (
+            "rebuilt-lane hidden source drifts to a sibling slug (cross-lane paste)",
+            rebuilt_baseline.replace('value="lane-selftest-page"', 'value="some-other-page"'),
+            "does not match expected lane slug 'lane-selftest-page'",
+        ),
+        (
+            "rebuilt-lane gutted below MIN_LANE_CTAS (slow funnel decay)",
+            f'<a href="#contact" data-intent="{distinct_intents[0]}">row</a>\n'
+            '<input type="hidden" name="source" value="lane-selftest-page" />\n',
+            f"below floor of {MIN_LANE_CTAS}",
+        ),
+    ]
+    rebuilt_failures: list[str] = []
+    for label, mutated, needle in rebuilt_cases:
+        if mutated == rebuilt_baseline:
+            rebuilt_failures.append(f"{label}: mutation was a no-op")
+            continue
+        errs = check_rebuilt_lane(
+            mapping, mutated, "rebuilt-mutation",
+            expected_src="lane-selftest-page", min_ctas=MIN_LANE_CTAS,
+        )
+        if not errs:
+            rebuilt_failures.append(f"{label}: mutation slipped through")
+            continue
+        if not any(needle in e for e in errs):
+            rebuilt_failures.append(
+                f"{label}: caught but wrong error — did not mention {needle!r}. "
+                f"Got: {errs}"
+            )
+    if rebuilt_failures:
+        for f in rebuilt_failures:
+            print(f"SELFTEST FAIL: {f}", file=sys.stderr)
+        return 1
+
+    total = len(cases) + len(lane_cases) + len(rebuilt_cases)
     print(
         f"SELFTEST OK: {total} broken inputs all caught with the expected error "
         f"({len(cases)} mapping/attribution + {len(lane_cases)} lane deep-link)."
@@ -488,6 +619,15 @@ def main(argv: list[str]) -> int:
             errors.append(f"{lane}: not found at {lane_path}")
             continue
         lane_html = lane_path.read_text(encoding="utf-8")
+        if lane in REBUILT_LANE_SRC:
+            # Rebuilt destination page: own form + on-page data-intent CTAs.
+            errors.extend(check_rebuilt_lane(
+                mapping, lane_html, lane,
+                expected_src=REBUILT_LANE_SRC[lane],
+                min_ctas=MIN_LANE_CTAS,
+            ))
+            lane_link_count += len(parse_intents(lane_html))
+            continue
         expected_src = LANE_SRC_MAP.get(lane)
         if expected_src is None:
             errors.append(
@@ -510,8 +650,9 @@ def main(argv: list[str]) -> int:
     print(
         f"OK: {len(mapping)} INTENT_TO_TYPE entries, {len(intents)} CTA intents, "
         f"{len(radios)} projectType radios — contract holds; attribution loop wired. "
-        f"{lane_link_count} lane deep-link(s) across {len(LANE_PAGES)} lane page(s) "
-        f"all map to INTENT_TO_TYPE + carry the per-lane src slug from "
+        f"{lane_link_count} lane CTA(s) across {len(LANE_PAGES)} lane page(s): "
+        f"{len(REBUILT_LANE_SRC)} rebuilt page(s) carry on-page data-intent CTAs + "
+        f"hidden source slug; legacy pages carry /?intent deep-links per "
         f"LANE_SRC_MAP (floor {MIN_LANE_CTAS} CTAs per lane)."
     )
     return 0
