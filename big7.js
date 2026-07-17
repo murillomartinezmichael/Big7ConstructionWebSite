@@ -27,6 +27,25 @@ async function submitForm(e) {
   btn.textContent = 'Sending…';
   btn.disabled = true;
 
+  // Mirror the lead to the n8n automation webhook (leads data table +
+  // follow-up nudger + morning briefing). Fire-and-forget by design:
+  // Formspree below remains the path of record, so an n8n outage can never
+  // block or fail the visitor's submission. Form-encoded body keeps this a
+  // CORS "simple request" (no preflight). Honeypot + Formspree-internal
+  // fields are stripped before mirroring.
+  try {
+    const mirror = new URLSearchParams();
+    new FormData(form).forEach(function (v, k) {
+      if (k === 'website' || k === '_subject' || k === '_replyto') return;
+      mirror.append(k, v);
+    });
+    fetch('https://michaelmurillo.app.n8n.cloud/webhook/big7-lead', {
+      method: 'POST',
+      body: mirror,
+      keepalive: true
+    }).catch(function () { /* best-effort only */ });
+  } catch (_) { /* mirror must never break the real submit */ }
+
   try {
     const res = await fetch(form.action, {
       method: 'POST',
