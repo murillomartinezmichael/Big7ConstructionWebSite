@@ -69,8 +69,10 @@ FORM_PAGES: dict[str, dict] = {
         "radios": {"residential-custom", "residential-remodel", "trades-only"},
         "subject": "New residential bid",
         "source": "residential-page",
-        # Homeowner-scale budget ranges — see note above.
-        "budgets": {"lt-50k", "50k-150k", "150k-500k", "500k-1m", "1m-plus", "tbd"},
+        # Homeowner-scale budget ranges anchored to researched Metro-Atlanta
+        # pricing (2026-07-17): service-call trades <$10K, roofs/baths/floors
+        # $10K-$30K, kitchens $30K-$100K, additions $100K-$500K, customs $500K+.
+        "budgets": {"lt-10k", "10k-30k", "30k-100k", "100k-500k", "500k-plus", "tbd"},
     },
 }
 MIN_RADIOS = 3  # per-lane floor; the exact value-set check below is the real lock.
