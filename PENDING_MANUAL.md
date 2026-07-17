@@ -3,6 +3,25 @@
 Tick-level items only Mike can complete. Sweep at will; each ends in a
 checkbox so it clears with a stroke.
 
+## 2026-07-17 two-path restructure
+
+- [ ] **Delete the two TEST rows from the n8n `leads` data table**
+  - **What to do:** In n8n (michaelmurillo.app.n8n.cloud) open the `leads`
+    data table and delete the rows named "TEST ROW — safe to delete" and
+    "TEST webhook e2e — safe to delete" (created 2026-07-17 while verifying
+    the two-path field mapping + production webhook).
+  - **Why blocked on him:** No delete-row surface via MCP; and if left, the
+    Follow-up Nudger will draft follow-up emails for them in 2 days.
+  - **Resumes:** Nothing blocked — cleanup only.
+- [ ] **Verify the two-path test intakes reached the Formspree inbox**
+  - **What to do:** After the site deploys, submit each lane form once with
+    a marker message and confirm both arrive with the right `_subject`
+    ("New commercial bid…" / "New residential bid…") and `source`
+    (commercial-industrial-page / residential-page). The n8n mirror copy
+    should appear in the `leads` table + notify email at the same time.
+  - **Why blocked on him:** Formspree inbox is Mike-only.
+  - **Resumes:** Confirms LAW #6/7 verification of the moved money surface.
+
 ## 2026-07-13 tick 20e (SHIPPED — locally)
 
 - [ ] **Log this tick to Cockpit Work Log** (COCKPIT.html — press `l`)

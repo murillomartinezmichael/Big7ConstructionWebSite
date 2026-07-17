@@ -1,19 +1,19 @@
 # Big7Construction — STATUS
 
-**Last verified:** 2026-07-16 (21 static suites golden + selftests; strict deploy preflight READY; production Docker image boot + home/three-lane/404 route smoke PASS locally and in GitHub main CI `29550577370` at `9684a79`)
+**Last verified:** 2026-07-17 (two-path restructure: 21 static suites golden + selftests on the 2-lane contracts; strict deploy preflight READY; production Docker image boot + home/2-lane/big7.js 200 + home-repair 301 + 404 route smoke PASS locally)
 
 ## Runtime
 
 - **Live URL:** unknown (Railway public URL not backfilled; TODO PARKED §9). Fleet norm probe `https://big7construction-production.up.railway.app/` returned 404 in an earlier block — service is under a non-standard slug.
 - **Local dev:** `python -m http.server 8080` at `/` (no build step). Preview at http://localhost:8080. **This does NOT exercise nginx.conf** — cache headers, 404 rewriting, and Vary all only apply when the container runs. (Tick 15 note: `tests/test_nginx_headers.py` now statically parses the config so the header + cache contract IS enforced without needing the container.)
 - **Container:** `make test-container` or `python scripts/test-container-boot.py` builds and exercises the real production image end-to-end, then removes its temporary container and image. For an interactive preview: `make docker && make docker-run` (port 8080, no project env file).
-- **Stack:** single-file `index.html` + `404.html` + `<style>` block + `nginx:alpine` (non-root) on Railway. Fonts: Anton + Barlow Condensed + Fraunces via Google Fonts (async-loaded).
+- **Stack:** multi-page static HTML (chooser `index.html` + lane destination pages `commercial-industrial.html` / `residential-construction.html`, per-page inline `<style>`) + shared money-path `big7.js` + `404.html` + `nginx:alpine` (non-root) on Railway. Fonts: Fraunces + Barlow Condensed + Inter via Google Fonts (async-loaded). `home-repair.html` retired 2026-07-17 → 301 to `residential-construction.html#home-repair`.
 
 ## Current automated gate (2026-07-16)
 
 - **Static:** all 21 `make test` suites pass in golden + selftest modes.
 - **Deploy preflight:** `python scripts/preflight-deploy.py --strict` reports READY (the optional live probe remains skipped until the host-of-record is settled).
-- **Container integration:** `scripts/test-container-boot.py` builds the production Dockerfile, starts nginx with `PORT=8080`, waits for readiness, and verifies `/` plus all three `.html` lane routes return 200 while a missing route returns 404. It prints container logs on failure and cleans its container/image in all exit paths.
+- **Container integration:** `scripts/test-container-boot.py` builds the production Dockerfile, starts nginx with `PORT=8080`, waits for readiness, and verifies `/` + both lane routes + `/big7.js` return 200, `/home-repair.html` returns 301 with the correct Location, and a missing route returns 404. It prints container logs on failure and cleans its container/image in all exit paths.
 - **CI:** `.github/workflows/ci.yml` runs the static suite, strict preflight, and container integration on pushes and pull requests to `main`; main run `29550577370` passed at pushed head `9684a79`. It can become a required PR check via branch protection; it does not block direct pushes by itself.
 
 ## Evolution ladder

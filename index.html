@@ -147,14 +147,7 @@
           "url": "https://big7construction.com/residential-construction.html",
           "itemListElement": [
             { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Custom Home Builds", "description": "Ground-up residential with owner-vision plans and defensible budget discipline. 2,400–8,000 sq ft, 8–14 months, fixed-price milestones." } },
-            { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Structural Repair & Remodeling", "description": "Storm damage, foundation issues, additions, and full renovations. One crew, one warranty. Foundation, framing, roof, full mechanical." } }
-          ]
-        },
-        {
-          "@type": "OfferCatalog",
-          "name": "Home Repair & Improvements",
-          "url": "https://big7construction.com/home-repair.html",
-          "itemListElement": [
+            { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Structural Repair & Remodeling", "description": "Storm damage, foundation issues, additions, and full renovations. One crew, one warranty. Foundation, framing, roof, full mechanical." } },
             { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Every Trade, In-House", "description": "Plumbing, electrical, roofing, HVAC, foundation, drywall, and interiors — no anonymous subs. Repair, replace, and improvement work under one crew, one warranty." } }
           ]
         }
@@ -164,83 +157,55 @@
   </script>
 
   <!--
-    FAQPage schema. Mirrors the eight §07 FAQ answers verbatim so Google can
-    surface them as a rich result on branded / "atlanta general contractor"
-    queries. Keep in lockstep with the rendered §07 accordion — the
-    tests/test_jsonld.py contract asserts the Question count matches.
+    Legacy money-URL shim. Old bio links / lane deep-links point at
+    /?intent=service:*&src=*#contact — but the intake forms moved to the two
+    lane pages (2026-07-17 two-path restructure). Map the resolved projectType
+    through TYPE_TO_LANE and location.replace() to the right lane form; the
+    lane page's prefill IIFE (big7.js) then does radio/textarea/source work.
+    ?src=-only URLs stay here (nothing to prefill). Runs inline in <head> so
+    the redirect fires before first paint. INTENT_TO_TYPE mirrors big7.js —
+    tests/test_url_prefill.py locks the two copies in sync.
   -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    "mainEntity": [
-      {
-        "@type": "Question",
-        "name": "Do you provide fixed-price bids?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Yes — fixed bids are the default. Every scope of work we quote comes with a hard number, a line-item breakdown, and a schedule. Time-and-materials is reserved for genuine unknowns (deep-cut renovations where the wall might hide anything). If your scope has T&M in it, we'll flag exactly which line items and why."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "Do I own the drawings, permits, and closeout docs?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Yes. Final permits, warranties, closeout binders, and any project-specific drawings transfer to you at final payment. If we prepared design-assist drawings, you own those too. We keep archival copies for our records; you get the originals."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "What if I need something that isn't on your services list?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Ask. Our list covers 90% of what commercial, industrial, and residential clients need. Anything outside it, we'll tell you honestly whether we can self-perform or should bring in a specialist trade partner. Either way, it stays under one contract, one PM, one point of accountability."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "Can we scale the scope up or down mid-project?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Change orders happen; how we handle them is what matters. Every change gets a written change order with a fixed cost and a schedule impact, signed before work resumes. No surprises on the final invoice."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "What warranty do you offer after completion?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "One-year workmanship warranty on every trade we self-perform. Material and manufacturer warranties pass through to you in the closeout binder. If a defect is on us, we come back and fix it — full stop, no invoice."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "Do you require a written contract?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "For every project over $5,000, yes. Standard AIA-style contract or a plain-English version — your preference. Under $5k, a signed one-page scope-of-work with milestones is enough. It protects both of us."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "How does payment work?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Milestone-based, not time-based. Typical schedule: 15% deposit at signing, 25% at material delivery / demo, 40% at rough-in complete, 20% at final walk-through. Progress payments align with visible milestones, so you're never paying for work that hasn't happened yet."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "Do you take rush jobs — and what does that add?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Yes, when the calendar allows. Rush work runs 15–25% above standard bid, depending on trade availability and material lead time. You'll see the rush premium as its own line item — not folded into the base — so you know exactly what you're paying for."
-        }
-      }
-    ]
-  }
+  <script>
+    (function () {
+      try {
+        var params = new URLSearchParams(window.location.search);
+        var SAFE_PARAM = /^[a-z0-9:_\-]{1,64}$/i;
+        var safe = function (v) { return (v && SAFE_PARAM.test(v)) ? v : ''; };
+        var intent = safe(params.get('intent'));
+        var type = safe(params.get('type'));
+        if (!intent && !type) return;
+        var INTENT_TO_TYPE = {
+          'service:enterprise-framing':   'commercial-new',
+          'service:commercial-new':       'commercial-new',
+          'service:industrial-warehouse': 'industrial-warehouse',
+          'service:tenant-improvement':   'tenant-improvement',
+          'service:custom-home':          'residential-custom',
+          'service:structural-repair':    'residential-remodel',
+          'service:trades-only':          'trades-only',
+          'portfolio:industrial-01':      'industrial-warehouse',
+          'portfolio:tenant-02':          'tenant-improvement',
+          'portfolio:custom-home-03':     'residential-custom',
+          'portfolio:commercial-04':      'commercial-new',
+          'portfolio:residential-05':     'residential-remodel',
+          'portfolio:structural-06':      'residential-remodel'
+        };
+        var TYPE_TO_LANE = {
+          'commercial-new':       '/commercial-industrial.html',
+          'industrial-warehouse': '/commercial-industrial.html',
+          'tenant-improvement':   '/commercial-industrial.html',
+          'residential-custom':   '/residential-construction.html',
+          'residential-remodel':  '/residential-construction.html',
+          'trades-only':          '/residential-construction.html'
+        };
+        var resolvedType = type || INTENT_TO_TYPE[intent] || '';
+        var lane = TYPE_TO_LANE[resolvedType];
+        if (!lane) return;
+        window.location.replace(lane + '?' + params.toString() + '#contact');
+      } catch (_) { /* never break the page on a malformed URL */ }
+    })();
   </script>
+
 
   <style>
     /* ─── RESET & BASE ───────────────────────────────────────── */
@@ -925,42 +890,6 @@
     .div-col.alt .div-link { color: var(--steel-500); }
     .div-col.alt .div-link:hover { color: var(--steel-400); }
 
-    /* ─── SERVICES PREVIEW (dark spec list) ─────────────────── */
-    section.services {
-      background: var(--ink-900);
-      color: #fff;
-      position: relative;
-      overflow: hidden;
-    }
-    section.services::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      opacity: 0.04;
-      pointer-events: none;
-      background:
-        repeating-linear-gradient(0deg,  #ffffff 0 1px, transparent 1px 80px),
-        repeating-linear-gradient(90deg, #ffffff 0 1px, transparent 1px 80px);
-    }
-    .services-inner { position: relative; padding: 96px 0; }
-    @media (min-width: 1024px) { .services-inner { padding: 128px 0; } }
-    .services-head {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 40px;
-      align-items: end;
-      margin-bottom: 64px;
-    }
-    @media (min-width: 1024px) { .services-head { grid-template-columns: 1.2fr 1fr; } }
-    .services-head h2 {
-      margin-top: 24px;
-      color: #fff;
-      font-size: clamp(40px, 6vw, 72px);
-      line-height: 0.98;
-      letter-spacing: -0.03em;
-    }
-    .services-head p { color: var(--ink-300); line-height: 1.7; font-size: 18px; }
-
     /* Buyer-lane strip — routes each buyer type to its deep lane page
        (locked by tests/test_lane_nav.py) */
     .lane-strip { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 0 0 48px; }
@@ -983,528 +912,6 @@
       .lane-strip { flex-direction: column; align-items: stretch; }
       .lane-strip a { justify-content: space-between; }
     }
-
-    .services-list { list-style: none; border-top: 1px solid rgba(255,255,255,0.1); }
-    .service-item { border-bottom: 1px solid rgba(255,255,255,0.1); transition: background 0.3s; }
-    .service-item:hover { background: rgba(255,255,255,0.02); }
-    .service-row {
-      display: grid;
-      grid-template-columns: auto 1fr auto;
-      gap: 24px;
-      align-items: center;
-      padding: 32px 0;
-      color: #fff;
-    }
-    @media (min-width: 1024px) { .service-row { gap: 40px; padding: 40px 0; } }
-    .service-num {
-      font-family: 'Fraunces', serif;
-      font-weight: 500;
-      font-size: 32px;
-      color: rgba(185,106,61,0.7);
-      font-variant-numeric: tabular-nums;
-      letter-spacing: -0.025em;
-      width: 44px;
-      transition: color 0.2s;
-    }
-    .service-item:hover .service-num { color: var(--accent-500); }
-    .service-title {
-      font-family: 'Fraunces', serif;
-      font-weight: 500;
-      font-size: clamp(28px, 4vw, 44px);
-      line-height: 1.02;
-      letter-spacing: -0.03em;
-      color: #fff;
-      transition: transform 0.3s;
-    }
-    .service-item:hover .service-title { transform: translateX(4px); }
-    .service-lede { margin-top: 12px; color: var(--ink-300); line-height: 1.65; max-width: 640px; }
-    .service-spec { margin-top: 8px; }
-    .service-arrow {
-      display: none;
-      width: 48px;
-      height: 48px;
-      border: 1px solid rgba(255,255,255,0.15);
-      color: rgba(255,255,255,0.5);
-      align-items: center;
-      justify-content: center;
-      transition: all 0.5s;
-    }
-    @media (min-width: 768px) { .service-arrow { display: inline-flex; } }
-    .service-item:hover .service-arrow { border-color: var(--accent-500); color: var(--accent-500); transform: rotate(45deg); }
-    .services-foot {
-      margin-top: 48px;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-      gap: 24px;
-    }
-
-    /* ─── PORTFOLIO ──────────────────────────────────────────── */
-    section.portfolio {
-      background: var(--paper);
-      padding: 96px 0;
-      position: relative;
-      overflow: hidden;
-    }
-    @media (min-width: 1024px) { section.portfolio { padding: 128px 0; } }
-    .portfolio-head {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 24px;
-      align-items: end;
-      margin-bottom: 56px;
-    }
-    @media (min-width: 1024px) { .portfolio-head { grid-template-columns: 1fr auto; } }
-    .portfolio-head h2 {
-      margin-top: 24px;
-      font-size: clamp(40px, 6vw, 72px);
-      line-height: 0.98;
-      letter-spacing: -0.03em;
-    }
-    .portfolio-head .meta {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      align-items: flex-start;
-    }
-    @media (min-width: 1024px) { .portfolio-head .meta { align-items: flex-end; } }
-
-    .portfolio-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      grid-auto-rows: 220px;
-      gap: 12px;
-    }
-    @media (min-width: 1024px) {
-      .portfolio-grid { grid-template-columns: repeat(3, 1fr); grid-auto-rows: 260px; }
-    }
-    .pf-card {
-      position: relative;
-      overflow: hidden;
-      background: var(--ink-100);
-      display: block;
-    }
-    .pf-card.wide { grid-column: span 1; }
-    @media (min-width: 1024px) {
-      .pf-card.wide { grid-column: span 2; grid-row: span 2; }
-    }
-    .pf-card img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      transition: transform 1200ms;
-    }
-    .pf-card:hover img { transform: scale(1.06); }
-    .pf-shade {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(to top, rgba(8,9,11,0.9), rgba(8,9,11,0.1) 55%, transparent);
-      pointer-events: none;
-    }
-    .pf-tag {
-      position: absolute;
-      top: 16px;
-      right: 16px;
-      display: inline-flex;
-      gap: 8px;
-      padding: 4px 8px;
-      background: rgba(0,0,0,0.4);
-      backdrop-filter: blur(6px);
-      -webkit-backdrop-filter: blur(6px);
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 10px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.22em;
-      color: rgba(255,255,255,0.85);
-      font-variant-numeric: tabular-nums;
-    }
-    .pf-caption {
-      position: absolute;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      padding: 20px 24px;
-      color: #fff;
-      transition: transform 500ms;
-    }
-    @media (min-width: 1024px) {
-      .pf-card:hover .pf-caption { transform: translateY(-8px); }
-    }
-    .pf-caption .pf-eyebrow {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 10px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.22em;
-      color: var(--accent-400);
-    }
-    .pf-caption .pf-title {
-      margin-top: 6px;
-      font-family: 'Fraunces', serif;
-      font-weight: 500;
-      font-size: 20px;
-      line-height: 1.15;
-      letter-spacing: -0.025em;
-    }
-    .pf-spec {
-      display: none;
-      position: absolute;
-      inset-inline: 0;
-      bottom: 0;
-      padding: 24px;
-      color: #fff;
-      background: linear-gradient(to top, rgba(8,9,11,0.98), rgba(8,9,11,0.9) 60%, transparent);
-      transform: translateY(100%);
-      transition: transform 500ms cubic-bezier(0.22, 1, 0.36, 1);
-      pointer-events: none;
-    }
-    @media (min-width: 1024px) {
-      .pf-spec { display: block; padding-top: 64px; }
-      .pf-card:hover .pf-spec { transform: translateY(0); }
-    }
-    .pf-spec dl {
-      margin-top: 16px;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      border-top: 1px solid rgba(255,255,255,0.15);
-      padding-top: 12px;
-    }
-    .pf-spec dt { font-family: 'Barlow Condensed', sans-serif; font-size: 10px; text-transform: uppercase; letter-spacing: 0.22em; color: var(--ink-400); font-weight: 600; }
-    .pf-spec dd { margin-top: 2px; font-size: 13px; font-weight: 500; font-variant-numeric: tabular-nums; line-height: 1.3; }
-    .pf-spec .cta { margin-top: 16px; font-family: 'Barlow Condensed', sans-serif; font-size: 10px; text-transform: uppercase; letter-spacing: 0.22em; color: var(--accent-500); font-weight: 600; }
-
-    .portfolio-foot {
-      margin-top: 56px;
-      border-top: 1px solid var(--ink-200);
-      padding-top: 24px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 24px;
-      align-items: center;
-      color: var(--ink-500);
-    }
-    .portfolio-foot .dot { width: 4px; height: 4px; background: var(--accent-500); border-radius: 50%; }
-
-    /* ─── CREDENTIALS ────────────────────────────────────────── */
-    section.credentials {
-      background: var(--paper-2);
-      padding: 96px 0;
-      position: relative;
-    }
-    @media (min-width: 1024px) { section.credentials { padding: 128px 0; } }
-    .cred-head {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 40px;
-      align-items: end;
-      margin-bottom: 64px;
-    }
-    @media (min-width: 1024px) { .cred-head { grid-template-columns: 1fr 1.4fr; } }
-    .cred-head h2 {
-      margin-top: 24px;
-      font-size: clamp(40px, 6vw, 68px);
-      line-height: 0.98;
-      letter-spacing: -0.03em;
-    }
-    .cred-head p { font-size: 18px; line-height: 1.65; color: var(--ink-600); }
-
-    .cred-table { list-style: none; border-top: 1px solid var(--ink-200); }
-    .cred-row {
-      display: grid;
-      grid-template-columns: 128px 1fr;
-      gap: 16px;
-      align-items: baseline;
-      padding: 24px 0;
-      border-bottom: 1px solid var(--ink-200);
-    }
-    @media (min-width: 900px) {
-      .cred-row { grid-template-columns: 160px 1.2fr 1.8fr; gap: 40px; padding: 28px 0; }
-    }
-    .cred-label {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.22em;
-      color: var(--steel-600);
-    }
-
-    /* Blue-forward compliance section — eyebrow + italic-serif accent
-       switch from orange to blue in-scope so the section reads as the
-       procurement / credentials part of the site. */
-    section.credentials .eyebrow { color: var(--steel-600); }
-    section.credentials .eyebrow::before { background: var(--steel-600); }
-    section.credentials .italic-serif { color: var(--steel-600) !important; }
-    section.credentials .cred-foot a { border-bottom-color: var(--steel-600); }
-    section.credentials .cred-foot a:hover { color: var(--steel-600); }
-    .badge-cred { border-color: var(--steel-400); color: var(--steel-400); }
-    .badge-cred.on-light { border-color: var(--steel-600); color: var(--steel-600); }
-    .cred-value {
-      font-family: 'Fraunces', serif;
-      font-weight: 500;
-      font-size: 22px;
-      line-height: 1.2;
-      letter-spacing: -0.025em;
-      color: var(--ink-900);
-      grid-column: 2 / -1;
-    }
-    @media (min-width: 900px) {
-      .cred-value { grid-column: auto; font-size: 26px; }
-    }
-    .cred-note {
-      font-size: 14px;
-      line-height: 1.6;
-      color: var(--ink-600);
-      font-variant-numeric: tabular-nums;
-      grid-column: 2 / -1;
-    }
-    @media (min-width: 900px) { .cred-note { grid-column: auto; } }
-    .cred-foot {
-      margin-top: 32px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 24px;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    /* ─── PROCESS STEPS ──────────────────────────────────────── */
-    section.process {
-      background: var(--paper);
-      padding: 96px 0;
-      position: relative;
-      overflow: hidden;
-    }
-    @media (min-width: 1024px) { section.process { padding: 128px 0; } }
-    .process-head {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 40px;
-      align-items: end;
-      margin-bottom: 64px;
-    }
-    @media (min-width: 1024px) { .process-head { grid-template-columns: 1fr 1fr; } }
-    .process-head h2 {
-      margin-top: 24px;
-      font-size: clamp(40px, 6vw, 72px);
-      line-height: 0.98;
-      letter-spacing: -0.03em;
-    }
-    .process-head p { font-size: 18px; line-height: 1.65; color: var(--ink-600); }
-
-    .process-track { position: relative; }
-    .process-rail {
-      display: none;
-      position: absolute;
-      left: 0;
-      right: 0;
-      top: 38px;
-      height: 1px;
-      background: var(--ink-300);
-    }
-    .process-rail::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(90deg, var(--accent-500) 0%, var(--accent-500) 20%, transparent 20%);
-    }
-    @media (min-width: 1024px) { .process-rail { display: block; } }
-    .process-steps {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 48px 24px;
-      list-style: none;
-    }
-    @media (min-width: 700px) { .process-steps { grid-template-columns: repeat(3, 1fr); } }
-    @media (min-width: 1024px) { .process-steps { grid-template-columns: repeat(5, 1fr); gap: 48px 32px; } }
-    .step-dot-row { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
-    .step-dot {
-      position: relative;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 16px;
-      height: 16px;
-    }
-    .step-dot::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      border-radius: 50%;
-      background: var(--accent-500);
-      opacity: 0.2;
-      animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
-    }
-    @keyframes ping { 75%, 100% { transform: scale(2); opacity: 0; } }
-    .step-dot::after {
-      content: '';
-      position: relative;
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: var(--accent-500);
-      box-shadow: 0 0 0 4px var(--paper);
-    }
-    .step-num {
-      font-family: 'Fraunces', serif;
-      font-weight: 500;
-      font-size: 36px;
-      color: var(--accent-500);
-      font-variant-numeric: tabular-nums;
-      letter-spacing: -0.025em;
-    }
-    .step-title { margin-top: 12px; font-family: 'Fraunces', serif; font-weight: 500; font-size: 20px; letter-spacing: -0.025em; color: var(--ink-900); }
-    .step-body { margin-top: 8px; font-size: 14px; line-height: 1.6; color: var(--ink-600); }
-    .process-foot {
-      margin-top: 56px;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      border-top: 1px solid var(--ink-200);
-      padding-top: 24px;
-    }
-    .process-foot a { font-size: 14px; font-weight: 600; color: var(--ink-900); border-bottom: 1px solid var(--accent-500); padding-bottom: 2px; transition: color 0.2s; }
-    .process-foot a:hover { color: var(--accent-500); }
-
-    /* ─── SOCIAL PROOF ───────────────────────────────────────── */
-    section.testimonials {
-      background: var(--paper);
-      padding: 96px 0;
-      position: relative;
-    }
-    @media (min-width: 1024px) { section.testimonials { padding: 128px 0; } }
-    .testi-lead { text-align: center; }
-    .testi-quote {
-      margin-top: 40px;
-      font-family: 'Fraunces', serif;
-      font-style: italic;
-      font-weight: 400;
-      font-size: clamp(26px, 4.5vw, 52px);
-      line-height: 1.15;
-      letter-spacing: -0.025em;
-      color: var(--ink-900);
-      max-width: 900px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-    .testi-quote .qmark { color: var(--accent-500); font-style: normal; }
-    .testi-attr {
-      margin-top: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-    }
-    .testi-attr .rule { width: 48px; height: 1px; background: var(--accent-500); }
-    .testi-attr .who { text-align: left; }
-    .testi-attr .name { font-family: 'Fraunces', serif; font-size: 18px; color: var(--ink-900); font-weight: 500; }
-    .testi-attr .name em { font-style: italic; color: var(--ink-500); font-weight: 400; }
-
-    .testi-stars {
-      margin-top: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-    }
-    .testi-stars .s { color: var(--accent-500); font-size: 20px; letter-spacing: 0.15em; }
-
-    .chorus {
-      margin-top: 80px;
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 1px;
-      background: var(--ink-200);
-      border-top: 1px solid var(--ink-200);
-      border-bottom: 1px solid var(--ink-200);
-    }
-    @media (min-width: 768px) { .chorus { grid-template-columns: repeat(3, 1fr); } }
-    .chorus figure {
-      background: var(--paper);
-      padding: 32px;
-    }
-    .chorus .cs { color: var(--accent-500); font-size: 14px; letter-spacing: 0.15em; }
-    .chorus blockquote {
-      margin-top: 12px;
-      font-family: 'Inter', sans-serif;
-      font-style: italic;
-      font-size: 14px;
-      line-height: 1.65;
-      color: var(--ink-700);
-    }
-    .chorus figcaption {
-      margin-top: 16px;
-      font-size: 12px;
-      color: var(--ink-500);
-      font-variant-numeric: tabular-nums;
-    }
-    .chorus figcaption strong { color: var(--ink-900); font-weight: 600; font-style: normal; }
-
-    .testi-cta { margin-top: 40px; display: flex; justify-content: center; }
-
-    /* ─── § 07 · FAQ ───────────────────────────────────────────── */
-    section.faq { padding: 96px 0; background: var(--paper); position: relative; }
-    @media (min-width: 1024px) { section.faq { padding: 128px 0; } }
-    .faq-inner { max-width: 900px; margin: 0 auto; padding: 0 24px; }
-    .faq-head { text-align: center; max-width: 720px; margin: 0 auto 56px; }
-    .faq-eyebrow {
-      font-family: 'Barlow', sans-serif;
-      font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase;
-      color: var(--accent-600); font-weight: 600; margin: 0;
-    }
-    .faq-head h2 {
-      font-family: 'Anton', sans-serif;
-      font-size: clamp(36px, 5vw, 68px);
-      font-weight: 400; letter-spacing: -0.005em; line-height: 1.02;
-      color: var(--ink-900); margin: 18px 0 0;
-    }
-    .faq-head h2 em.italic-serif {
-      font-style: italic; color: var(--accent-500); font-weight: 400;
-      font-family: 'Fraunces', serif;
-    }
-    .faq-list { border-top: 1px solid var(--ink-200); }
-    .faq-item { border-bottom: 1px solid var(--ink-200); }
-    .faq-item summary {
-      padding: 24px 8px; cursor: pointer; list-style: none;
-      font-family: 'Anton', sans-serif;
-      font-size: 20px; font-weight: 400; letter-spacing: 0.01em;
-      color: var(--ink-900);
-      display: flex; justify-content: space-between; align-items: center; gap: 24px;
-      transition: color 0.15s;
-    }
-    @media (min-width: 640px) { .faq-item summary { font-size: 24px; } }
-    .faq-item summary::-webkit-details-marker { display: none; }
-    .faq-item summary::after {
-      content: '+';
-      font-family: 'Barlow', sans-serif;
-      font-size: 32px; font-weight: 300;
-      color: var(--accent-500);
-      transition: transform 0.25s;
-      line-height: 0.8; flex-shrink: 0;
-    }
-    .faq-item[open] summary::after { transform: rotate(45deg); }
-    .faq-item summary:hover { color: var(--accent-500); }
-    .faq-answer {
-      padding: 0 8px 26px;
-      color: var(--ink-700);
-      font-size: 16px; line-height: 1.7;
-      font-family: 'Barlow', sans-serif;
-    }
-    .faq-answer strong { color: var(--ink-900); font-weight: 700; }
-    .faq-footnote {
-      margin-top: 48px; padding-top: 28px;
-      border-top: 1px dashed var(--ink-200);
-      text-align: center;
-      font-family: 'Barlow', sans-serif;
-      font-size: 13px; color: var(--ink-500);
-    }
-    .faq-footnote a { color: var(--accent-600); font-weight: 600; text-decoration: underline; text-decoration-color: var(--accent-500); text-underline-offset: 3px; }
-
     /* ─── CTA CLOSER ─────────────────────────────────────────── */
     section.cta {
       background: var(--ink-950);
@@ -1597,15 +1004,7 @@
       padding: 80px 0;
     }
     @media (min-width: 1024px) { .contact-body { padding: 96px 0; } }
-    .contact-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 48px;
-    }
-    @media (min-width: 1024px) { .contact-grid { grid-template-columns: 1.4fr 1fr; gap: 64px; } }
 
-    .cform { display: flex; flex-direction: column; gap: 40px; }
-    .cform-set { display: flex; flex-direction: column; gap: 24px; }
     .cform-legend {
       display: flex;
       flex-direction: column;
@@ -1636,35 +1035,6 @@
     }
     .cform-legend .rule::before { left: 0; }
     .cform-legend .rule::after { right: 0; }
-    .cform-legend .hint { font-size: 13px; color: var(--ink-500); margin-top: 4px; }
-    .cform-cols { display: grid; grid-template-columns: 1fr; gap: 24px; }
-    @media (min-width: 640px) { .cform-cols { grid-template-columns: 1fr 1fr; } }
-    .cform label { display: block; }
-    .cform label > span {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 12px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.14em;
-      color: var(--ink-500);
-    }
-    .cform input, .cform textarea, .cform select {
-      width: 100%;
-      background: transparent;
-      border: none;
-      border-bottom: 1px solid var(--ink-300);
-      color: var(--ink-900);
-      font-family: 'Inter', sans-serif;
-      font-size: 17px;
-      padding: 8px 0;
-      margin-top: 8px;
-      transition: border-color 0.2s;
-    }
-    .cform input:focus, .cform textarea:focus, .cform select:focus {
-      outline: none;
-      border-color: var(--accent-500);
-      box-shadow: 0 0 0 3px rgba(255,90,45,0.20);
-    }
     /* Restore a visible keyboard focus indicator for anyone tabbing through the site */
     a:focus-visible, button:focus-visible,
     input:focus-visible, textarea:focus-visible, select:focus-visible,
@@ -1673,107 +1043,7 @@
       outline-offset: 2px;
       border-radius: 2px;
     }
-    .cform textarea {
-      resize: none;
-      background: rgba(234,228,217,0.5);
-      border: 1px solid var(--ink-200);
-      padding: 16px;
-      min-height: 140px;
-    }
 
-    .type-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 1px;
-      background: var(--ink-200);
-      border: 1px solid var(--ink-200);
-    }
-    @media (min-width: 640px) { .type-grid { grid-template-columns: 1fr 1fr; } }
-    .type-grid label {
-      background: var(--paper);
-      padding: 20px;
-      cursor: pointer;
-      transition: background 0.2s, color 0.2s;
-      position: relative;
-    }
-    .type-grid label:hover { background: var(--paper-2); }
-    .type-grid input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
-    .type-grid label:has(input:checked) { background: var(--ink-900); color: #fff; }
-    .type-grid label:has(input:checked) .type-num { color: var(--accent-400); }
-    .type-grid label:has(input:checked) .type-hint { color: var(--ink-300); }
-    .type-row { display: flex; align-items: flex-start; gap: 16px; }
-    .type-num { font-family: 'Fraunces', serif; font-weight: 500; font-size: 20px; color: var(--accent-500); font-variant-numeric: tabular-nums; letter-spacing: -0.025em; }
-    .type-name { font-family: 'Fraunces', serif; font-weight: 500; font-size: 16px; line-height: 1.2; letter-spacing: -0.025em; }
-    .type-hint { margin-top: 4px; font-size: 13px; color: var(--ink-500); }
-
-    .chip {
-      display: inline-flex;
-      align-items: center;
-      padding: 8px 16px;
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 12px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.15em;
-      border: 1px solid var(--ink-300);
-      color: var(--ink-700);
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .chip:hover { border-color: var(--ink-900); color: var(--ink-900); }
-    .chips { display: flex; flex-wrap: wrap; gap: 8px; }
-    .chips input { position: absolute; opacity: 0; pointer-events: none; }
-    .chips label:has(input:checked) .chip { background: var(--ink-900); color: #fff; border-color: var(--ink-900); }
-
-    .cform-submit {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 16px;
-      align-items: center;
-      padding-top: 24px;
-      border-top: 1px solid var(--ink-100);
-    }
-    .cform-submit .alt-call {
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--ink-700);
-      font-variant-numeric: tabular-nums;
-      transition: color 0.2s;
-    }
-    .cform-submit .alt-call:hover { color: var(--accent-500); }
-    .cform-fine {
-      font-size: 12px;
-      line-height: 1.7;
-      color: var(--ink-500);
-      padding-top: 8px;
-    }
-
-    .contact-aside { display: flex; flex-direction: column; gap: 32px; }
-    @media (min-width: 1024px) {
-      .contact-aside { position: sticky; top: 128px; align-self: flex-start; }
-    }
-    .aside-card {
-      background: var(--ink-950);
-      color: #fff;
-      padding: 28px;
-      position: relative;
-    }
-    .aside-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--accent-500); }
-    .aside-list { margin-top: 24px; display: flex; flex-direction: column; gap: 20px; list-style: none; }
-    .aside-item { display: flex; align-items: baseline; gap: 16px; }
-    .aside-num {
-      font-family: 'Fraunces', serif;
-      font-weight: 500;
-      font-size: 20px;
-      color: var(--accent-400);
-      font-variant-numeric: tabular-nums;
-      letter-spacing: -0.025em;
-      width: 32px;
-      flex-shrink: 0;
-    }
-    .aside-item .lbl { font-family: 'Barlow Condensed', sans-serif; font-size: 10px; text-transform: uppercase; letter-spacing: 0.22em; color: var(--ink-400); font-weight: 600; }
-    .aside-item .val { margin-top: 4px; font-family: 'Fraunces', serif; font-size: 17px; font-weight: 500; letter-spacing: -0.025em; }
-    .aside-item .row { flex: 1; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 16px; }
 
     .skip-form { display: flex; flex-direction: column; gap: 20px; }
     .skip-form .skip-item .lbl { font-family: 'Barlow Condensed', sans-serif; font-size: 10px; text-transform: uppercase; letter-spacing: 0.22em; color: var(--ink-500); font-weight: 600; }
@@ -1862,6 +1132,50 @@
       font-weight: 600;
     }
     .skip-link:focus { left: 8px; top: 8px; }
+    /* ─── § 02 · TRUST STRIP (chooser proof) ───────────────────── */
+    .trust-strip { background: var(--paper); padding: 72px 0 80px; }
+    .trust-badges {
+      list-style: none; display: grid;
+      grid-template-columns: repeat(4, 1fr); gap: 16px;
+      margin: 0 0 44px; padding: 0;
+    }
+    .trust-badges li {
+      background: #fff; border: 1px solid rgba(0,0,0,0.08); border-radius: 4px;
+      padding: 16px 18px; display: flex; flex-direction: column; gap: 4px;
+    }
+    .trust-badges .trust-val {
+      font-family: 'Fraunces', Georgia, serif; font-weight: 600; font-size: 17px;
+      color: var(--ink-900);
+    }
+    .trust-quote {
+      font-family: 'Fraunces', Georgia, serif; font-style: italic; font-weight: 500;
+      font-size: clamp(22px, 3.4vw, 32px); line-height: 1.4; color: var(--ink-800);
+      max-width: 820px; margin: 0 0 16px;
+    }
+    .trust-quote .qmark { color: var(--accent-500); }
+    .trust-attr .name { font-weight: 600; color: var(--ink-900); margin: 0 0 4px; }
+    .trust-attr .trust-stars .s { color: var(--accent-500); letter-spacing: 2px; }
+    .trust-more { margin: 20px 0 0; }
+    .trust-more a {
+      font-size: 14px; font-weight: 600; color: var(--ink-900);
+      border-bottom: 1px solid var(--accent-500); padding-bottom: 2px;
+      text-decoration: none;
+    }
+    .trust-more a:hover { color: var(--accent-600); }
+    @media (max-width: 900px) { .trust-badges { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 520px) { .trust-badges { grid-template-columns: 1fr; } }
+
+    /* Path-card CTAs inside the divisions grid */
+    .div-cta { margin-top: 20px; align-self: flex-start; }
+
+    /* ─── § 03 · LEAN CONTACT (chooser) ────────────────────────── */
+    .contact-lean {
+      display: grid; grid-template-columns: minmax(0, 1fr) 320px;
+      gap: 40px; padding: 56px 0 24px; align-items: start;
+    }
+    .contact-paths { display: flex; flex-direction: column; gap: 16px; align-items: flex-start; }
+    .contact-paths .btn { font-size: 16px; padding: 18px 28px; }
+    @media (max-width: 760px) { .contact-lean { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
@@ -1881,12 +1195,10 @@
       </a>
       <ul class="nav-links" aria-label="Primary">
         <li><a href="#hero" class="active"><span class="n">01</span>Home</a></li>
-        <li><a href="#services"><span class="n">02</span>Services</a></li>
-        <li><a href="#portfolio"><span class="n">03</span>Portfolio</a></li>
-        <li><a href="#credentials"><span class="n">04</span>Compliance</a></li>
-        <li><a href="#process"><span class="n">05</span>Process</a></li>
-        <li><a href="#testimonials"><span class="n">06</span>Reviews</a></li>
-        <li><a href="#contact"><span class="n">07</span>Contact</a></li>
+        <li><a href="#two-paths"><span class="n">02</span>Two Paths</a></li>
+        <li><a href="/commercial-industrial.html"><span class="n">→</span>Commercial</a></li>
+        <li><a href="/residential-construction.html"><span class="n">→</span>Residential</a></li>
+        <li><a href="#contact"><span class="n">03</span>Contact</a></li>
       </ul>
       <div class="nav-right">
         <a href="tel:5557000007" class="nav-phone">(555) 700-0007</a>
@@ -1899,15 +1211,10 @@
     <div class="mob-menu" id="mobMenu" role="dialog" aria-label="Navigation">
       <div class="wrap">
         <a href="#hero" onclick="toggleMenu()"><span class="n">01</span>Home</a>
-        <a href="#services" onclick="toggleMenu()"><span class="n">02</span>Services</a>
-        <a href="#portfolio" onclick="toggleMenu()"><span class="n">03</span>Portfolio</a>
-        <a href="#credentials" onclick="toggleMenu()"><span class="n">04</span>Compliance</a>
-        <a href="#process" onclick="toggleMenu()"><span class="n">05</span>Process</a>
-        <a href="#testimonials" onclick="toggleMenu()"><span class="n">06</span>Reviews</a>
-        <a href="#contact" onclick="toggleMenu()"><span class="n">07</span>Contact</a>
+        <a href="#two-paths" onclick="toggleMenu()"><span class="n">02</span>Two Paths</a>
+        <a href="#contact" onclick="toggleMenu()"><span class="n">03</span>Contact</a>
         <a href="/commercial-industrial.html"><span class="n">→</span>Commercial &amp; Industrial</a>
         <a href="/residential-construction.html"><span class="n">→</span>Residential Construction</a>
-        <a href="/home-repair.html"><span class="n">→</span>Home Repair &amp; Improvements</a>
         <a href="#contact" class="btn btn-accent" onclick="toggleMenu()" data-intent="bid:mobile-menu">Request a bid →</a>
       </div>
     </div>
@@ -1938,7 +1245,7 @@
         </p>
         <div class="hero-actions reveal in" style="--reveal-delay: 850ms">
           <a href="#contact" class="btn btn-accent" data-intent="bid:hero">Request a bid →</a>
-          <a href="#portfolio" class="btn btn-outline-light">See recent projects</a>
+          <a href="#two-paths" class="btn btn-outline-light">Choose your path</a>
         </div>
         <dl class="hero-stats reveal in" style="--reveal-delay: 1000ms">
           <dt>Projects delivered</dt>
@@ -1961,7 +1268,7 @@
               <p class="cap-title">42,000 sq ft distribution facility</p>
               <p class="cap-meta">South Fulton, GA · Pre-engineered metal · Design-build</p>
             </div>
-            <a href="#portfolio" style="color: var(--accent-500);" aria-label="See portfolio">
+            <a href="/commercial-industrial.html#portfolio" style="color: var(--accent-500);" aria-label="See commercial portfolio">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 17L17 7M17 7H8M17 7v9"/></svg>
             </a>
           </div>
@@ -1986,8 +1293,8 @@
     </div>
   </section>
 
-  <!-- ─── § 01 · TWO DIVISIONS ─────────────────────────────── -->
-  <div class="divider dark"><div class="wrap"><div class="section-marker"><span class="tabular">§ 01</span><span class="normal">Two Divisions</span><span class="tabular" style="opacity:0.8">of 08</span></div></div></div>
+  <!-- ─── § 01 · TWO PATHS (chooser cards) ─────────────────── -->
+  <div class="divider dark"><div class="wrap"><div class="section-marker"><span class="tabular">§ 01</span><span class="normal">Two Paths</span><span class="tabular" style="opacity:0.8">of 03</span></div></div></div>
 
   <section class="divisions" id="two-paths">
     <div class="wrap divisions-inner">
@@ -1998,16 +1305,21 @@
           <em class="italic-serif" style="color: var(--accent-500);">homeowner attention.</em>
         </h2>
         <p class="reveal" style="--reveal-delay: 200ms">
-          We are not a residential contractor trying to look commercial, and we are not a commercial GC that begrudgingly does homes. Two full divisions — same principals, same trades, same book of insurance — sized to the job.
+          We are not a residential contractor trying to look commercial, and we are not a commercial GC that begrudgingly does homes. Two full divisions — same principals, same trades, same book of insurance — sized to the job. Pick your path; each page carries its own services, projects, and bid form.
         </p>
       </div>
+      <nav class="lane-strip reveal" aria-label="Buyer lanes" style="--reveal-delay: 250ms">
+        <p class="lbl">Deep dives by buyer</p>
+        <a href="/commercial-industrial.html">Commercial &amp; Industrial <span class="arrow" aria-hidden="true">→</span></a>
+        <a href="/residential-construction.html">Residential Construction <span class="arrow" aria-hidden="true">→</span></a>
+      </nav>
       <div class="divisions-grid">
         <div class="div-col">
           <div class="div-head">
             <span class="num">Division 01</span>
             <span class="type">Bid-driven · Bonded</span>
           </div>
-          <h3 class="div-title">Commercial &amp; <em>Enterprise</em></h3>
+          <h3 class="div-title">Commercial &amp; <em>Industrial</em></h3>
           <p class="div-lede">
             Ground-up commercial, industrial, and mixed-use construction plus tenant improvement, design-build, and pre-engineered metal. Bonded per project. Delivered on schedule.
           </p>
@@ -2032,7 +1344,7 @@
               <dd>$25M<span class="u">/job</span></dd>
             </div>
           </dl>
-          <a href="#services" class="div-link">Commercial capability sheet →</a>
+          <a href="/commercial-industrial.html" class="btn btn-accent div-cta">Explore commercial →</a>
         </div>
         <div class="div-col alt">
           <div class="div-head">
@@ -2047,8 +1359,8 @@
             <li>Ground-up custom homes (2,400–8,000 sq ft)</li>
             <li>Additions, whole-home remodels, kitchen &amp; bath</li>
             <li>Structural repair (foundation, framing, storm)</li>
-            <li>Every trade in-house (no anonymous subs)</li>
-            <li>Transferable 10-year structural warranty</li>
+            <li>Home repair &amp; improvements (whole-room and up)</li>
+            <li>Every trade in-house · 10-yr structural warranty</li>
           </ul>
           <dl class="div-stats">
             <div class="div-stat">
@@ -2064,542 +1376,38 @@
               <dd>10<span class="u">yr</span></dd>
             </div>
           </dl>
-          <a href="#services" class="div-link">Residential capability sheet →</a>
+          <a href="/residential-construction.html" class="btn btn-accent div-cta">Explore residential →</a>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ─── § 02 · SERVICES ──────────────────────────────────── -->
-  <div class="divider dark"><div class="wrap"><div class="section-marker"><span class="tabular">§ 02</span><span class="normal">Service Catalog</span><span class="tabular" style="opacity:0.8">of 08</span></div></div></div>
+  <!-- ─── § 02 · PROOF (trust strip) ───────────────────────── -->
+  <div class="divider light"><div class="wrap"><div class="section-marker"><span class="tabular">§ 02</span><span class="normal">Proof</span><span class="tabular" style="opacity:0.8">of 03</span></div></div></div>
 
-  <section id="services" class="services">
-    <div class="wrap services-inner">
-      <div class="services-head">
-        <div>
-          <p class="eyebrow eyebrow-light reveal">What we build · § II</p>
-          <h2 class="reveal" style="--reveal-delay: 100ms">
-            Seven service lines,<br/>
-            <em class="italic-serif" style="color: var(--accent-500);">one contract.</em>
-          </h2>
-        </div>
-        <p class="reveal" style="--reveal-delay: 200ms">
-          A commercial-grade GC that also runs the residential side in-house. Same crews, same PMs, same insurance stack — from a $40M warehouse to a kitchen re-frame.
-        </p>
-      </div>
-      <nav class="lane-strip reveal" aria-label="Buyer lanes" style="--reveal-delay: 250ms">
-        <p class="lbl">Deep dives by buyer</p>
-        <a href="/commercial-industrial.html">Commercial &amp; Industrial <span class="arrow" aria-hidden="true">→</span></a>
-        <a href="/residential-construction.html">Residential Construction <span class="arrow" aria-hidden="true">→</span></a>
-        <a href="/home-repair.html">Home Repair &amp; Improvements <span class="arrow" aria-hidden="true">→</span></a>
-      </nav>
-      <ol class="services-list">
-        <li class="service-item reveal" style="--reveal-delay: 0ms">
-          <a href="#contact" class="service-row" data-intent="service:enterprise-framing">
-            <span class="service-num">01</span>
-            <div>
-              <h3 class="service-title">Enterprise Framing</h3>
-              <p class="service-lede">Structural steel and wood framing for multi-story commercial, mixed-use, and industrial builds.</p>
-              <p class="service-spec spec-label" style="color: var(--ink-500);">Up to 6 stories · Type IIB &amp; V-A · SEOR-coordinated</p>
-            </div>
-            <span class="service-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span>
-          </a>
-        </li>
-        <li class="service-item reveal" style="--reveal-delay: 60ms">
-          <a href="#contact" class="service-row" data-intent="service:commercial-new">
-            <span class="service-num">02</span>
-            <div>
-              <h3 class="service-title">Commercial New Construction</h3>
-              <p class="service-lede">Ground-up offices, retail, hospitality, and institutional buildings — permit to punch list.</p>
-              <p class="service-spec spec-label" style="color: var(--ink-500);">Design-build option · GC of record · Bonded per project</p>
-            </div>
-            <span class="service-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span>
-          </a>
-        </li>
-        <li class="service-item reveal" style="--reveal-delay: 120ms">
-          <a href="#contact" class="service-row" data-intent="service:industrial-warehouse">
-            <span class="service-num">03</span>
-            <div>
-              <h3 class="service-title">Industrial &amp; Warehouse</h3>
-              <p class="service-lede">Distribution, manufacturing, and cold-storage facilities on fast-track schedules.</p>
-              <p class="service-spec spec-label" style="color: var(--ink-500);">Pre-engineered metal · Tilt-up · Loading dock &amp; racking</p>
-            </div>
-            <span class="service-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span>
-          </a>
-        </li>
-        <li class="service-item reveal" style="--reveal-delay: 180ms">
-          <a href="#contact" class="service-row" data-intent="service:tenant-improvement">
-            <span class="service-num">04</span>
-            <div>
-              <h3 class="service-title">Tenant Improvement</h3>
-              <p class="service-lede">Office fit-outs and retail buildouts in occupied buildings — clean, quiet, on schedule.</p>
-              <p class="service-spec spec-label" style="color: var(--ink-500);">After-hours crews · Landlord coordination · TI allowance mgmt</p>
-            </div>
-            <span class="service-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span>
-          </a>
-        </li>
-        <li class="service-item reveal" style="--reveal-delay: 240ms">
-          <a href="#contact" class="service-row" data-intent="service:custom-home">
-            <span class="service-num">05</span>
-            <div>
-              <h3 class="service-title">Custom Home Builds</h3>
-              <p class="service-lede">Ground-up residential with owner-vision plans and defensible budget discipline.</p>
-              <p class="service-spec spec-label" style="color: var(--ink-500);">2,400–8,000 sq ft avg · 8–14 mo · Fixed-price milestones</p>
-            </div>
-            <span class="service-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span>
-          </a>
-        </li>
-        <li class="service-item reveal" style="--reveal-delay: 300ms">
-          <a href="#contact" class="service-row" data-intent="service:structural-repair">
-            <span class="service-num">06</span>
-            <div>
-              <h3 class="service-title">Structural Repair &amp; Remodeling</h3>
-              <p class="service-lede">Storm damage, foundation issues, additions, and full renovations — one crew, one warranty.</p>
-              <p class="service-spec spec-label" style="color: var(--ink-500);">Foundation · Framing · Roof · Full mechanical</p>
-            </div>
-            <span class="service-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span>
-          </a>
-        </li>
-        <li class="service-item reveal" style="--reveal-delay: 360ms">
-          <a href="#contact" class="service-row" data-intent="service:trades-only">
-            <span class="service-num">07</span>
-            <div>
-              <h3 class="service-title">Every Trade, In-House</h3>
-              <p class="service-lede">Plumbing, electrical, roofing, HVAC, foundation, and interiors — no subs you have not vetted.</p>
-              <p class="service-spec spec-label" style="color: var(--ink-500);">Plumbing · Electrical · Roofing · HVAC · Foundation · Drywall</p>
-            </div>
-            <span class="service-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span>
-          </a>
-        </li>
-      </ol>
-      <div class="services-foot">
-        <p class="spec-label" style="color: var(--ink-500);">Full COI, license, and bond letters delivered on request within 4 business hours.</p>
-        <a href="#contact" class="btn btn-outline-light" data-intent="book:scoping-call">Start a scoping call →</a>
-      </div>
-    </div>
-  </section>
-
-  <!-- ─── § 03 · PORTFOLIO ─────────────────────────────────── -->
-  <div class="divider light"><div class="wrap"><div class="section-marker"><span class="tabular">§ 03</span><span class="normal">Recent Projects</span><span class="tabular" style="opacity:0.8">of 08</span></div></div></div>
-
-  <section id="portfolio" class="portfolio">
+  <section id="trust" class="trust-strip">
     <div class="wrap">
-      <div class="portfolio-head">
-        <div>
-          <p class="eyebrow reveal">Recent bids delivered · § III</p>
-          <h2 class="reveal" style="--reveal-delay: 100ms">
-            Built on schedule,<br/>
-            <em class="italic-serif" style="color: var(--accent-500);">documented like drawings.</em>
-          </h2>
-        </div>
-        <div class="meta reveal" style="--reveal-delay: 200ms">
-          <p class="spec-label">500+ projects · 2014–2026</p>
-          <a href="#contact" class="btn btn-outline-dark" data-intent="bid:portfolio-request">Request the full portfolio →</a>
-        </div>
-      </div>
-
-      <!--
-        ═══════════════════════════════════════════════════════════════
-        ADD A NEW PROJECT — copy any <a class="pf-card ..."> block below
-        and change these 4 things only. No JS, no build step, no CMS.
-        ───────────────────────────────────────────────────────────────
-          1. img src        → images/your-photo.jpg  (drop file in /images)
-          2. pf-tag         → "Industrial № 07"      (division + number)
-          3. pf-eyebrow     → "Client Name · City, GA"
-          4. pf-title + dl  → project name + Size/Duration/Budget/Trades
-        The .wide modifier makes a card span two columns — use it for
-        the flagship at the top of the grid. Update `--reveal-delay` in
-        70ms increments so cards stagger in on scroll.
-        ═══════════════════════════════════════════════════════════════
-      -->
-      <div class="portfolio-grid">
-        <a class="pf-card wide reveal blueprint-grid" style="--reveal-delay: 0ms" href="#contact" data-intent="portfolio:industrial-01">
-          <img src="images/jobsite-01.jpg" alt="South Fulton distribution facility" loading="lazy" decoding="async" onerror="this.style.display='none'" />
-          <div class="pf-shade" aria-hidden="true"></div>
-          <span class="pf-tag">Industrial № 01</span>
-          <div class="pf-caption">
-            <p class="pf-eyebrow">Private industrial client · South Fulton, GA</p>
-            <p class="pf-title">South Fulton Distribution Facility</p>
-          </div>
-          <div class="pf-spec">
-            <p class="pf-eyebrow">Private industrial client · South Fulton, GA</p>
-            <p class="pf-title">South Fulton Distribution Facility</p>
-            <dl>
-              <div><dt>Size</dt><dd>42,000 sq ft</dd></div>
-              <div><dt>Duration</dt><dd>11 months</dd></div>
-              <div><dt>Budget</dt><dd>$8.4M</dd></div>
-              <div><dt>Trades</dt><dd>PEM · Concrete · MEP</dd></div>
-            </dl>
-            <p class="cta">Open case study →</p>
-          </div>
-        </a>
-        <a class="pf-card reveal blueprint-grid" style="--reveal-delay: 70ms" href="#contact" data-intent="portfolio:tenant-02">
-          <img src="images/jobsite-02.jpg" alt="Midtown Office Fit-Out" loading="lazy" decoding="async" onerror="this.style.display='none'" />
-          <div class="pf-shade" aria-hidden="true"></div>
-          <span class="pf-tag">Tenant Improvement № 02</span>
-          <div class="pf-caption">
-            <p class="pf-eyebrow">Private commercial tenant · Midtown Atlanta, GA</p>
-            <p class="pf-title">Midtown Office Fit-Out</p>
-          </div>
-          <div class="pf-spec">
-            <p class="pf-eyebrow">Private commercial tenant · Midtown Atlanta, GA</p>
-            <p class="pf-title">Midtown Office Fit-Out</p>
-            <dl>
-              <div><dt>Size</dt><dd>18,400 sq ft</dd></div>
-              <div><dt>Duration</dt><dd>14 weeks</dd></div>
-              <div><dt>Budget</dt><dd>$2.1M</dd></div>
-              <div><dt>Trades</dt><dd>Framing · Drywall · MEP · Finish</dd></div>
-            </dl>
-            <p class="cta">Open case study →</p>
-          </div>
-        </a>
-        <a class="pf-card reveal blueprint-grid" style="--reveal-delay: 140ms" href="#contact" data-intent="portfolio:custom-home-03">
-          <img src="images/jobsite-01.jpg" alt="Brookhaven Custom Residence" loading="lazy" decoding="async" onerror="this.style.display='none'" />
-          <div class="pf-shade" aria-hidden="true"></div>
-          <span class="pf-tag">Custom Homes № 03</span>
-          <div class="pf-caption">
-            <p class="pf-eyebrow">Private · Brookhaven, GA</p>
-            <p class="pf-title">Brookhaven Custom Residence</p>
-          </div>
-          <div class="pf-spec">
-            <p class="pf-eyebrow">Private · Brookhaven, GA</p>
-            <p class="pf-title">Brookhaven Custom Residence</p>
-            <dl>
-              <div><dt>Size</dt><dd>6,200 sq ft</dd></div>
-              <div><dt>Duration</dt><dd>10 months</dd></div>
-              <div><dt>Budget</dt><dd>$1.9M</dd></div>
-              <div><dt>Trades</dt><dd>Full self-perform · 11 trades</dd></div>
-            </dl>
-            <p class="cta">Open case study →</p>
-          </div>
-        </a>
-        <a class="pf-card reveal blueprint-grid" style="--reveal-delay: 210ms" href="#contact" data-intent="portfolio:commercial-04">
-          <img src="images/jobsite-02.jpg" alt="Buckhead Retail Concept" loading="lazy" decoding="async" onerror="this.style.display='none'" />
-          <div class="pf-shade" aria-hidden="true"></div>
-          <span class="pf-tag">Commercial № 04</span>
-          <div class="pf-caption">
-            <p class="pf-eyebrow">Private hospitality client · Buckhead, GA</p>
-            <p class="pf-title">Buckhead Retail Concept</p>
-          </div>
-          <div class="pf-spec">
-            <p class="pf-eyebrow">Private hospitality client · Buckhead, GA</p>
-            <p class="pf-title">Buckhead Retail Concept</p>
-            <dl>
-              <div><dt>Size</dt><dd>4,800 sq ft</dd></div>
-              <div><dt>Duration</dt><dd>9 weeks</dd></div>
-              <div><dt>Budget</dt><dd>$650K</dd></div>
-              <div><dt>Trades</dt><dd>Millwork · MEP · Signage</dd></div>
-            </dl>
-            <p class="cta">Open case study →</p>
-          </div>
-        </a>
-        <a class="pf-card reveal blueprint-grid" style="--reveal-delay: 280ms" href="#contact" data-intent="portfolio:residential-05">
-          <img src="images/jobsite-01.jpg" alt="Sandy Springs Whole-Home Addition" loading="lazy" decoding="async" onerror="this.style.display='none'" />
-          <div class="pf-shade" aria-hidden="true"></div>
-          <span class="pf-tag">Residential № 05</span>
-          <div class="pf-caption">
-            <p class="pf-eyebrow">Private · Sandy Springs, GA</p>
-            <p class="pf-title">Whole-Home Addition</p>
-          </div>
-          <div class="pf-spec">
-            <p class="pf-eyebrow">Private · Sandy Springs, GA</p>
-            <p class="pf-title">Whole-Home Addition</p>
-            <dl>
-              <div><dt>Size</dt><dd>1,850 sq ft added</dd></div>
-              <div><dt>Duration</dt><dd>6 months</dd></div>
-              <div><dt>Budget</dt><dd>$740K</dd></div>
-              <div><dt>Trades</dt><dd>Foundation · Framing · Roof · MEP</dd></div>
-            </dl>
-            <p class="cta">Open case study →</p>
-          </div>
-        </a>
-        <a class="pf-card reveal blueprint-grid" style="--reveal-delay: 350ms" href="#contact" data-intent="portfolio:structural-06">
-          <img src="images/jobsite-02.jpg" alt="Norcross Warehouse Structural Repair" loading="lazy" decoding="async" onerror="this.style.display='none'" />
-          <div class="pf-shade" aria-hidden="true"></div>
-          <span class="pf-tag">Structural Repair № 06</span>
-          <div class="pf-caption">
-            <p class="pf-eyebrow">Private logistics client · Norcross, GA</p>
-            <p class="pf-title">Warehouse Structural Repair</p>
-          </div>
-          <div class="pf-spec">
-            <p class="pf-eyebrow">Private logistics client · Norcross, GA</p>
-            <p class="pf-title">Warehouse Structural Repair</p>
-            <dl>
-              <div><dt>Size</dt><dd>28,000 sq ft footprint</dd></div>
-              <div><dt>Duration</dt><dd>7 weeks</dd></div>
-              <div><dt>Budget</dt><dd>$480K</dd></div>
-              <div><dt>Trades</dt><dd>Structural steel · Roof deck · Concrete</dd></div>
-            </dl>
-            <p class="cta">Open case study →</p>
-          </div>
-        </a>
-      </div>
-
-      <div class="portfolio-foot">
-        <span class="spec-label" style="color: var(--accent-500);">On file</span>
-        <span class="spec-label">500+ projects delivered</span>
-        <span class="dot"></span>
-        <span class="spec-label">$180M+ built to date</span>
-        <span class="dot"></span>
-        <span class="spec-label">Zero OSHA recordables · 3 years</span>
-      </div>
-    </div>
-  </section>
-
-  <!-- ─── § 04 · CREDENTIALS ──────────────────────────────── -->
-  <div class="divider light"><div class="wrap"><div class="section-marker"><span class="tabular">§ 04</span><span class="normal">Compliance &amp; Safety</span><span class="tabular" style="opacity:0.8">of 08</span></div></div></div>
-
-  <section id="credentials" class="credentials">
-    <div class="wrap">
-      <div class="cred-head">
-        <div>
-          <p class="eyebrow reveal">Compliance &amp; safety · § IV</p>
-          <h2 class="reveal" style="--reveal-delay: 100ms">
-            Built to survive<br/>
-            <em class="italic-serif" style="color: var(--accent-500);">procurement review.</em>
-          </h2>
-        </div>
-        <p class="reveal" style="--reveal-delay: 200ms">
-          Every credential, bond letter, and COI is one email away. We work with GCs, property managers, and municipal clients whose vendor-approval process has real teeth — this section is where their compliance team stops asking questions.
-        </p>
-      </div>
-      <ol class="cred-table">
-        <li class="cred-row reveal" style="--reveal-delay: 0ms">
-          <span class="cred-label">License</span>
-          <span class="cred-value">GA General Contractor</span>
-          <span class="cred-note">License # on file · Verified via GA Secretary of State</span>
-        </li>
-        <li class="cred-row reveal" style="--reveal-delay: 60ms">
-          <span class="cred-label">Insurance</span>
-          <span class="cred-value">$5M General Liability</span>
-          <span class="cred-note">Workers Comp · Auto · Umbrella · COI on request</span>
-        </li>
-        <li class="cred-row reveal" style="--reveal-delay: 120ms">
-          <span class="cred-label">Bonding</span>
-          <span class="cred-value">Performance &amp; Payment</span>
-          <span class="cred-note">Single-project bonds to $25M · Bond letters same-day</span>
-        </li>
-        <li class="cred-row reveal" style="--reveal-delay: 180ms">
-          <span class="cred-label">Safety</span>
-          <span class="cred-value">OSHA 30 · Zero recordables</span>
-          <span class="cred-note">3-year TRIR trailing average · Site-specific safety plans</span>
-        </li>
-        <li class="cred-row reveal" style="--reveal-delay: 240ms">
-          <span class="cred-label">Associations</span>
-          <span class="cred-value">AGC · NAHB · BOMA</span>
-          <span class="cred-note">Member in good standing · CE credits current</span>
-        </li>
-        <li class="cred-row reveal" style="--reveal-delay: 300ms">
-          <span class="cred-label">Warranty</span>
-          <span class="cred-value">2-yr non-structural · 10-yr structural</span>
-          <span class="cred-note">Written into every contract · Transferable on residential</span>
-        </li>
-      </ol>
-      <div class="cred-foot">
-        <p class="spec-label" style="color: var(--ink-500);">Full COI &amp; bond capacity letters on request within 4 business hours.</p>
-        <a href="#contact" data-intent="bid:compliance-packet" style="font-size:14px; font-weight:600; color: var(--ink-900); border-bottom: 1px solid var(--accent-500); padding-bottom: 2px;">Request compliance packet →</a>
-      </div>
-    </div>
-  </section>
-
-  <!-- ─── § 05 · PROCESS ──────────────────────────────────── -->
-  <div class="divider light"><div class="wrap"><div class="section-marker"><span class="tabular">§ 05</span><span class="normal">How It Works</span><span class="tabular" style="opacity:0.8">of 08</span></div></div></div>
-
-  <section id="process" class="process">
-    <div class="wrap">
-      <div class="process-head">
-        <div>
-          <p class="eyebrow reveal">How it works · § V</p>
-          <h2 class="reveal" style="--reveal-delay: 100ms">
-            Five stations,<br/>
-            <em class="italic-serif" style="color: var(--accent-500);">one schedule.</em>
-          </h2>
-        </div>
-        <p class="reveal" style="--reveal-delay: 200ms">
-          Every Big 7 project — a $40M distribution facility or a kitchen re-frame — runs on the same five stations. You always know which one we are at, what is next, and who owns it.
-        </p>
-      </div>
-
-      <div class="process-track">
-        <div class="process-rail" aria-hidden="true"></div>
-        <ol class="process-steps">
-          <li class="reveal" style="--reveal-delay: 0ms">
-            <div class="step-dot-row">
-              <span class="step-dot" aria-hidden="true"></span>
-              <span class="spec-label">Day 0</span>
-            </div>
-            <p class="step-num">01</p>
-            <h3 class="step-title">Intake &amp; scope</h3>
-            <p class="step-body">Send drawings, RFP, or a photo of the space. First response inside one business day.</p>
-          </li>
-          <li class="reveal" style="--reveal-delay: 90ms">
-            <div class="step-dot-row">
-              <span class="step-dot" aria-hidden="true"></span>
-              <span class="spec-label">Day 1–5</span>
-            </div>
-            <p class="step-num">02</p>
-            <h3 class="step-title">Site &amp; specs</h3>
-            <p class="step-body">On-site walk with the PM and senior estimator. Trades reviewed, constraints logged.</p>
-          </li>
-          <li class="reveal" style="--reveal-delay: 180ms">
-            <div class="step-dot-row">
-              <span class="step-dot" aria-hidden="true"></span>
-              <span class="spec-label">Day 5–14</span>
-            </div>
-            <p class="step-num">03</p>
-            <h3 class="step-title">Bid &amp; schedule</h3>
-            <p class="step-body">Itemized bid with line-item costs, milestone schedule, and a bond letter on file.</p>
-          </li>
-          <li class="reveal" style="--reveal-delay: 270ms">
-            <div class="step-dot-row">
-              <span class="step-dot" aria-hidden="true"></span>
-              <span class="spec-label">Phase 1–4</span>
-            </div>
-            <p class="step-num">04</p>
-            <h3 class="step-title">Build</h3>
-            <p class="step-body">Permits pulled, materials mobilized, self-perform trades tracked daily in a shared log.</p>
-          </li>
-          <li class="reveal" style="--reveal-delay: 360ms">
-            <div class="step-dot-row">
-              <span class="step-dot" aria-hidden="true"></span>
-              <span class="spec-label">Close-out</span>
-            </div>
-            <p class="step-num">05</p>
-            <h3 class="step-title">Punch &amp; hand-off</h3>
-            <p class="step-body">Third-party inspection, punch list closed, warranty package delivered with final draw.</p>
-          </li>
-        </ol>
-      </div>
-
-      <div class="process-foot">
-        <p class="spec-label">Typical bid response · 48 hours · Full proposal · 5–14 business days</p>
-        <a href="#contact" data-intent="bid:process-station">Start at Station 01 →</a>
-      </div>
-    </div>
-  </section>
-
-  <!-- ─── § 06 · TESTIMONIALS ─────────────────────────────── -->
-  <div class="divider light"><div class="wrap"><div class="section-marker"><span class="tabular">§ 06</span><span class="normal">Clients on the Record</span><span class="tabular" style="opacity:0.8">of 08</span></div></div></div>
-
-  <section id="testimonials" class="testimonials">
-    <div class="wrap-narrow testi-lead">
-      <p class="eyebrow eyebrow-center reveal">Clients on the record · § VI</p>
-      <blockquote class="testi-quote reveal" style="--reveal-delay: 100ms">
+      <ul class="trust-badges reveal" aria-label="Credentials">
+        <li><span class="trust-val">GA Licensed GC</span><span class="spec-label">Verified · Secretary of State</span></li>
+        <li><span class="trust-val">$5M General Liability</span><span class="spec-label">COI on request</span></li>
+        <li><span class="trust-val">Bonds to $25M</span><span class="spec-label">Performance &amp; payment</span></li>
+        <li><span class="trust-val">Zero OSHA recordables</span><span class="spec-label">3-year TRIR</span></li>
+      </ul>
+      <blockquote class="trust-quote reveal" style="--reveal-delay: 100ms">
         <span class="qmark">&ldquo;</span>Big 7 held the schedule down to the day and finished the punch list two weeks early. Every RFI answered inside 24 hours. That never happens.<span class="qmark">&rdquo;</span>
       </blockquote>
-      <div class="testi-attr reveal" style="--reveal-delay: 250ms">
-        <span class="rule"></span>
-        <div class="who">
-          <p class="name">Marcus H., <em>Director of Development</em></p>
-          <p class="spec-label">Private industrial client · 42,000 sq ft distribution facility</p>
-        </div>
-        <span class="rule"></span>
+      <div class="trust-attr reveal" style="--reveal-delay: 200ms">
+        <p class="name">Marcus H., <em>Director of Development</em> · Private industrial client</p>
+        <p class="trust-stars"><span class="s" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</span> <span class="spec-label">4.9 across 60+ verified reviews</span></p>
       </div>
-      <div class="testi-stars reveal" style="--reveal-delay: 300ms">
-        <span class="s" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
-        <span class="spec-label">4.9 across 60+ verified reviews</span>
-      </div>
-    </div>
-
-    <div class="wrap chorus reveal" style="--reveal-delay: 400ms">
-      <figure>
-        <div class="cs" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-        <blockquote>&ldquo;They ran the buildout after-hours so the neighboring tenants never saw a lift. Rare discipline for a GC.&rdquo;</blockquote>
-        <figcaption><strong>Private hospitality client</strong> · Ownership</figcaption>
-      </figure>
-      <figure>
-        <div class="cs" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-        <blockquote>&ldquo;Coordinated the TI around a live tenant floor without a single work-order complaint. That is what we pay a real GC for.&rdquo;</blockquote>
-        <figcaption><strong>Private commercial tenant</strong> · Asset Mgr</figcaption>
-      </figure>
-      <figure>
-        <div class="cs" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-        <blockquote>&ldquo;They ran the residential side with the same PM software and safety stack as the commercial jobs. It shows in the finish.&rdquo;</blockquote>
-        <figcaption><strong>Brookhaven owner</strong> · Homeowner</figcaption>
-      </figure>
-    </div>
-
-    <div class="wrap-page testi-cta">
-      <a href="#contact" class="btn btn-outline-dark" data-intent="book:client-reference">Talk to a client on the record →</a>
-    </div>
-  </section>
-
-  <!-- ─── § 07 · THE STRAIGHT ANSWERS (FAQ) ─────────────────── -->
-  <div class="divider light"><div class="wrap"><div class="section-marker"><span class="tabular">§ 07</span><span class="normal">The Straight Answers</span><span class="tabular" style="opacity:0.8">of 08</span></div></div></div>
-
-  <section id="faq" class="faq">
-    <div class="faq-inner">
-      <div class="faq-head reveal">
-        <p class="faq-eyebrow">// The straight answers · § VII</p>
-        <h2>Everything people <em class="italic-serif">actually ask</em> about a bid.</h2>
-      </div>
-
-      <div class="faq-list">
-        <details class="faq-item">
-          <summary>Do you provide fixed-price bids?</summary>
-          <div class="faq-answer">
-            <strong>Yes — fixed bids are the default.</strong> Every scope of work we quote comes with a hard number, a line-item breakdown, and a schedule. Time-and-materials is reserved for genuine unknowns (deep-cut renovations where the wall might hide anything). If your scope has T&amp;M in it, we'll flag exactly which line items and why.
-          </div>
-        </details>
-
-        <details class="faq-item">
-          <summary>Do I own the drawings, permits, and closeout docs?</summary>
-          <div class="faq-answer">
-            Yes. Final permits, warranties, closeout binders, and any project-specific drawings transfer to you at final payment. If we prepared design-assist drawings, you own those too. We keep archival copies for our records; you get the originals.
-          </div>
-        </details>
-
-        <details class="faq-item">
-          <summary>What if I need something that isn't on your services list?</summary>
-          <div class="faq-answer">
-            Ask. Our list covers 90% of what commercial, industrial, and residential clients need. Anything outside it, we'll tell you honestly whether we can self-perform or should bring in a specialist trade partner. Either way, it stays under one contract, one PM, one point of accountability.
-          </div>
-        </details>
-
-        <details class="faq-item">
-          <summary>Can we scale the scope up or down mid-project?</summary>
-          <div class="faq-answer">
-            Change orders happen; how we handle them is what matters. Every change gets a written change order with a fixed cost and a schedule impact, signed before work resumes. No surprises on the final invoice.
-          </div>
-        </details>
-
-        <details class="faq-item">
-          <summary>What warranty do you offer after completion?</summary>
-          <div class="faq-answer">
-            <strong>One-year workmanship warranty on every trade we self-perform.</strong> Material and manufacturer warranties pass through to you in the closeout binder. If a defect is on us, we come back and fix it — full stop, no invoice.
-          </div>
-        </details>
-
-        <details class="faq-item">
-          <summary>Do you require a written contract?</summary>
-          <div class="faq-answer">
-            For every project over $5,000, yes. Standard AIA-style contract or a plain-English version — your preference. Under $5k, a signed one-page scope-of-work with milestones is enough. It protects both of us.
-          </div>
-        </details>
-
-        <details class="faq-item">
-          <summary>How does payment work?</summary>
-          <div class="faq-answer">
-            Milestone-based, not time-based. Typical schedule: <strong>15% deposit at signing, 25% at material delivery / demo, 40% at rough-in complete, 20% at final walk-through</strong>. Progress payments align with visible milestones, so you're never paying for work that hasn't happened yet.
-          </div>
-        </details>
-
-        <details class="faq-item">
-          <summary>Do you take rush jobs — and what does that add?</summary>
-          <div class="faq-answer">
-            Yes, when the calendar allows. Rush work runs <strong>15–25% above standard bid</strong>, depending on trade availability and material lead time. You'll see the rush premium as its own line item — not folded into the base — so you know exactly what you're paying for.
-          </div>
-        </details>
-      </div>
-
-      <p class="faq-footnote">
-        Didn't see your question? <a href="#contact" data-intent="bid:faq">Ask it in the bid form →</a>
+      <p class="trust-more reveal" style="--reveal-delay: 250ms">
+        <a href="/commercial-industrial.html#credentials">Full compliance detail →</a>
       </p>
     </div>
   </section>
 
   <!-- ─── § 08 · CTA CLOSER ───────────────────────────────── -->
-  <div class="divider dark"><div class="wrap"><div class="section-marker"><span class="tabular">§ 08</span><span class="normal">Bid Intake Open</span><span class="tabular" style="opacity:0.8">of 08</span></div></div></div>
+  <div class="divider dark"><div class="wrap"><div class="section-marker"><span class="tabular">§ 03</span><span class="normal">Bid Intake Open</span><span class="tabular" style="opacity:0.8">of 03</span></div></div></div>
 
   <section class="cta">
     <div class="cta-bg" aria-hidden="true"></div>
@@ -2616,7 +1424,7 @@
         <em class="italic-serif" style="color: var(--accent-500);">your next build.</em>
       </h2>
       <p class="reveal" style="--reveal-delay: 200ms">
-        Send drawings, an RFP, or a photo of the space. First response inside 48 hours — full itemized bid inside two weeks.
+        Commercial or residential — pick your path below and the bid form comes pre-set for your kind of project. First response inside 48 hours.
       </p>
       <div class="cta-actions reveal" style="--reveal-delay: 300ms">
         <a href="#contact" class="btn btn-accent" data-intent="bid:closer">Request a bid</a>
@@ -2637,209 +1445,42 @@
     <div class="contact-hero">
       <div class="wrap contact-hero-inner">
         <div>
-          <p class="eyebrow eyebrow-light">Bid Intake · § VII · Response &lt; 48 hours</p>
+          <p class="eyebrow eyebrow-light">Bid Intake · § 03 · Response &lt; 48 hours</p>
           <h2>
             Tell us <em class="italic-serif" style="color: var(--accent-500);">what</em><br/>
             you&rsquo;re building.
           </h2>
         </div>
         <p class="reveal" style="--reveal-delay: 150ms">
-          Attach drawings, an RFP, or a site photo — whatever you have. A senior estimator triages every intake within 48 hours, no gatekeepers.
+          Pick your lane and the bid form comes pre-set for your kind of project — commercial
+          intakes and residential intakes route to different checklists. Or skip the form entirely
+          and call.
         </p>
       </div>
     </div>
 
     <div class="contact-body">
-      <div class="wrap-page contact-grid">
-        <form class="cform" action="https://formspree.io/f/xykabwog" method="POST" onsubmit="submitForm(event)" aria-label="Request a bid">
-          <input type="hidden" name="_subject" value="New bid request via Big 7 Construction" />
-          <input type="hidden" name="_replyto" value="" />
-          <input type="hidden" name="source" value="" />
-          <fieldset class="cform-set">
-            <div class="cform-legend">
-              <span class="lbl">01 · Who&rsquo;s asking</span>
-              <div class="rule"></div>
-            </div>
-            <div class="cform-cols">
-              <label>
-                <span>Full name *</span>
-                <input type="text" name="name" required autocomplete="name" />
-              </label>
-              <label>
-                <span>Company / Role</span>
-                <input type="text" name="company" placeholder="Developer · PM · Owner · GC" />
-              </label>
-            </div>
-            <div class="cform-cols">
-              <label>
-                <span>Phone *</span>
-                <input type="tel" name="phone" required autocomplete="tel" placeholder="(404) 555-0000" />
-              </label>
-              <label>
-                <span>Email *</span>
-                <input type="email" name="email" required autocomplete="email" oninput="this.form.querySelector('[name=_replyto]').value = this.value" />
-              </label>
-            </div>
-            <label>
-              <span>Project location / City</span>
-              <input type="text" name="location" placeholder="City / county — full address not required" autocomplete="address-level2" />
-            </label>
-          </fieldset>
-
-          <fieldset class="cform-set">
-            <div class="cform-legend">
-              <span class="lbl">02 · Project type</span>
-              <div class="rule"></div>
-              <span class="hint">Pick the closest — we&rsquo;ll refine on the site walk.</span>
-            </div>
-            <div class="type-grid">
-              <label>
-                <input type="radio" name="projectType" value="commercial-new" required />
-                <div class="type-row">
-                  <span class="type-num">01</span>
-                  <div>
-                    <p class="type-name">Commercial New Build</p>
-                    <p class="type-hint">Ground-up · Office · Retail · Institutional</p>
-                  </div>
-                </div>
-              </label>
-              <label>
-                <input type="radio" name="projectType" value="industrial-warehouse" />
-                <div class="type-row">
-                  <span class="type-num">02</span>
-                  <div>
-                    <p class="type-name">Industrial / Warehouse</p>
-                    <p class="type-hint">PEM · Tilt-up · Distribution · Manufacturing</p>
-                  </div>
-                </div>
-              </label>
-              <label>
-                <input type="radio" name="projectType" value="tenant-improvement" />
-                <div class="type-row">
-                  <span class="type-num">03</span>
-                  <div>
-                    <p class="type-name">Tenant Improvement</p>
-                    <p class="type-hint">Office fit-out · Buildout · Occupied floors</p>
-                  </div>
-                </div>
-              </label>
-              <label>
-                <input type="radio" name="projectType" value="residential-custom" />
-                <div class="type-row">
-                  <span class="type-num">04</span>
-                  <div>
-                    <p class="type-name">Custom Home</p>
-                    <p class="type-hint">Ground-up residential · Additions</p>
-                  </div>
-                </div>
-              </label>
-              <label>
-                <input type="radio" name="projectType" value="residential-remodel" />
-                <div class="type-row">
-                  <span class="type-num">05</span>
-                  <div>
-                    <p class="type-name">Remodel / Repair</p>
-                    <p class="type-hint">Whole-home · Structural repair · Storm damage</p>
-                  </div>
-                </div>
-              </label>
-              <label>
-                <input type="radio" name="projectType" value="trades-only" />
-                <div class="type-row">
-                  <span class="type-num">06</span>
-                  <div>
-                    <p class="type-name">Single-Trade Service</p>
-                    <p class="type-hint">Plumbing · Electrical · Roofing · HVAC · Foundation</p>
-                  </div>
-                </div>
-              </label>
-            </div>
-          </fieldset>
-
-          <fieldset class="cform-set">
-            <div class="cform-legend">
-              <span class="lbl">03 · Budget range</span>
-              <div class="rule"></div>
-            </div>
-            <div class="chips">
-              <label><input type="radio" name="budget" value="lt-250k" /><span class="chip">&lt; $250K</span></label>
-              <label><input type="radio" name="budget" value="250k-1m" /><span class="chip">$250K – $1M</span></label>
-              <label><input type="radio" name="budget" value="1m-5m" /><span class="chip">$1M – $5M</span></label>
-              <label><input type="radio" name="budget" value="5m-25m" /><span class="chip">$5M – $25M</span></label>
-              <label><input type="radio" name="budget" value="25m-plus" /><span class="chip">$25M+</span></label>
-              <label><input type="radio" name="budget" value="tbd" /><span class="chip">Not sure yet</span></label>
-            </div>
-          </fieldset>
-
-          <fieldset class="cform-set">
-            <div class="cform-legend">
-              <span class="lbl">04 · Tell us about it</span>
-              <div class="rule"></div>
-            </div>
-            <label>
-              <span class="sr-only">Message</span>
-              <textarea name="message" rows="5" placeholder="Scope, size, target start date, existing plans, any code / permit hurdles. Drawings + specs can be emailed to info@big7construction.com after you send this."></textarea>
-            </label>
-          </fieldset>
-
-          <div style="display:none" aria-hidden="true">
-            <label>Website (leave blank)<input type="text" name="website" tabindex="-1" autocomplete="off" /></label>
+      <div class="wrap-page contact-lean">
+        <div class="contact-paths">
+          <a class="btn btn-accent" href="/commercial-industrial.html#contact" data-intent="bid:contact-commercial">Start a commercial bid →</a>
+          <a class="btn btn-accent" href="/residential-construction.html#contact" data-intent="bid:contact-residential">Start a residential bid →</a>
+        </div>
+        <div class="skip-form">
+          <p class="spec-label" style="color: var(--ink-500);">Or skip the form</p>
+          <div class="cform-legend"><div class="rule"></div></div>
+          <div class="skip-item">
+            <p class="lbl">Call the office</p>
+            <a href="tel:5557000007" class="val">(555) 700-0007</a>
           </div>
-
-          <div class="cform-submit">
-            <button type="submit" class="btn btn-dark" id="formBtn">Send request →</button>
-            <a href="tel:5557000007" class="alt-call">or call (555) 700-0007</a>
+          <div class="skip-item">
+            <p class="lbl">Email bids</p>
+            <a href="mailto:info@big7construction.com" class="val" style="font-size:18px">info@big7construction.com</a>
           </div>
-          <p class="cform-fine form-note">
-            By submitting, you agree we can call or email you at the details above. No mailing lists, no lead resale.
-          </p>
-        </form>
-
-        <aside class="contact-aside">
-          <div class="aside-card">
-            <p class="eyebrow eyebrow-light">What happens next</p>
-            <ol class="aside-list">
-              <li class="aside-item">
-                <span class="aside-num">01</span>
-                <div class="row">
-                  <p class="lbl">First response</p>
-                  <p class="val">≤ 48 hours</p>
-                </div>
-              </li>
-              <li class="aside-item">
-                <span class="aside-num">02</span>
-                <div class="row">
-                  <p class="lbl">Site walk</p>
-                  <p class="val">Within one week</p>
-                </div>
-              </li>
-              <li class="aside-item">
-                <span class="aside-num">03</span>
-                <div class="row">
-                  <p class="lbl">Itemized bid</p>
-                  <p class="val">5–14 business days</p>
-                </div>
-              </li>
-            </ol>
+          <div class="skip-item">
+            <p class="lbl">Coverage</p>
+            <p class="body">Metro Atlanta &amp; NW Georgia · Statewide for enterprise engagements</p>
           </div>
-
-          <div class="skip-form">
-            <p class="spec-label" style="color: var(--ink-500);">Or skip the form</p>
-            <div class="cform-legend"><div class="rule"></div></div>
-            <div class="skip-item">
-              <p class="lbl">Call the office</p>
-              <a href="tel:5557000007" class="val">(555) 700-0007</a>
-            </div>
-            <div class="skip-item">
-              <p class="lbl">Email bids</p>
-              <a href="mailto:info@big7construction.com" class="val" style="font-size:18px">info@big7construction.com</a>
-            </div>
-            <div class="skip-item">
-              <p class="lbl">Coverage</p>
-              <p class="body">Metro Atlanta &amp; NW Georgia · Statewide for enterprise engagements</p>
-            </div>
-          </div>
-        </aside>
+        </div>
       </div>
     </div>
   </section>
@@ -2873,14 +1514,10 @@
         <p class="lbl">Sitemap</p>
         <ul>
           <li><a href="#hero">Home</a></li>
-          <li><a href="#services">Services</a></li>
+          <li><a href="#two-paths">Two Paths</a></li>
           <li><a href="/commercial-industrial.html">Commercial &amp; Industrial</a></li>
           <li><a href="/residential-construction.html">Residential Construction</a></li>
-          <li><a href="/home-repair.html">Home Repair &amp; Improvements</a></li>
-          <li><a href="#portfolio">Portfolio</a></li>
-          <li><a href="#credentials">Compliance</a></li>
-          <li><a href="#process">Process</a></li>
-          <li><a href="#testimonials">Reviews</a></li>
+          <li><a href="/residential-construction.html#home-repair">Home Repair &amp; Improvements</a></li>
           <li><a href="#contact">Contact</a></li>
           <li><a href="/accessibility.html">Accessibility</a></li>
         </ul>
@@ -2997,232 +1634,8 @@
       btn.setAttribute('aria-expanded', String(isOpen));
       btn.setAttribute('aria-label', isOpen ? 'Close menu' : 'Open menu');
     }
-
-    // ─── Form submit: POST to Formspree via fetch, keep the user
-    //     on-page. Falls back to the native form action if fetch fails.
-    async function submitForm(e) {
-      e.preventDefault();
-      const form = e.target;
-      const btn = document.getElementById('formBtn');
-      const note = document.querySelector('.form-note');
-      const original = btn.textContent;
-      btn.textContent = 'Sending…';
-      btn.disabled = true;
-
-      try {
-        const res = await fetch(form.action, {
-          method: 'POST',
-          body: new FormData(form),
-          headers: { 'Accept': 'application/json' }
-        });
-        if (!res.ok) throw new Error('Formspree returned ' + res.status);
-        btn.textContent = 'Request received ✓';
-        btn.style.background = '#2F5D3A';
-        form.querySelectorAll('input, select, textarea').forEach(f => f.disabled = true);
-        if (note) note.textContent = "A senior estimator will reach out within 48 hours. Drawings + specs can be emailed to info@big7construction.com.";
-      } catch (err) {
-        btn.textContent = original;
-        btn.disabled = false;
-        if (note) note.textContent = "Something went wrong sending the form. Email info@big7construction.com directly or call (555) 700-0007.";
-      }
-    }
-
-    // ─── Conversion: data-intent → prefill + attribution ─
-    // CONVERSION_STANDARDS.md § 2 (intent), § 3 (prefill), § 4 (events).
-    // Every service/portfolio CTA carries data-intent; on click we prefill
-    // the contact form's projectType radio + textarea hint (so the visitor
-    // never faces a blank form) and push a cta_click event to window.dataLayer
-    // (GA4-compatible) so future analytics can measure funnel without code changes.
-    (function () {
-      const INTENT_TO_TYPE = {
-        'service:enterprise-framing':   'commercial-new',
-        'service:commercial-new':       'commercial-new',
-        'service:industrial-warehouse': 'industrial-warehouse',
-        'service:tenant-improvement':   'tenant-improvement',
-        'service:custom-home':          'residential-custom',
-        'service:structural-repair':    'residential-remodel',
-        'service:trades-only':          'trades-only',
-        'portfolio:industrial-01':      'industrial-warehouse',
-        'portfolio:tenant-02':          'tenant-improvement',
-        'portfolio:custom-home-03':     'residential-custom',
-        'portfolio:commercial-04':      'commercial-new',
-        'portfolio:residential-05':     'residential-remodel',
-        'portfolio:structural-06':      'residential-remodel'
-      };
-      const PREFILL_MARK = '— Interested in: ';
-      function track(name, props) {
-        const payload = Object.assign({ event: name }, props || {});
-        (window.dataLayer = window.dataLayer || []).push(payload);
-      }
-      function labelFor(el) {
-        const title = el.querySelector('.service-title, .pf-title, .type-name');
-        const raw = (title && title.textContent) || el.getAttribute('aria-label') || '';
-        return raw.replace(/\s+/g, ' ').trim().slice(0, 80);
-      }
-      function prefill(intent, label) {
-        const pt = INTENT_TO_TYPE[intent];
-        if (pt) {
-          const radio = document.querySelector('input[name="projectType"][value="' + pt + '"]');
-          const already = document.querySelector('input[name="projectType"]:checked');
-          if (radio && !already) radio.checked = true;
-        }
-        const ta = document.querySelector('form.cform textarea[name="message"]');
-        if (ta && label) {
-          const trimmed = ta.value.trim();
-          if (!trimmed || trimmed.indexOf(PREFILL_MARK) === 0) {
-            ta.value = PREFILL_MARK + label + '\n\n';
-            ta.dispatchEvent(new Event('input', { bubbles: true }));
-          }
-        }
-      }
-      document.addEventListener('click', function (e) {
-        const el = e.target.closest('[data-intent]');
-        if (!el) return;
-        const intent = el.getAttribute('data-intent');
-        const label = labelFor(el);
-        // Position = intent segment after the namespace (`bid:hero` → `hero`,
-        // `service:enterprise-framing` → `enterprise-framing`). Satisfies
-        // CONVERSION_STANDARDS.md § 4 `cta_click.position` requirement so
-        // funnel views can split by page region without a code change.
-        const position = (intent.split(':')[1] || 'unspecified');
-        track('cta_click', { intent: intent, page: 'home', position: position, label: label });
-        prefill(intent, label);
-      });
-      const form = document.querySelector('form.cform');
-      if (form) {
-        // intake_start — CONVERSION_STANDARDS.md § 4. Fires once, on the
-        // visitor's first focus into any intake-form field. Without it, the
-        // funnel has a hidden hole between cta_click and intake_submit: we
-        // cannot tell "clicked CTA but bailed on the form" from "never
-        // touched the form at all." The `intakeStarted` guard is a
-        // closure-scoped boolean (not a data-attribute) so a DOM re-render
-        // cannot silently un-guard it and re-fire.
-        let intakeStarted = false;
-        form.addEventListener('focusin', function () {
-          if (intakeStarted) return;
-          intakeStarted = true;
-          const checked = document.querySelector('input[name="projectType"]:checked');
-          track('intake_start', {
-            intent: checked ? 'type:' + checked.value : 'type:unset',
-            page: 'home'
-          });
-        }, true);
-        form.addEventListener('submit', function () {
-          const checked = document.querySelector('input[name="projectType"]:checked');
-          const ta = form.querySelector('textarea[name="message"]');
-          // `src` mirrors the hidden `source` input the landing IIFE writes
-          // from ?src= / ?utm_source=. Without it in the payload, Formspree
-          // gets the attribution but GA4/Plausible see intake_submit blind —
-          // "which lane page produced the intake?" is unanswerable at the
-          // funnel-view surface even though the data reached the estimator's
-          // inbox. Same drift class the tick-27 lane-attribution loop closed
-          // at the Formspree surface; this closes it at the dataLayer surface.
-          const srcField = form.querySelector('input[name="source"]');
-          track('intake_submit', {
-            intent: checked ? 'type:' + checked.value : 'type:unset',
-            has_prefill: !!(ta && ta.value.indexOf(PREFILL_MARK) === 0),
-            message_length: ta ? ta.value.trim().length : 0,
-            page: 'home',
-            src: (srcField && srcField.value) || ''
-          });
-        }, true);
-      }
-
-      // ─── URL-param prefill (bio-link landing) ────────────────
-      // Money path: a TikTok / Instagram / email-footer bio link like
-      //   https://big7construction.com/?intent=service:tenant-improvement&src=tiktok-bio
-      // lands the visitor on a form that already knows why they came.
-      // Also accepts `?type=<projectType>` (direct radio value — bio-link
-      // authors can pick from the 6 radio values without knowing the
-      // internal intent slug) and `?src=<slug>` OR `?utm_source=<slug>`
-      // for attribution. Every param is whitelisted through SAFE_PARAM
-      // before touching the DOM — a URL param NEVER hits querySelector raw.
-      // Reuses INTENT_TO_TYPE / PREFILL_MARK / labelFor / track from the
-      // closure above so the mapping stays single-source-of-truth (a slug
-      // rename locked by test_conversion.py auto-propagates to landing).
-      (function () {
-        try {
-          const params = new URLSearchParams(window.location.search);
-          const SAFE_PARAM = /^[a-z0-9:_\-]{1,64}$/i;
-          const safe = (v) => (v && SAFE_PARAM.test(v)) ? v : '';
-          const intent = safe(params.get('intent'));
-          const type = safe(params.get('type'));
-          const src = safe(params.get('src')) || safe(params.get('utm_source'));
-          if (!intent && !type && !src) return;
-          const resolvedType = type || (intent && INTENT_TO_TYPE[intent]) || '';
-          let didRadio = false;
-          if (resolvedType) {
-            const radio = document.querySelector('input[name="projectType"][value="' + resolvedType + '"]');
-            const already = document.querySelector('input[name="projectType"]:checked');
-            if (radio && !already) { radio.checked = true; didRadio = true; }
-          }
-          let didText = false;
-          if (intent) {
-            const cta = document.querySelector('[data-intent="' + intent + '"]');
-            let label = cta ? labelFor(cta) : '';
-            if (!label) {
-              const slug = intent.split(':')[1] || intent;
-              label = slug.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
-            }
-            const ta = document.querySelector('form.cform textarea[name="message"]');
-            if (ta && (!ta.value || !ta.value.trim())) {
-              ta.value = PREFILL_MARK + label + '\n\n';
-              didText = true;
-            }
-          }
-          // Persist `src` into the hidden `source` input so Formspree receives
-          // lane attribution on submit. Without this the value is dataLayer-only
-          // and never leaves the browser; the estimator sees an intake with no
-          // idea which lane page (or bio link) drove the click.
-          let didSource = false;
-          if (src) {
-            const srcField = document.querySelector('form.cform input[name="source"]');
-            if (srcField && !srcField.value) { srcField.value = src; didSource = true; }
-          }
-          track('landing_prefill', {
-            intent: intent, type: resolvedType, src: src, page: 'home',
-            did_radio: didRadio, did_text: didText, did_source: didSource
-          });
-        } catch (_) { /* never break the page on a malformed URL */ }
-      })();
-    })();
-
-    // ─── Analytics adapter: dataLayer → gtag/plausible bridge ─
-    // The IIFE above already pushes `cta_click` + `intake_submit` to
-    // `window.dataLayer` (GA4-compatible payload shape). This adapter
-    // monkey-patches `dataLayer.push` so every future push is mirrored
-    // to whichever consumer script is loaded — none, GA4, Plausible, or
-    // both. Michael's zero-code activation:
-    //   GA4:      <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXX"><\/script>
-    //             <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-XXXXXXX');<\/script>
-    //   Plausible: <script defer data-domain="big7construction.com" src="https://plausible.io/js/script.js"><\/script>
-    // (The `<\/script>` escapes above are mandatory — a bare closing tag inside
-    // this script block, even in a comment, prematurely closes the outer tag.)
-    // Dropping either tag turns the funnel on with zero code changes. The
-    // adapter no-ops on gtag's own `arguments`-shaped pushes (no `.event`
-    // property → skipped) so there's no forwarding loop when both are live.
-    (function () {
-      var dl = window.dataLayer = window.dataLayer || [];
-      var origPush = Array.prototype.push.bind(dl);
-      dl.push = function (evt) {
-        var r = origPush(evt);
-        try {
-          if (evt && evt.event) {
-            var props = {};
-            for (var k in evt) {
-              if (k !== 'event' && Object.prototype.hasOwnProperty.call(evt, k)) props[k] = evt[k];
-            }
-            if (typeof window.gtag === 'function') window.gtag('event', evt.event, props);
-            if (typeof window.plausible === 'function') window.plausible(evt.event, { props: props });
-          }
-        } catch (_) { /* never break the click */ }
-        return r;
-      };
-    })();
-
-    // ─── Year in footer ───────────────────────────────────
-    (function () { const y = document.getElementById('year'); if (y) y.textContent = new Date().getFullYear(); })();
   </script>
+  <script defer src="/big7.js"></script>
 
   <!-- ═══════════════════════════════════════════════════════════════
        SiteGuide widget — Big 7 tenant. Loaded from separately-deployed

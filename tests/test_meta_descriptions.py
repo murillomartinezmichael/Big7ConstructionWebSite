@@ -36,7 +36,6 @@ TARGETS = (
     "index.html",
     "404.html",
     "accessibility.html",
-    "home-repair.html",
     "commercial-industrial.html",
     "residential-construction.html",
 )

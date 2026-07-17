@@ -1,8 +1,9 @@
 """
 Intake form structural contract test.
 
-Why: `index.html` carries a hand-rolled contact form — the single money-path
-surface where every CTA on the page ends. `test_conversion.py` locks the CTA
+Why: the two lane destination pages each carry a hand-rolled intake form —
+the money-path surfaces where every CTA ends (2026-07-17 two-path
+restructure; index.html is a chooser and MUST NOT carry a form). `test_conversion.py` locks the CTA
 `data-intent` -> `INTENT_TO_TYPE` -> `projectType` radio wiring, but says
 nothing about the form *itself*: whether the Formspree endpoint drifted to a
 dev URL, whether the required fields the ../../docs/CONVERSION_STANDARDS.md
@@ -18,8 +19,9 @@ Each of those is a silent-death class:
   - `tel:` and JSON-LD phone drift -> Google shows one number, the page's
     "or call" link opens another; caller confusion + phantom missed calls.
 
-Contract (all must hold):
-  1. Exactly one `<form class="cform" ...>` exists on index.html.
+Contract (all must hold, per lane page):
+  0. index.html carries NO `<form class="cform">` (chooser lock).
+  1. Exactly one `<form class="cform" ...>` exists per lane page.
   2. `action` is a `formspree.io/f/<hash>` URL over https.
   3. `method="POST"`.
   4. `onsubmit="submitForm(event)"` handler is wired.
@@ -31,8 +33,9 @@ Contract (all must hold):
      (either wrapped in `display:none` OR `aria-hidden="true"`), and carries
      `tabindex="-1"` + `autocomplete="off"` so keyboard/password managers
      do not fill it and human visitors cannot see or reach it.
-  8. Formspree control fields: `_subject` (hidden, non-empty value) and
-     `_replyto` (hidden — value is set by the email input's `oninput`).
+  8. Formspree control fields: `_subject` (hidden, value carries the lane's
+     subject line) and `_replyto` (hidden — set by the email `oninput`);
+     hidden `source` input whose default equals the lane's attribution slug.
   9. Alt-call `<a href="tel:...">` sits inside the form's submit block.
  10. Phone agreement: the `tel:` digits and JSON-LD `telephone` digits, both
      stripped of non-digit chars, must have matching *last 10 digits*. This
@@ -49,7 +52,21 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parent.parent
 INDEX = REPO_ROOT / "index.html"
 
-MIN_RADIOS = 4  # site sells >=4 distinct project types; floor guards against a stealth collapse.
+# Per-lane form contract (2026-07-17 two-path restructure): exact radio value
+# set, lane subject needle, and hidden-source attribution slug.
+FORM_PAGES: dict[str, dict] = {
+    "commercial-industrial.html": {
+        "radios": {"commercial-new", "industrial-warehouse", "tenant-improvement"},
+        "subject": "New commercial bid",
+        "source": "commercial-industrial-page",
+    },
+    "residential-construction.html": {
+        "radios": {"residential-custom", "residential-remodel", "trades-only"},
+        "subject": "New residential bid",
+        "source": "residential-page",
+    },
+}
+MIN_RADIOS = 3  # per-lane floor; the exact value-set check below is the real lock.
 
 FORM_OPEN_RE = re.compile(
     r'<form\b[^>]*\bclass="cform"[^>]*>',
@@ -87,7 +104,7 @@ def _find_form(html: str) -> tuple[str | None, str]:
     second cform (say a duplicated section) also gets caught here."""
     matches = list(FORM_OPEN_RE.finditer(html))
     if not matches:
-        return None, 'no `<form class="cform" ...>` found on index.html'
+        return None, 'no `<form class="cform" ...>` found'
     if len(matches) > 1:
         return None, f'expected 1 `<form class="cform">`, found {len(matches)}'
     start = matches[0].start()
@@ -121,12 +138,21 @@ def _jsonld_telephone(html: str) -> tuple[str | None, str]:
         except json.JSONDecodeError:
             continue
         tel = block.get("telephone")
+        if not (isinstance(tel, str) and tel.strip()):
+            provider = block.get("provider")
+            if isinstance(provider, dict):
+                tel = provider.get("telephone")
         if isinstance(tel, str) and tel.strip():
             return tel, ""
     return None, "no JSON-LD block with a `telephone` field found"
 
 
-def check(html: str) -> list[str]:  # noqa: C901 - single flat contract check by design
+def check(
+    html: str,
+    radios_expected: set[str] | None = None,
+    subject_needle: str = "",
+    source_expected: str = "",
+) -> list[str]:  # noqa: C901 - single flat contract check by design
     errors: list[str] = []
 
     form_html, form_err = _find_form(html)
@@ -188,11 +214,18 @@ def check(html: str) -> list[str]:  # noqa: C901 - single flat contract check by
 
     # (3) projectType radios — count above floor, first one carries `required`.
     radios = inputs.get("projectType", [])
-    radio_count = sum(1 for r in radios if r.get("type", "").lower() == "radio")
+    radio_vals = {r.get("value", "") for r in radios if r.get("type", "").lower() == "radio"}
+    radio_count = len(radio_vals)
     if radio_count < MIN_RADIOS:
         errors.append(
             f"projectType radios: found {radio_count}, floor is {MIN_RADIOS} "
             f"(a stealth collapse of options below this floor is a scope-drop signal)"
+        )
+    elif radios_expected is not None and radio_vals != radios_expected:
+        errors.append(
+            f"projectType radio values {sorted(radio_vals)} do not match the lane's "
+            f"expected set {sorted(radios_expected)} — a wrong-lane paste or a "
+            f"renamed value silently breaks big7.js prefill + funnel bucketing"
         )
     elif not any("required" in r for r in radios):
         errors.append(
@@ -251,6 +284,28 @@ def check(html: str) -> list[str]:  # noqa: C901 - single flat contract check by
     subj = inputs.get("_subject", [{}])[0].get("value", "")
     if inputs.get("_subject") and not subj.strip():
         errors.append('hidden `_subject` input has empty value — Formspree emails will lack a subject line')
+    elif inputs.get("_subject") and subject_needle and subject_needle not in subj:
+        errors.append(
+            f"hidden `_subject` value {subj!r} does not contain the lane's expected "
+            f"subject needle {subject_needle!r} — intakes from the two lanes become "
+            f"indistinguishable in the estimator's inbox"
+        )
+
+    # Hidden lane-attribution `source` input with the lane's default slug.
+    sources = inputs.get("source", [])
+    if not sources:
+        errors.append('missing hidden lane-attribution input name="source"')
+    else:
+        stag = sources[0]
+        if stag.get("type", "").lower() != "hidden":
+            errors.append(f'input name="source" must be type="hidden" (got {stag.get("type")!r})')
+        sval = stag.get("value", "")
+        if source_expected and sval != source_expected:
+            errors.append(
+                f'hidden `source` default {sval!r} does not match the lane slug '
+                f"{source_expected!r} — every intake from this page mislabels its lane "
+                f"in the funnel"
+            )
 
     # (6) alt-call tel: link sits inside the submit block.
     tel_hrefs: list[str] = []
@@ -310,6 +365,7 @@ def _minimal_valid_form_html() -> str:
 <form class="cform" action="https://formspree.io/f/abcdef123" method="POST" onsubmit="submitForm(event)">
   <input type="hidden" name="_subject" value="New bid request"/>
   <input type="hidden" name="_replyto" value=""/>
+  <input type="hidden" name="source" value="lane-selftest-page"/>
   <input type="text"  name="name"  required autocomplete="name"/>
   <input type="email" name="email" required autocomplete="email"/>
   <input type="tel"   name="phone" required autocomplete="tel"/>
@@ -331,8 +387,13 @@ def _selftest(_live_html: str) -> int:
     causes some other error to fire, or none at all, is a regression in the
     test itself (a rubber-stamp check is worse than no check).
     """
+    fixture_spec = dict(
+        radios_expected={f"r{i}" for i in range(MIN_RADIOS)},
+        subject_needle="New bid request",
+        source_expected="lane-selftest-page",
+    )
     baseline = _minimal_valid_form_html()
-    baseline_errors = check(baseline)
+    baseline_errors = check(baseline, **fixture_spec)
     if baseline_errors:
         print("SELFTEST ABORT: synthetic baseline fails check() — fix the fixture first:", file=sys.stderr)
         for e in baseline_errors:
@@ -437,6 +498,23 @@ def _selftest(_live_html: str) -> int:
             baseline.replace('href="tel:5557000007"', 'href="tel:4041234567"'),
             "phone number drift",
         ),
+        (
+            "hidden lane-attribution `source` input deleted",
+            baseline.replace(
+                '<input type="hidden" name="source" value="lane-selftest-page"/>', ''
+            ),
+            'missing hidden lane-attribution input name="source"',
+        ),
+        (
+            "hidden `source` drifts to a sibling lane slug (cross-lane paste)",
+            baseline.replace('value="lane-selftest-page"', 'value="some-other-page"'),
+            "does not match the lane slug",
+        ),
+        (
+            "radio value renamed out of the lane's expected set",
+            baseline.replace('value="r1"', 'value="r1-renamed"'),
+            "do not match the lane's expected set",
+        ),
     ]
 
     failures: list[str] = []
@@ -444,7 +522,7 @@ def _selftest(_live_html: str) -> int:
         if mutated == baseline:
             failures.append(f"{label}: mutation was a no-op (replace did not match)")
             continue
-        errs = check(mutated)
+        errs = check(mutated, **fixture_spec)
         if not errs:
             failures.append(f"{label}: mutation slipped through — check() returned no errors")
             continue
@@ -463,31 +541,49 @@ def _selftest(_live_html: str) -> int:
 
 
 def main(argv: list[str]) -> int:
+    if "--selftest" in argv:
+        return _selftest("")
+
+    errors: list[str] = []
+
+    # (0) chooser lock: index.html must NOT carry an intake form — the form
+    # moved to the lane pages 2026-07-17; a reappearing index form means a
+    # revert or a copy-paste re-split of the money surface.
     if not INDEX.exists():
         print(f"FAIL: {INDEX} not found", file=sys.stderr)
         return 1
+    if FORM_OPEN_RE.search(INDEX.read_text(encoding="utf-8")):
+        errors.append(
+            'index.html carries a `<form class="cform">` — the chooser page must '
+            "not own an intake form (both lane pages do)"
+        )
 
-    html = INDEX.read_text(encoding="utf-8")
+    for page, spec in FORM_PAGES.items():
+        path = REPO_ROOT / page
+        if not path.exists():
+            errors.append(f"{page}: not found at {path}")
+            continue
+        html = path.read_text(encoding="utf-8")
+        for e in check(
+            html,
+            radios_expected=spec["radios"],
+            subject_needle=spec["subject"],
+            source_expected=spec["source"],
+        ):
+            errors.append(f"{page}: {e}")
 
-    if "--selftest" in argv:
-        return _selftest(html)
-
-    errors = check(html)
     if errors:
         for e in errors:
             print(f"FAIL: {e}", file=sys.stderr)
         return 1
 
-    form_html, _ = _find_form(html)
-    inputs = _inputs_by_name(form_html or "")
-    radios = sum(
-        1 for r in inputs.get("projectType", []) if r.get("type", "").lower() == "radio"
-    )
+    subjects = {spec["subject"] for spec in FORM_PAGES.values()}
     print(
-        f"OK: intake form contract holds — Formspree action locked, "
-        f"3 required contact fields (name/email/phone) with autocomplete + required, "
-        f"{radios} projectType radios (floor {MIN_RADIOS}), honeypot hidden + tabindex-off, "
-        f"tel: link agrees with JSON-LD telephone."
+        f"OK: intake form contract holds on {len(FORM_PAGES)} lane pages — Formspree "
+        f"action locked, 3 required contact fields with autocomplete + required, "
+        f"per-lane radio value sets + {len(subjects)} distinct subjects + hidden source "
+        f"slugs, honeypot hidden + tabindex-off, tel: links agree with JSON-LD "
+        f"telephone; index.html carries no form (chooser lock)."
     )
     return 0
 

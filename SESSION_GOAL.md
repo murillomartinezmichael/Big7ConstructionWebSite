@@ -1,4 +1,4 @@
 PROJECT: Big7Construction
-GOAL:    Extend `tests/test_url_prefill.py` to parse the `track('landing_prefill', {...})` payload literal in `index.html` and lock its required key set — `{intent, type, src, page, did_radio, did_text, did_source}` — plus exactly-one call site. Mirrors the tick-20c `intake_submit` key lock in `test_intake_analytics.py`. Closes tick-20d "next up (d)": a silent drop of `page`/`src` from the landing event was still shippable because today's test only asserted the string `track('landing_prefill'` was present, not the payload shape. `--selftest` gains ≥5 new mutations (drop page / drop src / drop did_source / duplicate call / delete call). `make test-url-prefill` PASS + full `make test` PASS. Commit locally, no push. Log to Cockpit via PENDING_MANUAL.md.
-BUDGET:  25 min (auto-improve tick 20e/9999)
-STARTED: 2026-07-13
+GOAL:    Two-path restructure shipped: homepage is a lean chooser (hero + path cards + trust strip, no form), commercial-industrial.html and residential-construction.html are full destination pages each with a verified Formspree intake form, home-repair.html 301s to residential#home-repair, shared money JS extracted to /big7.js, full `make test` + `make test-container` green, merged to main.
+BUDGET:  Full working session (multi-phase; plan at ~/.claude/plans, 8-commit sequence)
+STARTED: 2026-07-17

@@ -59,13 +59,12 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 INDEX = REPO_ROOT / "index.html"
 NOT_FOUND = REPO_ROOT / "404.html"
 ACCESSIBILITY = REPO_ROOT / "accessibility.html"
-HOME_REPAIR = REPO_ROOT / "home-repair.html"
 COMMERCIAL_INDUSTRIAL = REPO_ROOT / "commercial-industrial.html"
 RESIDENTIAL_CONSTRUCTION = REPO_ROOT / "residential-construction.html"
-TARGETS = (INDEX, NOT_FOUND, ACCESSIBILITY, HOME_REPAIR, COMMERCIAL_INDUSTRIAL, RESIDENTIAL_CONSTRUCTION)
+TARGETS = (INDEX, NOT_FOUND, ACCESSIBILITY, COMMERCIAL_INDUSTRIAL, RESIDENTIAL_CONSTRUCTION)
 # Pages that MUST carry <link rel="canonical" href="..."> matching og:url.
 # 404.html is excluded on purpose — see NO_CANONICAL_PAGES below.
-TARGETS_WITH_CANONICAL = (INDEX, ACCESSIBILITY, HOME_REPAIR, COMMERCIAL_INDUSTRIAL, RESIDENTIAL_CONSTRUCTION)
+TARGETS_WITH_CANONICAL = (INDEX, ACCESSIBILITY, COMMERCIAL_INDUSTRIAL, RESIDENTIAL_CONSTRUCTION)
 # Pages that MUST NOT carry a canonical link at all. Google's guidance is that
 # soft-404s pointing at themselves confuse the crawler; pointing at the homepage
 # risks the 404 URL absorbing homepage rankings on strange edge cases. Simplest

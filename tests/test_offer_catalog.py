@@ -39,11 +39,11 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 CANONICAL_ORIGIN = "https://big7construction.com"
 
 # (lane page filename, expected Service.name on that page)
-# Order matches the visible IA: commercial → residential → home-repair.
+# Order matches the visible IA (2026-07-17 two-path restructure):
+# commercial → residential (home repair folded into residential).
 LANES: tuple[tuple[str, str], ...] = (
     ("commercial-industrial.html", "Commercial & Industrial"),
     ("residential-construction.html", "Residential Construction"),
-    ("home-repair.html", "Home Repair & Improvements"),
 )
 
 LOCAL_BUSINESS_TYPES = {
@@ -112,7 +112,7 @@ def assert_catalog(parent: dict, expected_lane_urls: list[str]) -> list[str]:
     if len(items) != len(LANES):
         errors.append(
             f"hasOfferCatalog.itemListElement must have exactly {len(LANES)} nested "
-            f"OfferCatalogs (three-lane IA), got {len(items)}"
+            f"OfferCatalogs (two-path IA), got {len(items)}"
         )
 
     seen_urls: list[str] = []
@@ -274,21 +274,6 @@ def _baseline() -> dict:
                         }
                     ],
                 },
-                {
-                    "@type": "OfferCatalog",
-                    "name": "Home Repair & Improvements",
-                    "url": f"{CANONICAL_ORIGIN}/home-repair.html",
-                    "itemListElement": [
-                        {
-                            "@type": "Offer",
-                            "itemOffered": {
-                                "@type": "Service",
-                                "name": "Every Trade, In-House",
-                                "description": "Plumbing, electrical, roofing, HVAC, foundation, and interiors under one crew, one warranty.",
-                            },
-                        }
-                    ],
-                },
             ],
         },
     }
@@ -317,7 +302,7 @@ def selftest() -> int:
             lambda b: b["hasOfferCatalog"].__setitem__("@type", "ItemList"),
         ),
         (
-            "only two divisions (drop home-repair)",
+            "wrong division count (one dropped)",
             lambda b: b["hasOfferCatalog"]["itemListElement"].pop(),
         ),
         (

@@ -1,0 +1,5 @@
+# Cloudflare Workers static-assets redirects (wrangler.jsonc assets dir = ./).
+# nginx (the Railway primary) carries the same redirect in nginx.conf WITH the
+# #home-repair fragment; fragment support is undocumented for CF-style
+# _redirects files, so it is intentionally omitted here.
+/home-repair.html /residential-construction.html 301
