@@ -1,3 +1,9 @@
+## VERIFIED (2026-07-17 — Lighthouse mobile, live www.big7construction.com)
+
+- Home **95-96** perf / 96 a11y / 100 bp · Commercial **98**/100/100 · Residential **98**/100/100 — the ≥95 quality bar passes on all three (first home run read 71 from cold-cache noise; two repeat runs confirmed 95-96).
+- SEO category couldn't be scored locally (Lighthouse-on-Node-21 `URL.parse` bug, tooling not site) — meta/JSON-LD untouched since last green.
+- Small parked wart: CLS 0.09-0.13 on `.hero-overlay` (font-swap reflow resizes hero) — straddles the 0.1 "good" line; only worth touching if a future session is already in the hero.
+
 # Big7Construction — TODO
 
 **Last updated:** 2026-07-17 (Fable — TWO-PATH RESTRUCTURE SHIPPED: homepage = chooser, lane pages = destinations with own forms, home-repair folded + 301'd, money JS extracted to big7.js, n8n lead mirror live)
