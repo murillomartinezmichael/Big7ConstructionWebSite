@@ -84,6 +84,7 @@ LANE_SRC_MAP: dict[str, str] = {
 #      old per-deep-link `src=` param.
 REBUILT_LANE_SRC: dict[str, str] = {
     "commercial-industrial.html": "commercial-industrial-page",
+    "residential-construction.html": "residential-page",
 }
 
 # Floor for lane-page deep-link CTAs. Shipped counts are 4-6 per lane
