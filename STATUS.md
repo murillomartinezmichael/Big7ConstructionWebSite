@@ -1,6 +1,6 @@
 # Big7Construction — STATUS
 
-**Last verified:** 2026-07-16 (21 static suites golden + selftests; strict deploy preflight READY; production Docker image boot + home/three-lane/404 route smoke PASS)
+**Last verified:** 2026-07-16 (21 static suites golden + selftests; strict deploy preflight READY; production Docker image boot + home/three-lane/404 route smoke PASS locally and in GitHub main CI `29550577370` at `9684a79`)
 
 ## Runtime
 
@@ -14,7 +14,7 @@
 - **Static:** all 21 `make test` suites pass in golden + selftest modes.
 - **Deploy preflight:** `python scripts/preflight-deploy.py --strict` reports READY (the optional live probe remains skipped until the host-of-record is settled).
 - **Container integration:** `scripts/test-container-boot.py` builds the production Dockerfile, starts nginx with `PORT=8080`, waits for readiness, and verifies `/` plus all three `.html` lane routes return 200 while a missing route returns 404. It prints container logs on failure and cleans its container/image in all exit paths.
-- **CI:** `.github/workflows/ci.yml` now runs the static suite, strict preflight, and container integration on pushes and pull requests to `main`. It can become a required PR check via branch protection; it does not block direct pushes by itself.
+- **CI:** `.github/workflows/ci.yml` runs the static suite, strict preflight, and container integration on pushes and pull requests to `main`; main run `29550577370` passed at pushed head `9684a79`. It can become a required PR check via branch protection; it does not block direct pushes by itself.
 
 ## Evolution ladder
 

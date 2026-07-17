@@ -1,20 +1,20 @@
 # Big7Construction — TODO
 
-**Last updated:** 2026-07-16 (Fable — lane navigability shipped + Dockerfile boot-crash fixed; W2 "three lanes navigable" gate CLOSED)
+**Last updated:** 2026-07-16 (Codex — lane navigation + Docker boot fix + production-container CI gate pushed; W2 gate CLOSED)
 
 ## SHIPPED (2026-07-16, Fable — W2 gate: lanes human-navigable + deploy boot fix)
 
 - **REAL GAP CLOSED: the three lane pages were orphans.** index.html referenced them only inside JSON-LD (OfferCatalog urls) — no human could click from the homepage to any lane. Shipped: **Buyer-lanes strip** in the Services head (house Barlow-Condensed/accent chip style, stacks full-width at 375px), **footer sitemap** entries, **mobile-menu** links, and an **Other-lanes cross-link nav** on each lane page (both siblings + `/`). Commit `08f3ee1`.
 - **`tests/test_lane_nav.py`** — navigability contract per house pattern: Buyer-lanes nav complete/labeled/no-dupes, footer carries all 3, every lane page cross-links both siblings + `/`, every lane path on disk. `--selftest`: 8 mutations all caught. Wired into `make test`; **also wired the previously-unwired `test_404_lane_recovery` into the chain** (existed, passed, but wasn't in `test:`).
-- **DEPLOY BOOT CRASH FIXED LOCALLY (the broken version remains on `origin/main` until push): `Dockerfile` chowned `default.conf` but not the `conf.d` directory** — `sed -i` writes a temp file in the directory, so the non-root container exited 1 at boot ("can't create temp file … Permission denied"). Any Railway rebuild of current `origin/main` would crash-loop. Fix: chown the directory. Commit `ec7b4bd` is local/ahead, not remote. The missing boot-smoke follow-up is now closed by the 2026-07-16 Rung II gate below.
-- **Gates:** all **21 suites golden + selftest green** · `docker build` + boot: `/` + 3 lanes 200, `/nope` 404 · Playwright 375px journey **14/14** (home → lane strip → commercial lane → service row → intake with `projectType` radio prefilled + `src=commercial-industrial-lane` attribution) · both commits local, unpushed per release cadence — **but see PENDING_MANUAL: pushing is now load-bearing** (boot fix must reach origin before any Railway rebuild).
+- **DEPLOY BOOT CRASH FIX SHIPPED TO `origin/main`: `Dockerfile` chowned `default.conf` but not the `conf.d` directory** — `sed -i` writes a temp file in the directory, so the non-root container exited 1 at boot ("can't create temp file … Permission denied"). Commit `ec7b4bd` fixes the directory ownership and is now in the ancestry of pushed head `9684a79`.
+- **Gates:** all **21 suites golden + selftest green** · `docker build` + boot: `/` + 3 lanes 200, `/nope` 404 · Playwright 375px journey **14/14** (home → lane strip → commercial lane → service row → intake with `projectType` radio prefilled + `src=commercial-industrial-lane` attribution) · GitHub main run `29550577370` passed CI at `9684a79`.
 
 ## SHIPPED (2026-07-16, Codex — Rung II production-container boot gate)
 
 - **`scripts/test-container-boot.py` — cross-platform Docker integration gate.** Builds the production image, runs the configured non-root nginx with `PORT=8080`, waits on a Docker-assigned localhost port, and asserts `/` plus all three `.html` lane routes return 200 while a missing route returns 404. An early exit reports container state + logs. A `finally` cleanup removes both the temporary container and tagged image on pass, failure, or interruption.
 - **`Makefile` — `make test-container` added; stale `docker-run` fixed.** The interactive target now maps `8080:8080`, injects `PORT=8080`, and no longer requires a nonexistent project `.env` file.
 - **`.github/workflows/ci.yml` — real verification now runs on pushes/PRs.** The CI test job runs the 21-suite static contract chain, strict deploy preflight, and the production-container smoke instead of relying only on link/secret checks. It can gate PRs when branch protection requires it; it does not block direct pushes by itself.
-- **Verified locally:** all 21 static suites golden + selftest PASS; `python scripts/preflight-deploy.py --strict` READY (only optional live probe skipped); container smoke PASS for `/`, Commercial & Industrial, Residential Construction, Home Repair, and a real 404; cleanup confirmed by the runner.
+- **Verified locally + on GitHub:** all 21 static suites golden + selftest PASS; `python scripts/preflight-deploy.py --strict` READY (only optional live probe skipped); container smoke PASS for `/`, Commercial & Industrial, Residential Construction, Home Repair, and a real 404; cleanup confirmed by the runner; main CI green at `9684a79`.
 
 ## SHIPPED (2026-07-12 tick 20 — Rung II PROVE nineteenth bite: per-indexable-page OG uniqueness lock)
 
@@ -96,10 +96,10 @@
 
 What remains (ordered):
 
-1. **`git push origin main`** — deploys via Railway. Load-bearing: origin/main's image **crash-loops at boot** (fixed locally in `ec7b4bd`); push before any Railway rebuild. Mike's call per release cadence → `../PENDING_MANUAL.md`.
+1. **Confirm Railway deployed pushed head `9684a79`, then bind/fix the apex-vs-www host-of-record.** Repository canonicals target `big7construction.com`; the last live audit found the apex on Railway fallback 404 while `www` served the site.
 2. **Backfill the live Railway URL** into `../projects.yaml` / `STATUS.md` (dashboard lookup — Mike; long-parked).
 3. **Real job photos** when the client sends shoots (PhotoPicker profile `big7`) — photo intake cadence.
-4. **Container boot smoke gate CLOSED locally (2026-07-16).** The next push/PR will prove the same gate on GitHub Actions; production release, host-of-record, URL backfill, and photos remain the higher-value manual sequence above.
+4. **Container boot smoke gate CLOSED locally and on GitHub (2026-07-16).** Main CI run `29550577370` proved the 21 suites, strict preflight, and production image routes at pushed head `9684a79`; only the real production host probe remains manual.
 
 ---
 
