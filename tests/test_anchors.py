@@ -46,14 +46,29 @@ ID_RE = re.compile(r'\bid\s*=\s*(?P<q>["\'])(?P<name>[^"\'\s]+)(?P=q)')
 # stops taking bids and no other test notices. Threshold picked from today's
 # floor (50 total anchor refs; ~30 of them point at #contact) with plenty of
 # headroom so a legitimate CTA shuffle doesn't false-fail.
-MIN_CONTACT_REFS = 10
+MIN_CONTACT_REFS = 10  # selftest fixture floor; real pages use PAGES below
+
+# Per-page anchor contract (2026-07-17 two-path restructure): the chooser
+# homepage keeps a handful of #contact CTAs (nav / mobile menu / hero /
+# closer / lean contact); the CTA-dense surfaces are the lane pages.
+# residential additionally must keep id="home-repair" — it is the 301
+# target for the retired /home-repair.html.
+PAGES = (
+    ("index.html", 5, ("main", "contact")),
+    ("commercial-industrial.html", 10, ("main", "contact")),
+    ("residential-construction.html", 10, ("main", "contact", "home-repair")),
+)
 
 # Skip-link target — WCAG 2.4.1 "Bypass Blocks". Assert unconditionally so
 # a future edit can't silently drop it.
 REQUIRED_ANCHORS = ("main", "contact")
 
 
-def check_anchors(html: str) -> list[str]:
+def check_anchors(
+    html: str,
+    min_contact_refs: int = MIN_CONTACT_REFS,
+    required: tuple[str, ...] = REQUIRED_ANCHORS,
+) -> list[str]:
     """Return a list of error strings. Empty list = PASS."""
     errors: list[str] = []
 
@@ -77,15 +92,15 @@ def check_anchors(html: str) -> list[str]:
             f"no id=\"{name}\" exists on the page"
         )
 
-    for required in REQUIRED_ANCHORS:
-        if required not in id_names:
-            errors.append(f"required id=\"{required}\" is missing from the page")
+    for req in required:
+        if req not in id_names:
+            errors.append(f"required id=\"{req}\" is missing from the page")
 
     contact_ref_count = sum(1 for n in href_names if n == "contact")
-    if contact_ref_count < MIN_CONTACT_REFS:
+    if contact_ref_count < min_contact_refs:
         errors.append(
             f"only {contact_ref_count} href=\"#contact\" references found, "
-            f"expected >= {MIN_CONTACT_REFS} — CTAs may have been silently removed"
+            f"expected >= {min_contact_refs} — CTAs may have been silently removed"
         )
 
     return errors
@@ -218,25 +233,29 @@ def main() -> int:
     if "--selftest" in sys.argv:
         return selftest()
 
-    if not INDEX.exists():
-        print(f"FAIL: {INDEX} not found", file=sys.stderr)
+    failed = False
+    total_refs = 0
+    for name, floor, required in PAGES:
+        path = REPO_ROOT / name
+        if not path.exists():
+            print(f"FAIL: {path} not found", file=sys.stderr)
+            failed = True
+            continue
+        html = path.read_text(encoding="utf-8")
+        errors = check_anchors(html, min_contact_refs=floor, required=required)
+        if errors:
+            for e in errors:
+                print(f"FAIL: {name}: {e}", file=sys.stderr)
+            failed = True
+            continue
+        total_refs += len(HREF_ANCHOR_RE.findall(html))
+    if failed:
         return 1
 
-    html = INDEX.read_text(encoding="utf-8")
-    errors = check_anchors(html)
-    if errors:
-        for e in errors:
-            print(f"FAIL: {e}", file=sys.stderr)
-        return 1
-
-    href_count = len(HREF_ANCHOR_RE.findall(html))
-    id_count = len(ID_RE.findall(html))
-    unique_targets = {m.group("name") for m in HREF_ANCHOR_RE.finditer(html)}
     print(
-        f"OK: {href_count} href=\"#...\" references across {len(unique_targets)} unique targets "
-        f"all resolve to real ids ({id_count} ids total); "
-        f"#contact referenced {sum(1 for m in HREF_ANCHOR_RE.finditer(html) if m.group('name') == 'contact')} times "
-        f"(>= {MIN_CONTACT_REFS}); skip-link and money targets present"
+        f"OK: {total_refs} href=\"#...\" references across {len(PAGES)} pages all "
+        f"resolve to real ids; per-page #contact floors hold; skip-link, money "
+        f"targets, and the residential #home-repair 301 target present"
     )
     return 0
 

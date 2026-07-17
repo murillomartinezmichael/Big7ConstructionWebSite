@@ -40,9 +40,15 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 INDEX = REPO_ROOT / "index.html"
 IMAGES_DIR = REPO_ROOT / "images"
 
-# 1 hero + 6 portfolio = 7 today. Floor at 6 lets a single card be renamed
-# without collapsing the assertion, but catches a wholesale grid deletion.
-MIN_IMGS = 6
+# Per-page floors (2026-07-17 two-path restructure): the chooser homepage
+# keeps only the hero image; the portfolio grids live on the lane pages.
+MIN_IMGS = 6  # selftest fixture floor; real pages use PAGES below
+PAGES = (
+    # (path, min imgs, require LCP hints: fetchpriority=high + preload-as-image)
+    ("index.html", 1, True),
+    ("commercial-industrial.html", 4, False),
+    ("residential-construction.html", 2, False),
+)
 
 IMG_TAG_RE = re.compile(r'<img\b(?P<attrs>[^>]*)/?>', re.IGNORECASE)
 PRELOAD_IMAGE_RE = re.compile(
@@ -73,14 +79,19 @@ def _preload_image_hrefs(html: str) -> list[str]:
     return hrefs
 
 
-def check(html: str, images_dir: Path | None = None) -> list[str]:
+def check(
+    html: str,
+    images_dir: Path | None = None,
+    min_imgs: int = MIN_IMGS,
+    require_lcp_hints: bool = True,
+) -> list[str]:
     errors: list[str] = []
     imgs = list(IMG_TAG_RE.finditer(html))
 
-    if len(imgs) < MIN_IMGS:
+    if len(imgs) < min_imgs:
         errors.append(
-            f'<img> count = {len(imgs)}; below floor {MIN_IMGS} '
-            f'-- hero + portfolio grid collapsed?'
+            f'<img> count = {len(imgs)}; below floor {min_imgs} '
+            f'-- hero / portfolio grid collapsed?'
         )
 
     fp_high_srcs: list[str] = []
@@ -134,10 +145,11 @@ def check(html: str, images_dir: Path | None = None) -> list[str]:
             )
 
     if not fp_high_srcs:
-        errors.append(
-            'no <img fetchpriority="high"> found -- LCP element has no '
-            'priority hint; browser will guess and often guess wrong'
-        )
+        if require_lcp_hints:
+            errors.append(
+                'no <img fetchpriority="high"> found -- LCP element has no '
+                'priority hint; browser will guess and often guess wrong'
+            )
     elif len(fp_high_srcs) > 1:
         errors.append(
             f'multiple <img fetchpriority="high"> ({len(fp_high_srcs)}: '
@@ -147,10 +159,11 @@ def check(html: str, images_dir: Path | None = None) -> list[str]:
 
     preload_hrefs = _preload_image_hrefs(html)
     if not preload_hrefs:
-        errors.append(
-            'no <link rel="preload" as="image"> found -- hero image is not '
-            'warmed at parse time; LCP will pay the full network round-trip'
-        )
+        if require_lcp_hints:
+            errors.append(
+                'no <link rel="preload" as="image"> found -- hero image is not '
+                'warmed at parse time; LCP will pay the full network round-trip'
+            )
     elif fp_high_srcs and not any(h == fp_high_srcs[0] for h in preload_hrefs):
         errors.append(
             f'<link rel="preload" as="image"> href set {preload_hrefs} does '
@@ -312,22 +325,29 @@ def main() -> int:
         _selftest()
         return 0
 
-    if not INDEX.is_file():
-        print(f'FAIL: {INDEX} missing', file=sys.stderr)
+    total = 0
+    failed = False
+    for name, min_imgs, require_lcp in PAGES:
+        path = REPO_ROOT / name
+        if not path.is_file():
+            print(f'FAIL: {path} missing', file=sys.stderr)
+            failed = True
+            continue
+        html = path.read_text(encoding="utf-8")
+        errs = check(html, IMAGES_DIR, min_imgs=min_imgs, require_lcp_hints=require_lcp)
+        if errs:
+            print(f'FAIL: <img> contract violations on {name}:', file=sys.stderr)
+            for e in errs:
+                print('  -', e, file=sys.stderr)
+            failed = True
+            continue
+        total += len(list(IMG_TAG_RE.finditer(html)))
+    if failed:
         return 1
 
-    html = INDEX.read_text(encoding="utf-8")
-    errs = check(html, IMAGES_DIR)
-    if errs:
-        print('FAIL: <img> contract violations on index.html:', file=sys.stderr)
-        for e in errs:
-            print('  -', e, file=sys.stderr)
-        return 1
-
-    imgs = list(IMG_TAG_RE.finditer(html))
     print(
-        f'OK: {len(imgs)} <img> tags on index.html; all alts non-empty; '
-        f'hero fp=high + <link rel=preload as=image> href agree; every '
+        f'OK: {total} <img> tags across {len(PAGES)} pages; all alts non-empty; '
+        f'index hero fp=high + <link rel=preload as=image> href agree; every '
         f'loading=lazy carries decoding=async'
     )
     return 0

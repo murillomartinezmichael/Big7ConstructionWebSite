@@ -38,9 +38,14 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parent.parent
 INDEX = REPO_ROOT / "index.html"
 # Shared money-path JS (extracted from index.html 2026-07-17). The conversion
-# IIFE + INTENT_TO_TYPE + analytics adapter live here now; the DOM surface
-# (radios, data-intent CTAs) stays in index.html — so the contract is checked
-# against the concatenation of both files.
+# IIFE + INTENT_TO_TYPE + analytics adapter live here; the DOM surface —
+# radios and data-intent CTAs — is spread across the chooser homepage and the
+# two lane destination pages (2026-07-17 two-path restructure). The mapping
+# contract is therefore checked against the concatenation of ALL of them:
+# every INTENT_TO_TYPE entry must have a CTA on SOME page, every mapping
+# target a radio on SOME page (big7.js prefill no-ops gracefully on pages
+# missing a given radio — the per-page floors are enforced separately by
+# check_rebuilt_lane).
 BIG7_JS = REPO_ROOT / "big7.js"
 LANE_PAGES = (
     "commercial-industrial.html",
@@ -274,11 +279,15 @@ def _selftest(html: str) -> int:
         ),
         (
             "mapping entry deleted (CTA has no prefill)",
+            # count=0 (all occurrences): the combined surface carries the map
+            # twice (index legacy shim `var` copy + big7.js `const` copy) —
+            # deleting only the first would leave the parsed big7.js map intact
+            # and the mutation would be a no-op against check().
             re.sub(
                 rf"""['"]{re.escape(a_intent)}['"]\s*:\s*['"][^'"]+['"]\s*,?""",
                 "",
                 html,
-                count=1,
+                count=0,
             ),
             f"data-intent={a_intent!r} but INTENT_TO_TYPE has no entry",
         ),
@@ -415,12 +424,13 @@ def _selftest(html: str) -> int:
 
 
 def main(argv: list[str]) -> int:
-    for path in (INDEX, BIG7_JS):
+    surfaces = [INDEX, BIG7_JS] + [REPO_ROOT / lane for lane in LANE_PAGES]
+    for path in surfaces:
         if not path.exists():
             print(f"FAIL: {path} not found", file=sys.stderr)
             return 1
 
-    html = INDEX.read_text(encoding="utf-8") + "\n" + BIG7_JS.read_text(encoding="utf-8")
+    html = "\n".join(path.read_text(encoding="utf-8") for path in surfaces)
 
     if "--selftest" in argv:
         return _selftest(html)
