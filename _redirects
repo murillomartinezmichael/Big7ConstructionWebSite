@@ -1,5 +1,8 @@
-# Cloudflare Workers static-assets redirects (wrangler.jsonc assets dir = ./).
-# nginx (the Railway primary) carries the same redirect in nginx.conf WITH the
-# #home-repair fragment; fragment support is undocumented for CF-style
-# _redirects files, so it is intentionally omitted here.
+# Cloudflare Workers static-assets redirects (wrangler.jsonc assets dir = ./;
+# host of record since 2026-07-17). nginx (the Railway fallback) carries the
+# same redirect in nginx.conf WITH the #home-repair fragment; fragment support
+# is undocumented for CF-style _redirects files, so it is intentionally
+# omitted here. Both the .html and the extensionless form are listed because
+# CF's html_handling serves lane pages at extensionless URLs (.html 307s).
 /home-repair.html /residential-construction.html 301
+/home-repair /residential-construction 301

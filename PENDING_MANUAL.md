@@ -3,6 +3,18 @@
 Tick-level items only Mike can complete. Sweep at will; each ends in a
 checkbox so it clears with a stroke.
 
+## 2026-07-17 Cloudflare host of record
+
+- [ ] **Bind the apex domain to the `big7` worker (Cloudflare dashboard)**
+  - **What to do:** Workers & Pages → `big7` → Settings → Domains & Routes →
+    add custom domain `big7construction.com`; then add a redirect rule
+    `www.big7construction.com/*` → `https://big7construction.com/$1` (301) —
+    matching the m3mm.net apex-canonical pattern and the site's canonical
+    tags, which already point at the apex.
+  - **Why blocked on him:** Cloudflare dashboard login.
+  - **Resumes:** unblocks the "canonical host bound" item that has been open
+    since the Railway era; after this, Search Console + sitemap resubmit.
+
 ## 2026-07-17 two-path restructure
 
 - [ ] **Log this session to Cockpit Work Log** (COCKPIT.html — press `l`)
@@ -16,8 +28,8 @@ checkbox so it clears with a stroke.
     webhook (verified live) with lane derived from the new source slugs. All
     21 suites migrated to the 2-lane contracts and green + container smoke +
     strict preflight.
-  - **Next up:** live form spot-check after Railway deploy, then bind the
-    canonical host (see NEXT ACTION in TODO.md).
+  - **Next up:** live form spot-check on www.big7construction.com (Cloudflare
+    auto-deploys main), then bind the apex (see NEXT ACTION in TODO.md).
   - **Why blocked on him:** Cockpit Work Log is a browser localStorage write.
   - **Resumes:** Nothing blocked — logging only.
 

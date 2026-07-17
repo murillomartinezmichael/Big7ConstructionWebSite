@@ -1,7 +1,7 @@
 # CLAUDE.md
 
 ## What This Is
-Static marketing website for Big 7 Construction — a full-service commercial, industrial, and residential contractor. Multi-page static HTML site served via nginx:alpine on Railway.
+Static marketing website for Big 7 Construction — a full-service commercial, industrial, and residential contractor. Multi-page static HTML site served via **Cloudflare Workers static assets** (worker `big7`, auto-deploys from GitHub `main`; live at www.big7construction.com). The nginx:alpine/Railway stack stays in-repo as a tested fallback.
 
 ## Site Architecture Direction (2026-07-17, supersedes 2026-07-09 three-lane IA)
 
@@ -17,7 +17,7 @@ Shared brand, shared phone, shared analytics; each lane page carries its own For
 Tech rule: stay static until the content volume forces a change. If Big7 grows past the homepage + lane pages, upgrade to Astro static pages with content collections. Do not build microservices unless Big7 needs auth, client portals, payments, scheduling, or lead-management workflows.
 
 ## Stack
-Multi-page static HTML5 + per-page inline CSS + shared `big7.js` (plain static file, no framework, no build step) → nginx:alpine Docker on Railway (port 8080)
+Multi-page static HTML5 + per-page inline CSS + shared `big7.js` (plain static file, no framework, no build step) → Cloudflare Workers static assets (primary; `_headers` + `_redirects` files) with nginx:alpine Docker on Railway as fallback
 
 ## Key Files
 - `index.html` — homepage/chooser: HTML + its CSS in `<style>` block + decorative inline JS. Fonts: Fraunces + Barlow Condensed + Inter (Google Fonts, async pattern). Color palette: warm off-white, orange-red, electric blue
@@ -35,7 +35,8 @@ python -m http.server 8080
 ```
 
 ## Deploy
-Railway — push to main triggers Docker build. nginx serves on `${PORT:-8080}`. Port is injected at container start via `sed -i s/NGINX_PORT/${PORT:-8080}/g nginx.conf`.
+**Cloudflare (primary, 2026-07-17):** push to `main` → Workers Builds auto-deploys the static assets (wrangler.jsonc, worker `big7`). Live at `https://www.big7construction.com/` (apex binding pending — PENDING_MANUAL). Security headers via `_headers`; home-repair 301 via `_redirects`; CF html_handling serves pages extensionless.
+**Railway (fallback):** Docker build of nginx:alpine; nginx serves on `${PORT:-8080}` (port injected at container start via `sed`). Same content, headers from nginx.conf.
 
 ## Env Vars
 None — fully static site. Railway injects `PORT` automatically for the nginx config substitution.

@@ -9,13 +9,14 @@
 - **n8n wired to the new shape (Mike's ask):** big7.js mirrors every submit fire-and-forget to `https://michaelmurillo.app.n8n.cloud/webhook/big7-lead` (Formspree stays path-of-record); n8n `leads` table gained projectType/budget/location/source columns; workflow derives `lane` from `source`; verified live (webhook execution 892, HTTP 200).
 - **Gates:** all 21 suites golden + selftest green (test_form/test_url_prefill/test_conversion/test_anchors/test_images/test_jsonld/test_font_preload/test_lane_nav/test_404_lane_recovery + SEO/schema suites all moved to the 2-lane contracts) · `make test-container`: `/` + 2 lanes + `/big7.js` 200, `/home-repair.html` 301 w/ correct Location, missing 404 · strict preflight READY.
 
-**NEXT ACTION:** sweep `PENDING_MANUAL.md` — (1) delete the two TEST rows from the n8n `leads` table, (2) after Railway deploys `main`, submit each lane form once with a marker message and confirm Formspree inbox + n8n `leads` row + notify email; then bind the canonical apex/host-of-record and backfill the real Railway URL (STATUS §Runtime, unchanged blocker).
+**NEXT ACTION:** sweep `PENDING_MANUAL.md` — (1) bind apex `big7construction.com` to the `big7` Cloudflare worker + www→apex redirect (site is LIVE on CF at www since the move; new version auto-deployed and verified 2026-07-17), (2) delete the two TEST rows from the n8n `leads` table, (3) submit each lane form once on the live site and confirm Formspree inbox + n8n `leads` row + notify email.
 
 **PARKED (2026-07-17):**
 - Shared `.css` extraction across the 3 pages (per-page inline kept this session per ADR-0001 no-build rule; revisit if a real palette revamp lands).
 - Switch the forms' path-of-record from Formspree to the n8n webhook (n8n already receives every lead via the mirror; flipping primary needs Mike's call + deliverability check).
 - Per-lane Formspree endpoints if inbox triage ever needs hard separation (subjects distinguish today).
 - Lighthouse re-measure on all 3 pages (only Mike can run the browser; predicted >=95 — pages got lighter, fonts/pattern unchanged).
+- Extensionless-URL migration for Cloudflare: CF serves lane pages at `/commercial-industrial` (the `.html` URL 307s), but internal links + canonicals + sitemap + JSON-LD still use `.html` — one extra hop per lane click. Migrating means touching canonicals/sitemap/JSON-LD/tests AND making nginx `try_files $uri $uri.html` so the fallback still works. Do it in one dedicated session after the apex is bound.
 
 ## SHIPPED (2026-07-16, Fable — W2 gate: lanes human-navigable + deploy boot fix)
 
