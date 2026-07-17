@@ -224,6 +224,47 @@
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500&family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" /></noscript>
 
   <style>
+
+    /* ── Font-swap CLS guard ─────────────────────────────────────
+       Metric-tuned local fallbacks (fontTools metrics from the real
+       woff2s vs local Georgia/Arial, latin subsets) so the swap to
+       Fraunces / Barlow Condensed / Inter doesn't move layout.
+       Verified with a layout-shift observer + delayed font loads;
+       regenerate if font versions change. */
+    @font-face {
+      font-family: 'Fraunces Fallback';
+      src: local('Georgia');
+      size-adjust: 108.87%;
+      ascent-override: 89.83%;
+      descent-override: 23.42%;
+      line-gap-override: 0%;
+    }
+    /* Fraunces' opsz-144 display cut is ~19% narrower than the text cut —
+       this variant matches the desktop hero h1 (76px, free-wrap). */
+    @font-face {
+      font-family: 'Fraunces Display Fallback';
+      src: local('Georgia');
+      size-adjust: 92.36%;
+      ascent-override: 89.83%;
+      descent-override: 23.42%;
+      line-gap-override: 0%;
+    }
+    @font-face {
+      font-family: 'Barlow Condensed Fallback';
+      src: local('Arial');
+      size-adjust: 81.17%;
+      ascent-override: 123.19%;
+      descent-override: 24.64%;
+      line-gap-override: 0%;
+    }
+    @font-face {
+      font-family: 'Inter Fallback';
+      src: local('Arial');
+      size-adjust: 107.85%;
+      ascent-override: 89.82%;
+      descent-override: 22.36%;
+      line-gap-override: 0%;
+    }
     :root {
       --paper:   #F5F1EA;
       --paper-2: #EAE4D9;
@@ -242,7 +283,7 @@
     html { scroll-behavior: smooth; }
     body {
       background: var(--paper); color: var(--ink-900);
-      font-family: 'Inter', system-ui, sans-serif;
+      font-family: 'Inter', 'Inter Fallback', system-ui, sans-serif;
       font-size: 16px; line-height: 1.6;
       min-height: 100vh; display: flex; flex-direction: column;
     }
@@ -266,12 +307,12 @@
       background: var(--paper);
     }
     .brand {
-      font-family: 'Fraunces', Georgia, serif; font-weight: 700; font-size: 22px;
+      font-family: 'Fraunces', 'Fraunces Fallback', Georgia, serif; font-weight: 700; font-size: 22px;
       color: var(--ink-950); text-decoration: none; letter-spacing: 0.01em;
     }
     .top-links { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
     .top-links a {
-      font-family: 'Barlow Condensed', sans-serif; font-weight: 600;
+      font-family: 'Barlow Condensed', 'Barlow Condensed Fallback', sans-serif; font-weight: 600;
       font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase;
       color: var(--ink-500); text-decoration: none;
     }
@@ -281,27 +322,27 @@
     main { max-width: 960px; margin: 0 auto; padding: 56px 24px 96px; flex: 1; width: 100%; }
     section { margin: 0 0 72px; }
     .badge {
-      font-family: 'Barlow Condensed', sans-serif;
+      font-family: 'Barlow Condensed', 'Barlow Condensed Fallback', sans-serif;
       font-size: 12px; font-weight: 600; letter-spacing: 0.24em;
       text-transform: uppercase; color: var(--ink-500); margin: 0 0 8px;
     }
     h1 {
-      font-family: 'Fraunces', Georgia, serif; font-weight: 600;
+      font-family: 'Fraunces', 'Fraunces Fallback', Georgia, serif; font-weight: 600;
       font-size: clamp(42px, 7vw, 76px);
       line-height: 1.0; letter-spacing: -0.01em;
       margin: 6px 0 20px; color: var(--ink-950);
     }
     h1 em, h2 em { color: var(--accent-600); font-style: italic; }
     h2 {
-      font-family: 'Fraunces', Georgia, serif; font-weight: 600;
+      font-family: 'Fraunces', 'Fraunces Fallback', Georgia, serif; font-weight: 600;
       font-size: clamp(26px, 4vw, 34px); line-height: 1.15;
       margin: 0 0 16px; color: var(--ink-800);
     }
-    h3 { font-family: 'Fraunces', Georgia, serif; font-weight: 600; font-size: 19px; margin: 0; color: var(--ink-900); }
+    h3 { font-family: 'Fraunces', 'Fraunces Fallback', Georgia, serif; font-weight: 600; font-size: 19px; margin: 0; color: var(--ink-900); }
     p { margin: 0 0 14px; color: var(--ink-700); }
-    .lede { font-family: 'Fraunces', Georgia, serif; font-size: 18px; line-height: 1.65; }
+    .lede { font-family: 'Fraunces', 'Fraunces Fallback', Georgia, serif; font-size: 18px; line-height: 1.65; }
     .spec {
-      font-family: 'Barlow Condensed', sans-serif; font-weight: 600;
+      font-family: 'Barlow Condensed', 'Barlow Condensed Fallback', sans-serif; font-weight: 600;
       font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase;
       color: var(--ink-500);
     }
@@ -317,15 +358,15 @@
     }
     .service-row:hover { border-color: var(--accent-600); color: var(--ink-950); }
     .service-num {
-      font-family: 'Barlow Condensed', sans-serif; font-weight: 600;
+      font-family: 'Barlow Condensed', 'Barlow Condensed Fallback', sans-serif; font-weight: 600;
       font-size: 13px; letter-spacing: 0.14em; color: var(--accent-600); min-width: 26px;
     }
-    .service-title { font-family: 'Fraunces', Georgia, serif; font-weight: 600; font-size: 20px; display: block; }
+    .service-title { font-family: 'Fraunces', 'Fraunces Fallback', Georgia, serif; font-weight: 600; font-size: 20px; display: block; }
     .service-lede { margin: 4px 0 6px; font-size: 15px; }
     .service-spec { margin: 0; }
     .service-arrow {
       margin-left: auto; align-self: center; flex-shrink: 0;
-      font-family: 'Barlow Condensed', sans-serif; font-weight: 600;
+      font-family: 'Barlow Condensed', 'Barlow Condensed Fallback', sans-serif; font-weight: 600;
       font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase;
       color: var(--accent-600); white-space: nowrap;
     }
@@ -335,14 +376,14 @@
     .btn-accent {
       display: inline-block; padding: 14px 22px;
       background: var(--accent-600); color: #fff; text-decoration: none;
-      font-family: 'Barlow Condensed', sans-serif; font-weight: 600; font-size: 14px;
+      font-family: 'Barlow Condensed', 'Barlow Condensed Fallback', sans-serif; font-weight: 600; font-size: 14px;
       letter-spacing: 0.08em; text-transform: uppercase; border-radius: 3px; border: 0;
     }
     .btn-accent:hover { filter: brightness(0.88); color: #fff; }
     .btn-ghost {
       display: inline-block; padding: 14px 22px;
       border: 1px solid var(--ink-500); color: var(--ink-800); text-decoration: none;
-      font-family: 'Barlow Condensed', sans-serif; font-weight: 600; font-size: 14px;
+      font-family: 'Barlow Condensed', 'Barlow Condensed Fallback', sans-serif; font-weight: 600; font-size: 14px;
       letter-spacing: 0.08em; text-transform: uppercase; border-radius: 3px;
       background: transparent;
     }
@@ -359,15 +400,15 @@
     .pf-card img { width: 100%; height: 180px; object-fit: cover; display: block; }
     .pf-body { padding: 14px 16px 16px; }
     .pf-tag {
-      font-family: 'Barlow Condensed', sans-serif; font-weight: 600;
+      font-family: 'Barlow Condensed', 'Barlow Condensed Fallback', sans-serif; font-weight: 600;
       font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
       color: var(--accent-600);
     }
-    .pf-title { font-family: 'Fraunces', Georgia, serif; font-weight: 600; font-size: 18px; margin: 4px 0 2px; }
+    .pf-title { font-family: 'Fraunces', 'Fraunces Fallback', Georgia, serif; font-weight: 600; font-size: 18px; margin: 4px 0 2px; }
     .pf-eyebrow { font-size: 13px; color: var(--ink-500); margin: 0 0 10px; }
     .pf-card dl { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 14px; margin: 0; }
     .pf-card dt {
-      font-family: 'Barlow Condensed', sans-serif; font-weight: 600;
+      font-family: 'Barlow Condensed', 'Barlow Condensed Fallback', sans-serif; font-weight: 600;
       font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-500);
     }
     .pf-card dd { margin: 0; font-size: 14px; }
@@ -387,7 +428,7 @@
       padding: 16px 0; border-top: 1px solid rgba(0,0,0,0.12);
     }
     .step-num {
-      font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+      font-family: 'Barlow Condensed', 'Barlow Condensed Fallback', sans-serif; font-weight: 700;
       font-size: 22px; color: var(--accent-600); margin: 0;
     }
     .step-when { grid-column: 1; margin: 0; }
@@ -396,7 +437,7 @@
 
     /* Testimonials */
     .testi-quote {
-      font-family: 'Fraunces', Georgia, serif; font-style: italic; font-weight: 500;
+      font-family: 'Fraunces', 'Fraunces Fallback', Georgia, serif; font-style: italic; font-weight: 500;
       font-size: clamp(20px, 3vw, 26px); line-height: 1.45; color: var(--ink-800);
       margin: 24px 0 12px; padding: 0;
     }
@@ -408,7 +449,7 @@
       border: 1px solid rgba(0,0,0,0.08); border-radius: 4px;
     }
     .chorus .cs { color: var(--accent-500); letter-spacing: 2px; margin-bottom: 8px; }
-    .chorus blockquote { margin: 0 0 10px; font-family: 'Fraunces', Georgia, serif; font-style: italic; font-size: 15px; line-height: 1.55; }
+    .chorus blockquote { margin: 0 0 10px; font-family: 'Fraunces', 'Fraunces Fallback', Georgia, serif; font-style: italic; font-size: 15px; line-height: 1.55; }
     .chorus figcaption { font-size: 13px; color: var(--ink-500); }
 
     /* FAQ */
@@ -419,7 +460,7 @@
     }
     .faq-item summary {
       cursor: pointer; padding: 16px 0;
-      font-family: 'Fraunces', Georgia, serif; font-weight: 600; font-size: 17px;
+      font-family: 'Fraunces', 'Fraunces Fallback', Georgia, serif; font-weight: 600; font-size: 17px;
       color: var(--ink-900); list-style-position: outside;
     }
     .faq-item[open] summary { border-bottom: 1px solid rgba(0,0,0,0.08); }
@@ -431,7 +472,7 @@
     .cform-set { border: 0; padding: 0; margin: 0 0 26px; }
     .cform-legend { display: flex; align-items: baseline; gap: 12px; margin: 0 0 14px; }
     .cform-legend .lbl {
-      font-family: 'Barlow Condensed', sans-serif; font-weight: 600;
+      font-family: 'Barlow Condensed', 'Barlow Condensed Fallback', sans-serif; font-weight: 600;
       font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-500);
       white-space: nowrap;
     }
@@ -456,7 +497,7 @@
     .type-grid input[type="radio"]:checked + .type-row { border-color: var(--accent-600); box-shadow: inset 0 0 0 1px var(--accent-600); }
     .type-grid input[type="radio"]:focus-visible + .type-row { outline: 3px solid var(--accent-500); outline-offset: 2px; }
     .type-num {
-      font-family: 'Barlow Condensed', sans-serif; font-weight: 600;
+      font-family: 'Barlow Condensed', 'Barlow Condensed Fallback', sans-serif; font-weight: 600;
       font-size: 12px; letter-spacing: 0.14em; color: var(--accent-600);
     }
     .type-name { font-weight: 600; font-size: 15px; margin: 0; color: var(--ink-900); }
@@ -475,7 +516,7 @@
     .btn-dark {
       display: inline-block; padding: 15px 26px; cursor: pointer;
       background: var(--ink-950); color: #fff; border: 0; border-radius: 3px;
-      font-family: 'Barlow Condensed', sans-serif; font-weight: 600; font-size: 15px;
+      font-family: 'Barlow Condensed', 'Barlow Condensed Fallback', sans-serif; font-weight: 600; font-size: 15px;
       letter-spacing: 0.08em; text-transform: uppercase;
     }
     .btn-dark:hover { background: var(--ink-700); }
@@ -495,7 +536,7 @@
     .aside-list { list-style: none; padding: 0; margin: 10px 0 0; }
     .aside-item { display: flex; gap: 12px; align-items: baseline; padding: 8px 0; border-top: 1px solid rgba(0,0,0,0.08); }
     .aside-num {
-      font-family: 'Barlow Condensed', sans-serif; font-weight: 600;
+      font-family: 'Barlow Condensed', 'Barlow Condensed Fallback', sans-serif; font-weight: 600;
       font-size: 12px; letter-spacing: 0.14em; color: var(--accent-600);
     }
     .aside-item .row { display: flex; justify-content: space-between; gap: 10px; flex: 1; flex-wrap: wrap; }
@@ -510,7 +551,7 @@
 
     footer.site {
       padding: 28px 24px; border-top: 1px solid rgba(0,0,0,0.08);
-      font-family: 'Barlow Condensed', sans-serif; font-weight: 600;
+      font-family: 'Barlow Condensed', 'Barlow Condensed Fallback', sans-serif; font-weight: 600;
       font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase;
       color: var(--ink-500); text-align: center;
     }
@@ -529,7 +570,13 @@
         transition-duration: 0.01ms !important;
       }
     }
-  </style>
+  
+    /* Font-swap CLS guard, part 2: desktop hero h1 uses the display-cut
+       fallback (must sit after the base rules — same specificity). */
+    @media (min-width: 1024px) {
+      h1 { font-family: 'Fraunces', 'Fraunces Display Fallback', serif; }
+    }
+</style>
 </head>
 <body>
   <a href="#main" class="skip-link">Skip to main content</a>
