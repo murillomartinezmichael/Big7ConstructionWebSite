@@ -2,9 +2,27 @@
 
 - Home **95-96** perf / 96 a11y / 100 bp · Commercial **98**/100/100 · Residential **98**/100/100 — the ≥95 quality bar passes on all three (first home run read 71 from cold-cache noise; two repeat runs confirmed 95-96).
 - SEO category couldn't be scored locally (Lighthouse-on-Node-21 `URL.parse` bug, tooling not site) — meta/JSON-LD untouched since last green.
-- Small parked wart: CLS 0.09-0.13 on `.hero-overlay` (font-swap reflow resizes hero) — straddles the 0.1 "good" line; only worth touching if a future session is already in the hero.
+- ~~Small parked wart: CLS 0.09-0.13 on `.hero-overlay` (font-swap reflow resizes hero)~~ **FIXED 2026-07-17 eve (`8eadc23`)** — see SHIPPED below.
 
 # Big7Construction — TODO
+
+## SHIPPED (2026-07-17 eve, Fable — font-swap CLS fix, all six combos under 0.1)
+
+- Metric-tuned local fallback `@font-face`s (Georgia/Arial with `size-adjust`
+  + ascent/descent overrides computed from the real woff2 metrics via
+  fontTools) threaded into every font stack on all three pages, so the swap
+  to Fraunces / Barlow Condensed / Inter no longer rewraps the hero.
+- Subtlety that made one value impossible: Fraunces is a variable
+  optical-size font — the opsz-144 display cut is ~19% narrower than the
+  text cut. Each page carries a second `Fraunces Display Fallback`
+  calibrated to its desktop h1 (index 87.71% @92px split-line spans; lanes
+  92.36% @76px free-wrap), applied at ≥1024px after the base rules.
+- **Measured** (Playwright layout-shift observer, font responses delayed
+  1.2s = worst realistic swap): baseline 0.011–**0.235** with 3 combos over
+  0.1 → now **0.004–0.061, all six page/viewport combos under 0.1**.
+- Gates: all 21 make-test suites green · fonts-loaded rendering verified
+  unchanged via screenshots (real fonts still win every stack). Pushed
+  `8eadc23`; CF worker auto-deploys from main.
 
 **Last updated:** 2026-07-17 (Fable — TWO-PATH RESTRUCTURE SHIPPED: homepage = chooser, lane pages = destinations with own forms, home-repair folded + 301'd, money JS extracted to big7.js, n8n lead mirror live)
 

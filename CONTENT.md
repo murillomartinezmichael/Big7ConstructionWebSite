@@ -26,3 +26,8 @@ Rolling list of before/after moments and process shots that would land on TikTok
 - Real jobsite photos (2000+ px) — the site actually reads like a portfolio not a template only after these arrive.
 - Client testimonial + head-shot — the trust section is currently editorial framing with no faces.
 - Real live URL — Perf Lighthouse against Railway prod, not local emulator, is the honest re-measurement.
+
+## 2026-07-17 font-swap CLS fix
+
+### Filmable
+- **"Watch the page jump — now watch it not."** Side-by-side slow-mo screen recording: hero headline rewrapping when the fancy font loads (CLS 0.235, fails Google's bar) vs. the fixed version staying rock-still. Overlay the CLS numbers dropping 0.235 → 0.06. **Frame:** "Your website jumps when the font loads. Google penalizes that. Here's the 40-line CSS fix nobody does — no font files, no build step, just math." Nerd-bait hook: the fix required knowing Fraunces is an optical-size variable font whose display cut is 19% narrower than its text cut.
