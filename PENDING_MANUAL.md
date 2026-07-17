@@ -5,6 +5,22 @@ checkbox so it clears with a stroke.
 
 ## 2026-07-17 two-path restructure
 
+- [ ] **Log this session to Cockpit Work Log** (COCKPIT.html — press `l`)
+  - **Card:** Big7Construction
+  - **What shipped:** Two-path restructure merged to main (CI green,
+    `f69c0b6`). Homepage → lean chooser (path cards + trust strip, no form);
+    commercial + residential became full destination pages each with its own
+    tailored Formspree form; home-repair.html folded into
+    residential#home-repair with a 301; money JS extracted to shared big7.js
+    with a legacy-URL shim; every lead now mirrors to the n8n big7-lead
+    webhook (verified live) with lane derived from the new source slugs. All
+    21 suites migrated to the 2-lane contracts and green + container smoke +
+    strict preflight.
+  - **Next up:** live form spot-check after Railway deploy, then bind the
+    canonical host (see NEXT ACTION in TODO.md).
+  - **Why blocked on him:** Cockpit Work Log is a browser localStorage write.
+  - **Resumes:** Nothing blocked — logging only.
+
 - [ ] **Delete the two TEST rows from the n8n `leads` data table**
   - **What to do:** In n8n (michaelmurillo.app.n8n.cloud) open the `leads`
     data table and delete the rows named "TEST ROW — safe to delete" and
