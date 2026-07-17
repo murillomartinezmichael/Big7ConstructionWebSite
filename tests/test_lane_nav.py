@@ -31,16 +31,16 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parent.parent
 INDEX = REPO_ROOT / "index.html"
 
+# 2026-07-17 two-path restructure: Home Repair folded into the residential
+# page (#home-repair section, 301 from the old URL) — two lanes remain.
 LANE_PATHS = (
     "/commercial-industrial.html",
     "/residential-construction.html",
-    "/home-repair.html",
 )
 
 LANE_LABEL_HINT = {
     "/commercial-industrial.html": "commercial",
     "/residential-construction.html": "residential",
-    "/home-repair.html": "home repair",
 }
 
 BUYER_NAV_RE = re.compile(
@@ -161,19 +161,16 @@ def _selftest() -> int:
         '<nav aria-label="Buyer lanes">'
         '<a href="/commercial-industrial.html">Commercial &amp; Industrial</a>'
         '<a href="/residential-construction.html">Residential Construction</a>'
-        '<a href="/home-repair.html">Home Repair &amp; Improvements</a>'
         "</nav>"
         "<footer><ul>"
         '<li><a href="/commercial-industrial.html">Commercial &amp; Industrial</a></li>'
         '<li><a href="/residential-construction.html">Residential Construction</a></li>'
-        '<li><a href="/home-repair.html">Home Repair &amp; Improvements</a></li>'
         "</ul></footer></body></html>"
     )
     lane_baseline = (
         "<html><body><main>content</main>"
         '<nav aria-label="Other lanes"><p>'
         '<a href="/residential-construction.html">Residential Construction</a> · '
-        '<a href="/home-repair.html">Home Repair</a> · '
         '<a href="/">All services</a></p></nav>'
         "</body></html>"
     )
@@ -196,9 +193,9 @@ def _selftest() -> int:
         (
             "one lane dropped from Buyer-lanes nav",
             idx_baseline.replace(
-                '<a href="/home-repair.html">Home Repair &amp; Improvements</a></nav>', "</nav>"
+                '<a href="/residential-construction.html">Residential Construction</a></nav>', "</nav>"
             ),
-            "missing a link to '/home-repair.html'",
+            "missing a link to '/residential-construction.html'",
         ),
         (
             "lane link text rewritten opaque",
@@ -210,7 +207,7 @@ def _selftest() -> int:
         (
             "same lane listed twice in Buyer-lanes nav",
             idx_baseline.replace(
-                '<a href="/home-repair.html">Home Repair &amp; Improvements</a></nav>',
+                '<a href="/residential-construction.html">Residential Construction</a></nav>',
                 '<a href="/commercial-industrial.html">dup</a></nav>',
             ),
             "more than once",

@@ -25,7 +25,7 @@ Contract:
   2. Inside that nav, exactly one link per lane page exists:
        /commercial-industrial.html
        /residential-construction.html
-       /home-repair.html
+       /residential-construction.html#home-repair (absorbed lane deep link)
   3. Each link's visible text is non-empty and mentions the lane by name
      (a link that reads "click here" fails a11y + wastes the recovery).
   4. Every lane path in the recovery list resolves to a real on-disk
@@ -41,10 +41,14 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parent.parent
 FOURZEROFOUR = REPO_ROOT / "404.html"
 
+# 2026-07-17 two-path restructure: Home Repair folded into the residential
+# page — the recovery deep link targets the absorbed #home-repair section
+# (the old /home-repair.html 301s there; a typo'd repair URL still recovers
+# in one click). On-disk resolution strips the fragment.
 LANE_PATHS = (
     "/commercial-industrial.html",
     "/residential-construction.html",
-    "/home-repair.html",
+    "/residential-construction.html#home-repair",
 )
 
 # nav labelled "Popular pages" — matches the a11y label the 404 ships. Kept
@@ -67,7 +71,7 @@ ANCHOR_RE = re.compile(
 LANE_LABEL_HINT = {
     "/commercial-industrial.html": "commercial",
     "/residential-construction.html": "residential",
-    "/home-repair.html": "home repair",
+    "/residential-construction.html#home-repair": "home repair",
 }
 
 
@@ -127,7 +131,7 @@ def check(html: str) -> list[str]:
 
     for lane in LANE_PATHS:
         # Strip the leading slash so we can resolve against repo root.
-        on_disk = REPO_ROOT / lane.lstrip("/")
+        on_disk = REPO_ROOT / lane.lstrip("/").split("#", 1)[0]
         if not on_disk.is_file():
             errors.append(
                 f"404 recovery lists {lane!r} but no file exists at {on_disk} — "
@@ -145,7 +149,7 @@ def _selftest(_live_html: str) -> int:
         '<ul>'
         '<li><a href="/commercial-industrial.html">Commercial &amp; Industrial &rarr;</a></li>'
         '<li><a href="/residential-construction.html">Residential Construction &rarr;</a></li>'
-        '<li><a href="/home-repair.html">Home Repair &amp; Improvements &rarr;</a></li>'
+        '<li><a href="/residential-construction.html#home-repair">Home Repair &amp; Improvements &rarr;</a></li>'
         '</ul></nav></body></html>'
     )
     baseline_errors = check(baseline)
@@ -178,12 +182,12 @@ def _selftest(_live_html: str) -> int:
             "missing a link to '/residential-construction.html'",
         ),
         (
-            "home-repair lane recovery link dropped",
+            "home-repair deep-link recovery dropped",
             baseline.replace(
-                '<li><a href="/home-repair.html">Home Repair &amp; Improvements &rarr;</a></li>',
+                '<li><a href="/residential-construction.html#home-repair">Home Repair &amp; Improvements &rarr;</a></li>',
                 "",
             ),
-            "missing a link to '/home-repair.html'",
+            "missing a link to '/residential-construction.html#home-repair'",
         ),
         (
             "recovery link text rewritten to opaque 'click here'",
@@ -201,7 +205,7 @@ def _selftest(_live_html: str) -> int:
         (
             "lane path listed twice (another lane silently missing)",
             baseline.replace(
-                '<li><a href="/home-repair.html">Home Repair &amp; Improvements &rarr;</a></li>',
+                '<li><a href="/residential-construction.html#home-repair">Home Repair &amp; Improvements &rarr;</a></li>',
                 '<li><a href="/commercial-industrial.html">dup</a></li>',
             ),
             "duplicate link href='/commercial-industrial.html'",

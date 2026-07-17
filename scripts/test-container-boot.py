@@ -28,11 +28,28 @@ ROUTES = (
     ("/", 200),
     ("/commercial-industrial.html", 200),
     ("/residential-construction.html", 200),
-    ("/home-repair.html", 200),
     ("/big7.js", 200),
     ("/__big7_container_smoke_missing__", 404),
 )
+# Retired routes that must permanently redirect (2026-07-17 two-path
+# restructure): (path, expected status, expected Location header).
+REDIRECTS = (
+    ("/home-repair.html", 301, "/residential-construction.html#home-repair"),
+)
 HTTP = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+
+
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    """Refuse to follow redirects so a 301 surfaces as an HTTPError we can
+    assert on (the default opener would silently follow it to a 200)."""
+
+    def redirect_request(self, *args, **kwargs):  # noqa: D102 - contract above
+        return None
+
+
+HTTP_NO_REDIRECT = urllib.request.build_opener(
+    urllib.request.ProxyHandler({}), _NoRedirect
+)
 
 
 class SmokeFailure(RuntimeError):
@@ -156,6 +173,28 @@ def _assert_routes(base_url: str) -> None:
         if path == "/" and b"Big 7 Construction" not in body:
             raise SmokeFailure("GET / returned 200 but the Big 7 brand signature was absent")
         print(f"  OK  GET {path} -> {actual}")
+
+    for path, expected, location in REDIRECTS:
+        request = urllib.request.Request(
+            f"{base_url}{path}",
+            headers={"User-Agent": "big7-container-smoke/1.0"},
+        )
+        try:
+            with HTTP_NO_REDIRECT.open(request, timeout=3) as response:
+                actual, got_location = response.status, response.headers.get("Location", "")
+        except urllib.error.HTTPError as exc:
+            actual, got_location = exc.code, exc.headers.get("Location", "")
+        except (OSError, TimeoutError, urllib.error.URLError) as exc:
+            raise SmokeFailure(f"GET {path} failed: {type(exc).__name__}: {exc}") from exc
+        if actual != expected:
+            raise SmokeFailure(f"GET {path} returned HTTP {actual}, expected {expected}")
+        # nginx absolutizes the Location header against the request Host, so
+        # compare by suffix rather than equality.
+        if not got_location.endswith(location):
+            raise SmokeFailure(
+                f"GET {path} redirected to {got_location!r}, expected suffix {location!r}"
+            )
+        print(f"  OK  GET {path} -> {actual} Location: {got_location}")
 
 
 def _logs(container_name: str) -> str:
