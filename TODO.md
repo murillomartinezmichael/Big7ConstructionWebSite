@@ -1,6 +1,21 @@
 # Big7Construction — TODO
 
-**Last updated:** 2026-07-16 (Codex — lane navigation + Docker boot fix + production-container CI gate pushed; W2 gate CLOSED)
+**Last updated:** 2026-07-17 (Fable — TWO-PATH RESTRUCTURE SHIPPED: homepage = chooser, lane pages = destinations with own forms, home-repair folded + 301'd, money JS extracted to big7.js, n8n lead mirror live)
+
+## SHIPPED (2026-07-17, Fable — two-path restructure, branch `feat/two-path-restructure`)
+
+- **IA collapsed from 3 lanes to 2 paths (decision with Mike).** Homepage is now a lean chooser (hero → path cards → trust strip → lean contact, ~1,650 lines, was 3,244); `commercial-industrial.html` + `residential-construction.html` are full destination pages (services / portfolio / credentials-or-process / FAQ + FAQPage JSON-LD) each with its **own tailored Formspree intake form** (commercial radios vs residential radios, distinct `_subject`, hidden `source` defaults `commercial-industrial-page` / `residential-page`). `home-repair.html` deleted; nginx 301 → `/residential-construction.html#home-repair` (+ `_redirects` for the CF alt); its content/offers absorbed into the residential page.
+- **Money JS extracted to shared `/big7.js`** (submitForm, conversion IIFE, URL-prefill IIFE, analytics adapter) — one copy across all pages, `page` payload key derives from pathname, nginx serves it with 1h cache + 5 headers. Index carries an inline head **legacy-URL shim**: `/?intent=…` money URLs redirect to the owning lane form (INTENT_TO_TYPE locked in sync with big7.js by test_url_prefill).
+- **n8n wired to the new shape (Mike's ask):** big7.js mirrors every submit fire-and-forget to `https://michaelmurillo.app.n8n.cloud/webhook/big7-lead` (Formspree stays path-of-record); n8n `leads` table gained projectType/budget/location/source columns; workflow derives `lane` from `source`; verified live (webhook execution 892, HTTP 200).
+- **Gates:** all 21 suites golden + selftest green (test_form/test_url_prefill/test_conversion/test_anchors/test_images/test_jsonld/test_font_preload/test_lane_nav/test_404_lane_recovery + SEO/schema suites all moved to the 2-lane contracts) · `make test-container`: `/` + 2 lanes + `/big7.js` 200, `/home-repair.html` 301 w/ correct Location, missing 404 · strict preflight READY.
+
+**NEXT ACTION:** sweep `PENDING_MANUAL.md` — (1) delete the two TEST rows from the n8n `leads` table, (2) after Railway deploys `main`, submit each lane form once with a marker message and confirm Formspree inbox + n8n `leads` row + notify email; then bind the canonical apex/host-of-record and backfill the real Railway URL (STATUS §Runtime, unchanged blocker).
+
+**PARKED (2026-07-17):**
+- Shared `.css` extraction across the 3 pages (per-page inline kept this session per ADR-0001 no-build rule; revisit if a real palette revamp lands).
+- Switch the forms' path-of-record from Formspree to the n8n webhook (n8n already receives every lead via the mirror; flipping primary needs Mike's call + deliverability check).
+- Per-lane Formspree endpoints if inbox triage ever needs hard separation (subjects distinguish today).
+- Lighthouse re-measure on all 3 pages (only Mike can run the browser; predicted >=95 — pages got lighter, fonts/pattern unchanged).
 
 ## SHIPPED (2026-07-16, Fable — W2 gate: lanes human-navigable + deploy boot fix)
 
