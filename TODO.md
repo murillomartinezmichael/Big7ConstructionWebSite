@@ -1,6 +1,20 @@
 # Big7Construction — TODO
 
-**Last updated:** 2026-07-12 (tick 20 — `tests/test_og_twitter.py` extended with per-indexable-page uniqueness lock on `og:url` / `og:title` / `og:description` across the 5 indexable pages; catches the copy-paste class of drift a new lane page shipped with an older page's OG boilerplate would otherwise slip through)
+**Last updated:** 2026-07-16 (Fable — lane navigability shipped + Dockerfile boot-crash fixed; W2 "three lanes navigable" gate CLOSED)
+
+## SHIPPED (2026-07-16, Fable — W2 gate: lanes human-navigable + deploy boot fix)
+
+- **REAL GAP CLOSED: the three lane pages were orphans.** index.html referenced them only inside JSON-LD (OfferCatalog urls) — no human could click from the homepage to any lane. Shipped: **Buyer-lanes strip** in the Services head (house Barlow-Condensed/accent chip style, stacks full-width at 375px), **footer sitemap** entries, **mobile-menu** links, and an **Other-lanes cross-link nav** on each lane page (both siblings + `/`). Commit `08f3ee1`.
+- **`tests/test_lane_nav.py`** — navigability contract per house pattern: Buyer-lanes nav complete/labeled/no-dupes, footer carries all 3, every lane page cross-links both siblings + `/`, every lane path on disk. `--selftest`: 8 mutations all caught. Wired into `make test`; **also wired the previously-unwired `test_404_lane_recovery` into the chain** (existed, passed, but wasn't in `test:`).
+- **DEPLOY BOOT CRASH FIXED LOCALLY (the broken version remains on `origin/main` until push): `Dockerfile` chowned `default.conf` but not the `conf.d` directory** — `sed -i` writes a temp file in the directory, so the non-root container exited 1 at boot ("can't create temp file … Permission denied"). Any Railway rebuild of current `origin/main` would crash-loop. Fix: chown the directory. Commit `ec7b4bd` is local/ahead, not remote. The missing boot-smoke follow-up is now closed by the 2026-07-16 Rung II gate below.
+- **Gates:** all **21 suites golden + selftest green** · `docker build` + boot: `/` + 3 lanes 200, `/nope` 404 · Playwright 375px journey **14/14** (home → lane strip → commercial lane → service row → intake with `projectType` radio prefilled + `src=commercial-industrial-lane` attribution) · both commits local, unpushed per release cadence — **but see PENDING_MANUAL: pushing is now load-bearing** (boot fix must reach origin before any Railway rebuild).
+
+## SHIPPED (2026-07-16, Codex — Rung II production-container boot gate)
+
+- **`scripts/test-container-boot.py` — cross-platform Docker integration gate.** Builds the production image, runs the configured non-root nginx with `PORT=8080`, waits on a Docker-assigned localhost port, and asserts `/` plus all three `.html` lane routes return 200 while a missing route returns 404. An early exit reports container state + logs. A `finally` cleanup removes both the temporary container and tagged image on pass, failure, or interruption.
+- **`Makefile` — `make test-container` added; stale `docker-run` fixed.** The interactive target now maps `8080:8080`, injects `PORT=8080`, and no longer requires a nonexistent project `.env` file.
+- **`.github/workflows/ci.yml` — real verification now runs on pushes/PRs.** The CI test job runs the 21-suite static contract chain, strict deploy preflight, and the production-container smoke instead of relying only on link/secret checks. It can gate PRs when branch protection requires it; it does not block direct pushes by itself.
+- **Verified locally:** all 21 static suites golden + selftest PASS; `python scripts/preflight-deploy.py --strict` READY (only optional live probe skipped); container smoke PASS for `/`, Commercial & Industrial, Residential Construction, Home Repair, and a real 404; cleanup confirmed by the runner.
 
 ## SHIPPED (2026-07-12 tick 20 — Rung II PROVE nineteenth bite: per-indexable-page OG uniqueness lock)
 
@@ -76,22 +90,16 @@
 
 - **`tests/test_url_prefill.py` + `make test-url-prefill` — stdlib contract, wired into `make test`.** Locks: (1) `URLSearchParams` parse; (2) 13 required substrings including `SAFE_PARAM.test(` — whitelist APPLIED, not just declared; (3) SAFE_PARAM regex literal anchored `^…$` with no `.*`/`.+` wildcard; (4) no `querySelector(...params.get(...))` — grep-level DOM-injection guard; (5) `try {` opens BEFORE the URL parse. `--selftest` mutates 6 ways (URLSearchParams stripped, event renamed, utm_source dropped, whitelist call replaced with literal `true`, IIFE marker removed, INTENT_TO_TYPE lookup killed) — all 6 caught. First-draft bug: initial mutation `SAFE_PARAM` → `UNSAFE_PARAM` was a no-op (rename, not kill); tightened to `SAFE_PARAM.test(v)` → `true` which actually bypasses the whitelist. Full 12-suite `make test` all PASS.
 
-## NEXT ACTION (current scope decision)
+## NEXT ACTION
 
-**Big7 IA cleanup before tech upgrade.** Do not split into three sites and do not add microservices yet. Build one parent site with three clear lanes:
+**Three-lane IA is DONE end-to-end (2026-07-16):** lane pages + JSON-LD + sitemap + Dockerfile + navigability (Buyer-lanes strip / footer / mobile menu / sibling cross-links) + 21-suite lock. One brand, one phone, one form, one analytics stream — no site split, no microservices (doctrine unchanged).
 
-1. Commercial & Industrial - GC / facilities / enterprise buyer language.
-2. Residential Construction - homeowner bigger-build language.
-3. Home Repair & Improvements - smaller homeowner repair/replace work, but filtered away from low-value handyman jobs.
+What remains (ordered):
 
-Implementation path:
-
-- Add three static landing pages on the same domain: `/commercial-industrial/`, `/residential-construction/`, `/home-repair/`.
-- Keep one brand, one phone, one form, one analytics stream.
-- Add lane-specific CTA intents and hidden form prefill.
-- Extend `sitemap.xml` only after the pages exist.
-- Upgrade to Astro static only if duplicating sections across pages becomes painful.
-- No microservices unless Big7 needs auth, a client portal, payments, scheduling, or lead-management workflows.
+1. **`git push origin main`** — deploys via Railway. Load-bearing: origin/main's image **crash-loops at boot** (fixed locally in `ec7b4bd`); push before any Railway rebuild. Mike's call per release cadence → `../PENDING_MANUAL.md`.
+2. **Backfill the live Railway URL** into `../projects.yaml` / `STATUS.md` (dashboard lookup — Mike; long-parked).
+3. **Real job photos** when the client sends shoots (PhotoPicker profile `big7`) — photo intake cadence.
+4. **Container boot smoke gate CLOSED locally (2026-07-16).** The next push/PR will prove the same gate on GitHub Actions; production release, host-of-record, URL backfill, and photos remain the higher-value manual sequence above.
 
 ---
 

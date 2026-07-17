@@ -4,7 +4,7 @@ Static site. Test surface is intentionally minimal.
 
 ## Automated (stdlib)
 
-Runnable on any Python 3.11+ machine with zero setup — `make test` chains all eleven.
+Runnable on any Python 3.11+ machine with zero setup — `make test` chains the full static contract suite declared in `Makefile`.
 
 | Test | Purpose | Runs |
 |------|---------|------|
@@ -21,7 +21,18 @@ Runnable on any Python 3.11+ machine with zero setup — `make test` chains all 
 
 Why stdlib only? Two reasons: (a) any future agent on any machine can run the suite without a `pip install` step, and (b) the money paths under test — structured data, crawler discovery, conversion attribution — should not depend on a fragile test toolchain. Rule of thumb: if a test would require `pip install`, it's out of stdlib scope and belongs in an integration/E2E lane instead.
 
-Each of the eleven tests is self-tested against ≥5 deliberately-broken inputs (missing fields, drifted origins, orphan mappings, placeholder-image regressions, missing-on-disk assets, orphan `href`s to nonexistent anchors, security-header regressions on nginx locations, Formspree action drift + `required`-strip on the intake form, Google Fonts preload/stylesheet URL drift + comment-embedded `<noscript>` regressions, `<img>` alt-text/LCP/perf-hint contract mutations, etc.) — never rubber-stamps.
+Each static test is self-tested against deliberately-broken inputs (missing fields, drifted origins, orphan mappings, placeholder-image regressions, missing-on-disk assets, orphan `href`s to nonexistent anchors, security-header regressions on nginx locations, Formspree action drift + `required`-strip on the intake form, Google Fonts preload/stylesheet URL drift + comment-embedded `<noscript>` regressions, `<img>` alt-text/LCP/perf-hint contract mutations, etc.) — never rubber-stamps.
+
+## Automated (Docker integration)
+
+`make test-container` runs `scripts/test-container-boot.py`. The cross-platform Python runner builds the production Dockerfile, starts nginx as configured with `PORT=8080`, waits for HTTP readiness on a Docker-assigned localhost port, and asserts:
+
+- `/`, `/commercial-industrial.html`, `/residential-construction.html`, and `/home-repair.html` return 200.
+- A definitely-missing route returns 404 through the configured nginx error path.
+- The homepage contains the Big 7 brand signature, so a 200 from the wrong image cannot pass.
+- The smoke container and tagged image are removed in `finally`, including failure and interruption paths. If the container exits early, its status, exit code, and logs are printed.
+
+Docker is intentionally not part of `make test`, which remains zero-setup and stdlib-only. CI runs both lanes, plus `python scripts/preflight-deploy.py --strict`.
 
 ## Manual (pre-deploy)
 
@@ -33,4 +44,4 @@ Each of the eleven tests is self-tested against ≥5 deliberately-broken inputs 
 ## Not covered by automation today
 
 - Interactive JS: form submit against Formspree, prefill click loop end-to-end (would need Playwright / jsdom — out of stdlib scope).
-- Nginx cache-header behavior: only observable against the actual container, not `python -m http.server`. Run `docker build && docker run -p 8080:8080 -e PORT=8080 big7` to smoke, then `curl -I http://localhost:8080/`.
+- Live host/DNS/CDN behavior: the local container gate proves the image, nginx boot, routes, and 404 behavior; it cannot prove which production host currently serves the apex or `www` domain.

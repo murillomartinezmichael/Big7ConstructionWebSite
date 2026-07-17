@@ -10,7 +10,7 @@
 # =============================================================================
 
 .DEFAULT_GOAL := help
-.PHONY: help build run test test-jsonld test-seo-files test-conversion test-primary-ctas test-url-prefill test-og test-assets test-anchors test-nginx test-form test-font-preload test-images test-breadcrumbs test-service-schema test-offer-catalog test-dockerfile test-meta-descriptions test-intake-analytics test-a11y-baseline test-lane-nav test-404-lane-recovery test-unit test-integration test-e2e lint fmt clean docker docker-run deploy
+.PHONY: help build run test test-container test-jsonld test-seo-files test-conversion test-primary-ctas test-url-prefill test-og test-assets test-anchors test-nginx test-form test-font-preload test-images test-breadcrumbs test-service-schema test-offer-catalog test-dockerfile test-meta-descriptions test-intake-analytics test-a11y-baseline test-lane-nav test-404-lane-recovery test-unit test-integration test-e2e lint fmt clean docker docker-run deploy
 
 help: ## Show this help
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -22,6 +22,9 @@ run: ## Run the service locally
 	./scripts/run.sh
 
 test: test-jsonld test-seo-files test-conversion test-primary-ctas test-url-prefill test-og test-assets test-anchors test-nginx test-form test-font-preload test-images test-breadcrumbs test-service-schema test-offer-catalog test-dockerfile test-meta-descriptions test-intake-analytics test-a11y-baseline test-lane-nav test-404-lane-recovery ## Run all tests (stdlib-only smoke suite)
+
+test-container: ## Build the production image; prove nginx boots and home/lane/404 routes respond correctly
+	python scripts/test-container-boot.py
 
 test-jsonld: ## LocalBusiness JSON-LD parses + required fields; FAQPage Q.name agrees with visible <summary> text in order (schema/page drift lock)
 	python tests/test_jsonld.py
@@ -128,8 +131,8 @@ clean: ## Remove build artifacts and caches
 docker: ## Build Docker image
 	docker build -t $(shell basename $(CURDIR)):local .
 
-docker-run: ## Run Docker image with local .env
-	docker run --rm -p 8000:8000 --env-file .env $(shell basename $(CURDIR)):local
+docker-run: ## Run Docker image on port 8080 (the static site has no project env file)
+	docker run --rm -p 8080:8080 -e PORT=8080 $(shell basename $(CURDIR)):local
 
 deploy: ## Deploy to the platform configured in scripts/deploy.sh
 	./scripts/deploy.sh

@@ -1,6 +1,21 @@
 name: CI
 on: { push: { branches: [main] }, pull_request: { branches: [main] } }
 jobs:
+  test:
+    name: Static contracts + container boot smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Static contract suite
+        run: make test
+      - name: Strict deploy preflight
+        run: python scripts/preflight-deploy.py --strict
+      - name: Production container boot + routes
+        run: make test-container
   links:
     runs-on: ubuntu-latest
     steps:
