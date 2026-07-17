@@ -52,6 +52,11 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 INDEX = REPO_ROOT / "index.html"
+# Shared money-path JS (extracted from index.html 2026-07-17). The conversion
+# IIFE + INTENT_TO_TYPE + analytics adapter live here now; the DOM surface
+# (radios, data-intent CTAs) stays in index.html — so the contract is checked
+# against the concatenation of both files.
+BIG7_JS = REPO_ROOT / "big7.js"
 LANE_PAGES = (
     "home-repair.html",
     "commercial-industrial.html",
@@ -118,7 +123,7 @@ def parse_mapping(html: str) -> tuple[dict[str, str], list[str]]:
     errors: list[str] = []
     m = INTENT_TO_TYPE_BLOCK_RE.search(html)
     if not m:
-        errors.append("could not find `const INTENT_TO_TYPE = { ... }` block in index.html")
+        errors.append("could not find `const INTENT_TO_TYPE = { ... }` block in index.html+big7.js")
         return {}, errors
 
     body = m.group("body")
@@ -267,7 +272,7 @@ def check(html: str) -> tuple[list[str], dict[str, str], set[str], set[str]]:
 
     for needle in REQUIRED_SUBSTRINGS:
         if needle not in html:
-            errors.append(f"index.html is missing required attribution substring: {needle!r}")
+            errors.append(f"index.html+big7.js is missing required attribution substring: {needle!r}")
 
     return errors, mapping, radios, intents
 
@@ -464,11 +469,12 @@ def _selftest(html: str) -> int:
 
 
 def main(argv: list[str]) -> int:
-    if not INDEX.exists():
-        print(f"FAIL: {INDEX} not found", file=sys.stderr)
-        return 1
+    for path in (INDEX, BIG7_JS):
+        if not path.exists():
+            print(f"FAIL: {path} not found", file=sys.stderr)
+            return 1
 
-    html = INDEX.read_text(encoding="utf-8")
+    html = INDEX.read_text(encoding="utf-8") + "\n" + BIG7_JS.read_text(encoding="utf-8")
 
     if "--selftest" in argv:
         return _selftest(html)

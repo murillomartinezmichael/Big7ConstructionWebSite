@@ -6,6 +6,7 @@ COPY accessibility.html         /usr/share/nginx/html/accessibility.html
 COPY home-repair.html               /usr/share/nginx/html/home-repair.html
 COPY commercial-industrial.html     /usr/share/nginx/html/commercial-industrial.html
 COPY residential-construction.html  /usr/share/nginx/html/residential-construction.html
+COPY big7.js            /usr/share/nginx/html/big7.js
 COPY robots.txt         /usr/share/nginx/html/robots.txt
 COPY sitemap.xml        /usr/share/nginx/html/sitemap.xml
 COPY images/            /usr/share/nginx/html/images/

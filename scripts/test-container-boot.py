@@ -29,6 +29,7 @@ ROUTES = (
     ("/commercial-industrial.html", 200),
     ("/residential-construction.html", 200),
     ("/home-repair.html", 200),
+    ("/big7.js", 200),
     ("/__big7_container_smoke_missing__", 404),
 )
 HTTP = urllib.request.build_opener(urllib.request.ProxyHandler({}))

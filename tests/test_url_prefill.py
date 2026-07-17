@@ -20,6 +20,10 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 INDEX = REPO_ROOT / "index.html"
+# Shared money-path JS (extracted from index.html 2026-07-17). The URL-param
+# prefill IIFE lives here now; the hidden source input stays in the page HTML —
+# the contract is checked against the concatenation of both files.
+BIG7_JS = REPO_ROOT / "big7.js"
 
 IIFE_MARKER = "URL-param prefill (bio-link landing)"
 
@@ -58,7 +62,8 @@ PAYLOAD_KEY_RE = re.compile(r"(?:^|[,{\s])(?P<key>[A-Za-z_][A-Za-z0-9_]*)\s*:")
 #   intent      — what the user clicked in the bio link
 #   type        — the projectType that was pre-selected on the radio
 #   src         — lane attribution slug (drives Formspree "source" too)
-#   page        — landing page identifier (always 'home' — the IIFE only runs on `/`)
+#   page        — landing page identifier (BIG7_PAGE: 'home' on `/`, the page
+#                 slug on lane pages — big7.js runs on every page since 2026-07-17)
 #   did_radio   — did the radio prefill actually succeed (safety metric)
 #   did_text    — did the textarea prefill actually succeed
 #   did_source  — did the hidden `source` input get populated (attribution success)
@@ -98,7 +103,7 @@ def _iife_body(html: str) -> str | None:
 def check(html: str) -> list[str]:
     errors: list[str] = []
     if IIFE_MARKER not in html:
-        errors.append(f"index.html missing IIFE marker {IIFE_MARKER!r}")
+        errors.append(f"index.html+big7.js missing IIFE marker {IIFE_MARKER!r}")
         return errors
     body = _iife_body(html)
     if body is None:
@@ -184,7 +189,7 @@ def _selftest(html: str) -> int:
         (
             "landing_prefill.page dropped (lane funnel loses landing-page identity)",
             html.replace(
-                "intent: intent, type: resolvedType, src: src, page: 'home',",
+                "intent: intent, type: resolvedType, src: src, page: BIG7_PAGE,",
                 "intent: intent, type: resolvedType, src: src,",
                 1,
             ),
@@ -193,8 +198,8 @@ def _selftest(html: str) -> int:
         (
             "landing_prefill.src dropped (lane attribution goes dark at dataLayer)",
             html.replace(
-                "intent: intent, type: resolvedType, src: src, page: 'home',",
-                "intent: intent, type: resolvedType, page: 'home',",
+                "intent: intent, type: resolvedType, src: src, page: BIG7_PAGE,",
+                "intent: intent, type: resolvedType, page: BIG7_PAGE,",
                 1,
             ),
             "landing_prefill payload missing required key(s) ['src']",
@@ -211,8 +216,8 @@ def _selftest(html: str) -> int:
         (
             "landing_prefill.type dropped (radio-prefill success ambiguous)",
             html.replace(
-                "intent: intent, type: resolvedType, src: src, page: 'home',",
-                "intent: intent, src: src, page: 'home',",
+                "intent: intent, type: resolvedType, src: src, page: BIG7_PAGE,",
+                "intent: intent, src: src, page: BIG7_PAGE,",
                 1,
             ),
             "landing_prefill payload missing required key(s) ['type']",
@@ -221,17 +226,17 @@ def _selftest(html: str) -> int:
             "landing_prefill call duplicated (double-fires every landing)",
             html.replace(
                 "track('landing_prefill', {\n"
-                "            intent: intent, type: resolvedType, src: src, page: 'home',\n"
-                "            did_radio: didRadio, did_text: didText, did_source: didSource\n"
-                "          });",
+                "        intent: intent, type: resolvedType, src: src, page: BIG7_PAGE,\n"
+                "        did_radio: didRadio, did_text: didText, did_source: didSource\n"
+                "      });",
                 "track('landing_prefill', {\n"
-                "            intent: intent, type: resolvedType, src: src, page: 'home',\n"
-                "            did_radio: didRadio, did_text: didText, did_source: didSource\n"
-                "          });\n"
-                "          track('landing_prefill', {\n"
-                "            intent: intent, type: resolvedType, src: src, page: 'home',\n"
-                "            did_radio: didRadio, did_text: didText, did_source: didSource\n"
-                "          });",
+                "        intent: intent, type: resolvedType, src: src, page: BIG7_PAGE,\n"
+                "        did_radio: didRadio, did_text: didText, did_source: didSource\n"
+                "      });\n"
+                "      track('landing_prefill', {\n"
+                "        intent: intent, type: resolvedType, src: src, page: BIG7_PAGE,\n"
+                "        did_radio: didRadio, did_text: didText, did_source: didSource\n"
+                "      });",
                 1,
             ),
             "found 2",
@@ -263,7 +268,7 @@ def _selftest(html: str) -> int:
 
 
 def main(argv: list[str]) -> int:
-    html = INDEX.read_text(encoding="utf-8")
+    html = INDEX.read_text(encoding="utf-8") + "\n" + BIG7_JS.read_text(encoding="utf-8")
     if "--selftest" in argv:
         return _selftest(html)
     errs = check(html)
