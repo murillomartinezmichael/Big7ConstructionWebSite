@@ -698,9 +698,9 @@
         </li>
         <li>
           <p class="step-num">03</p>
-          <p class="step-when spec">Day 5–14</p>
+          <p class="step-when spec">Day 3–10</p>
           <h3 class="step-title">Bid &amp; schedule</h3>
-          <p class="step-body">Itemized bid with line-item costs and a milestone schedule tied to visible progress.</p>
+          <p class="step-body">Itemized bid with line-item costs and a milestone schedule tied to visible progress. Repair and single-room scopes usually land in days, not weeks.</p>
         </li>
         <li>
           <p class="step-num">04</p>
@@ -861,11 +861,17 @@
               <span class="lbl">03 · Budget range</span>
               <div class="rule"></div>
             </div>
+            <!-- Homeowner-scale ranges: whole-room repair/remodel work starts
+                 ~$25K–$50K; kitchens/baths $50K–$150K; additions + structural
+                 $150K–$500K; custom homes $500K–$1M+ (portfolio: $740K
+                 addition, $1.9M custom). Distinct from the commercial form's
+                 ranges by design — do not copy between lanes. -->
             <div class="chips">
-              <label><input type="radio" name="budget" value="lt-250k" /><span class="chip">&lt; $250K</span></label>
-              <label><input type="radio" name="budget" value="250k-1m" /><span class="chip">$250K – $1M</span></label>
-              <label><input type="radio" name="budget" value="1m-5m" /><span class="chip">$1M – $5M</span></label>
-              <label><input type="radio" name="budget" value="5m-25m" /><span class="chip">$5M+</span></label>
+              <label><input type="radio" name="budget" value="lt-50k" /><span class="chip">&lt; $50K</span></label>
+              <label><input type="radio" name="budget" value="50k-150k" /><span class="chip">$50K – $150K</span></label>
+              <label><input type="radio" name="budget" value="150k-500k" /><span class="chip">$150K – $500K</span></label>
+              <label><input type="radio" name="budget" value="500k-1m" /><span class="chip">$500K – $1M</span></label>
+              <label><input type="radio" name="budget" value="1m-plus" /><span class="chip">$1M+</span></label>
               <label><input type="radio" name="budget" value="tbd" /><span class="chip">Not sure yet</span></label>
             </div>
           </fieldset>
@@ -916,7 +922,7 @@
                 <span class="aside-num">03</span>
                 <div class="row">
                   <p class="lbl">Itemized bid</p>
-                  <p class="val">5–14 business days</p>
+                  <p class="val">3–10 business days</p>
                 </div>
               </li>
             </ol>

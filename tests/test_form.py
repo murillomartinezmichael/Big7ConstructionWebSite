@@ -59,11 +59,18 @@ FORM_PAGES: dict[str, dict] = {
         "radios": {"commercial-new", "industrial-warehouse", "tenant-improvement"},
         "subject": "New commercial bid",
         "source": "commercial-industrial-page",
+        # Commercial-scale budget ranges (2026-07-17, Mike's ask: the two
+        # lanes must NOT share pricing ranges — a homeowner staring at
+        # "$5M-$25M" chips bounces, a facilities director staring at
+        # "<$50K" chips doubts the shop's capacity).
+        "budgets": {"lt-500k", "500k-1m", "1m-5m", "5m-25m", "25m-plus", "tbd"},
     },
     "residential-construction.html": {
         "radios": {"residential-custom", "residential-remodel", "trades-only"},
         "subject": "New residential bid",
         "source": "residential-page",
+        # Homeowner-scale budget ranges — see note above.
+        "budgets": {"lt-50k", "50k-150k", "150k-500k", "500k-1m", "1m-plus", "tbd"},
     },
 }
 MIN_RADIOS = 3  # per-lane floor; the exact value-set check below is the real lock.
@@ -152,6 +159,7 @@ def check(
     radios_expected: set[str] | None = None,
     subject_needle: str = "",
     source_expected: str = "",
+    budgets_expected: set[str] | None = None,
 ) -> list[str]:  # noqa: C901 - single flat contract check by design
     errors: list[str] = []
 
@@ -233,6 +241,23 @@ def check(
             "on radio groups if at least one member declares it; visitors can submit "
             "without picking a project type"
         )
+
+    # (3b) budget chips: the lane's exact value set. The two lanes carry
+    # DIFFERENT ranges by design (commercial-scale vs homeowner-scale) — a
+    # copy-paste that re-unifies them ships unrealistic pricing to one
+    # audience and this catches it.
+    if budgets_expected is not None:
+        budget_vals = {
+            b.get("value", "")
+            for b in inputs.get("budget", [])
+            if b.get("type", "").lower() == "radio"
+        }
+        if budget_vals != budgets_expected:
+            errors.append(
+                f"budget chip values {sorted(budget_vals)} do not match the lane's "
+                f"expected set {sorted(budgets_expected)} — the two lanes must not "
+                f"share pricing ranges (commercial-scale vs homeowner-scale)"
+            )
 
     # (4) Honeypot: name="website", hidden + tabindex + autocomplete=off.
     honeypots = inputs.get("website", [])
@@ -366,6 +391,8 @@ def _minimal_valid_form_html() -> str:
   <input type="hidden" name="_subject" value="New bid request"/>
   <input type="hidden" name="_replyto" value=""/>
   <input type="hidden" name="source" value="lane-selftest-page"/>
+  <label><input type="radio" name="budget" value="b0"/></label>
+  <label><input type="radio" name="budget" value="b1"/></label>
   <input type="text"  name="name"  required autocomplete="name"/>
   <input type="email" name="email" required autocomplete="email"/>
   <input type="tel"   name="phone" required autocomplete="tel"/>
@@ -391,6 +418,7 @@ def _selftest(_live_html: str) -> int:
         radios_expected={f"r{i}" for i in range(MIN_RADIOS)},
         subject_needle="New bid request",
         source_expected="lane-selftest-page",
+        budgets_expected={"b0", "b1"},
     )
     baseline = _minimal_valid_form_html()
     baseline_errors = check(baseline, **fixture_spec)
@@ -515,6 +543,11 @@ def _selftest(_live_html: str) -> int:
             baseline.replace('value="r1"', 'value="r1-renamed"'),
             "do not match the lane's expected set",
         ),
+        (
+            "budget chips re-unified with the sibling lane (pricing drift)",
+            baseline.replace('name="budget" value="b1"', 'name="budget" value="b1-other-lane"'),
+            "must not share pricing ranges",
+        ),
     ]
 
     failures: list[str] = []
@@ -569,12 +602,22 @@ def main(argv: list[str]) -> int:
             radios_expected=spec["radios"],
             subject_needle=spec["subject"],
             source_expected=spec["source"],
+            budgets_expected=spec["budgets"],
         ):
             errors.append(f"{page}: {e}")
 
     if errors:
         for e in errors:
             print(f"FAIL: {e}", file=sys.stderr)
+        return 1
+
+    budget_sets = [frozenset(spec["budgets"]) for spec in FORM_PAGES.values()]
+    if len(set(budget_sets)) != len(budget_sets):
+        print(
+            "FAIL: FORM_PAGES budget specs are identical across lanes — the spec "
+            "itself drifted; the lanes must carry different pricing ranges",
+            file=sys.stderr,
+        )
         return 1
 
     subjects = {spec["subject"] for spec in FORM_PAGES.values()}
