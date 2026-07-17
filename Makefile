@@ -10,7 +10,7 @@
 # =============================================================================
 
 .DEFAULT_GOAL := help
-.PHONY: help build run test test-jsonld test-seo-files test-conversion test-primary-ctas test-url-prefill test-og test-assets test-anchors test-nginx test-form test-font-preload test-images test-breadcrumbs test-service-schema test-offer-catalog test-dockerfile test-meta-descriptions test-intake-analytics test-a11y-baseline test-unit test-integration test-e2e lint fmt clean docker docker-run deploy
+.PHONY: help build run test test-jsonld test-seo-files test-conversion test-primary-ctas test-url-prefill test-og test-assets test-anchors test-nginx test-form test-font-preload test-images test-breadcrumbs test-service-schema test-offer-catalog test-dockerfile test-meta-descriptions test-intake-analytics test-a11y-baseline test-lane-nav test-404-lane-recovery test-unit test-integration test-e2e lint fmt clean docker docker-run deploy
 
 help: ## Show this help
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -21,7 +21,7 @@ build: ## Clean-clone -> running prerequisites met (delegates to build.sh)
 run: ## Run the service locally
 	./scripts/run.sh
 
-test: test-jsonld test-seo-files test-conversion test-primary-ctas test-url-prefill test-og test-assets test-anchors test-nginx test-form test-font-preload test-images test-breadcrumbs test-service-schema test-offer-catalog test-dockerfile test-meta-descriptions test-intake-analytics test-a11y-baseline ## Run all tests (stdlib-only smoke suite)
+test: test-jsonld test-seo-files test-conversion test-primary-ctas test-url-prefill test-og test-assets test-anchors test-nginx test-form test-font-preload test-images test-breadcrumbs test-service-schema test-offer-catalog test-dockerfile test-meta-descriptions test-intake-analytics test-a11y-baseline test-lane-nav test-404-lane-recovery ## Run all tests (stdlib-only smoke suite)
 
 test-jsonld: ## LocalBusiness JSON-LD parses + required fields; FAQPage Q.name agrees with visible <summary> text in order (schema/page drift lock)
 	python tests/test_jsonld.py
@@ -98,6 +98,14 @@ test-intake-analytics: ## cta_click + intake_submit payload keys locked; has_pre
 test-a11y-baseline: ## LAW 11 baseline across 6 top-level pages: lang=en, skip-link -> #main, <main> landmark, prefers-reduced-motion, :focus-visible, /accessibility link
 	python tests/test_a11y_baseline.py
 	python tests/test_a11y_baseline.py --selftest
+
+test-lane-nav: ## Lane navigability: index Buyer-lanes nav + footer link all 3 lane pages; every lane page cross-links both siblings + / (no orphan lanes)
+	python tests/test_lane_nav.py
+	python tests/test_lane_nav.py --selftest
+
+test-404-lane-recovery: ## 404.html recovery nav one-click routes to all 3 lane pages (was unwired from the chain)
+	python tests/test_404_lane_recovery.py
+	python tests/test_404_lane_recovery.py --selftest
 
 test-unit: ## Run unit tests only
 	./scripts/test.sh unit
