@@ -5,15 +5,16 @@ checkbox so it clears with a stroke.
 
 ## 2026-07-17 Cloudflare host of record
 
-- [ ] **Bind the apex domain to the `big7` worker (Cloudflare dashboard)**
-  - **What to do:** Workers & Pages → `big7` → Settings → Domains & Routes →
-    add custom domain `big7construction.com`; then add a redirect rule
-    `www.big7construction.com/*` → `https://big7construction.com/$1` (301) —
-    matching the m3mm.net apex-canonical pattern and the site's canonical
-    tags, which already point at the apex.
-  - **Why blocked on him:** Cloudflare dashboard login.
-  - **Resumes:** unblocks the "canonical host bound" item that has been open
-    since the Railway era; after this, Search Console + sitemap resubmit.
+- [x] **Bind the apex domain to the `big7` worker (Cloudflare dashboard)** — DONE
+  2026-07-17. Blocked initially on a stale `big7construction.com CNAME →
+  mpopovgg.up.railway.app` zone record; deleted it, then the apex custom
+  domain bound clean. Mike then removed `www.big7construction.com` entirely
+  (his call) instead of adding the planned 301 redirect — simpler, and the
+  repo's canonicals already point at the apex form, so no redirect is needed.
+  Verified live: `/` 200 real content, `/commercial-industrial.html` 307
+  (extensionless), `/big7.js` 200, `/home-repair.html` 301.
+  - **Next:** Search Console — resubmit `sitemap.xml`, and if `www` was ever
+    indexed, add a removal request so Google doesn't keep crawling a dead host.
 
 ## 2026-07-17 two-path restructure
 

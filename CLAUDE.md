@@ -1,7 +1,7 @@
 # CLAUDE.md
 
 ## What This Is
-Static marketing website for Big 7 Construction — a full-service commercial, industrial, and residential contractor. Multi-page static HTML site served via **Cloudflare Workers static assets** (worker `big7`, auto-deploys from GitHub `main`; live at www.big7construction.com). The nginx:alpine/Railway stack stays in-repo as a tested fallback.
+Static marketing website for Big 7 Construction — a full-service commercial, industrial, and residential contractor. Multi-page static HTML site served via **Cloudflare Workers static assets** (worker `big7`, auto-deploys from GitHub `main`; live at the apex `big7construction.com`). `www` was intentionally decommissioned (Mike's call, 2026-07-17) rather than bound + 301'd — apex is the sole host, matching the repo's existing apex-form canonicals. The nginx:alpine/Railway stack stays in-repo as a tested fallback.
 
 ## Site Architecture Direction (2026-07-17, supersedes 2026-07-09 three-lane IA)
 
@@ -35,7 +35,7 @@ python -m http.server 8080
 ```
 
 ## Deploy
-**Cloudflare (primary, 2026-07-17):** push to `main` → Workers Builds auto-deploys the static assets (wrangler.jsonc, worker `big7`). Live at `https://www.big7construction.com/` (apex binding pending — PENDING_MANUAL). Security headers via `_headers`; home-repair 301 via `_redirects`; CF html_handling serves pages extensionless.
+**Cloudflare (primary, 2026-07-17):** push to `main` → Workers Builds auto-deploys the static assets (wrangler.jsonc, worker `big7`). Live at `https://big7construction.com/` (apex bound 2026-07-17; `www` removed rather than redirected). Security headers via `_headers`; home-repair 301 via `_redirects`; CF html_handling serves pages extensionless.
 **Railway (fallback):** Docker build of nginx:alpine; nginx serves on `${PORT:-8080}` (port injected at container start via `sed`). Same content, headers from nginx.conf.
 
 ## Env Vars
