@@ -67,12 +67,22 @@ def origin_of(url: str) -> str:
 
 
 def _loc_to_repo_path(loc_url: str, canonical_origin: str, repo_root: Path) -> Path:
-    """Strip origin off a sitemap <loc>, return the repo-root Path it points at."""
+    """Strip origin off a sitemap <loc>, return the repo-root Path it points at.
+
+    Clean-URL form (2026-07-19): the Cloudflare worker serves `/page` for
+    `page.html` (and 307s the `.html` form), so canonical/sitemap URLs are
+    extensionless. An extensionless path maps to `<path>.html` on disk unless
+    a file with the literal name exists.
+    """
     p = urlparse(loc_url)
     path = p.path or "/"
     if path == "/" or path == "":
         return repo_root / "index.html"
-    return repo_root / path.lstrip("/")
+    rel = path.lstrip("/")
+    target = repo_root / rel
+    if target.exists() or "." in Path(rel).name:
+        return target
+    return repo_root / (rel + ".html")
 
 
 def _indexable_html_files(repo_root: Path) -> list[Path]:
@@ -269,11 +279,14 @@ BASELINE_SITEMAP = """<?xml version="1.0" encoding="UTF-8"?>
     <lastmod>2026-07-11</lastmod>
   </url>
   <url>
-    <loc>https://big7construction.com/accessibility.html</loc>
+    <loc>https://big7construction.com/accessibility</loc>
     <lastmod>2026-07-11</lastmod>
   </url>
 </urlset>
 """
+# NOTE: the accessibility <loc> above is deliberately the clean extensionless
+# form while home-repair keeps the .html form — the selftest baseline must
+# exercise BOTH URL shapes through _loc_to_repo_path.
 
 BASELINE_ROBOTS = """User-agent: *
 Allow: /
@@ -350,7 +363,7 @@ def selftest() -> int:
             "coverage: indexable accessibility.html not in sitemap",
             "sitemap.xml",
             BASELINE_SITEMAP.replace(
-                '  <url>\n    <loc>https://big7construction.com/accessibility.html</loc>\n    <lastmod>2026-07-11</lastmod>\n  </url>\n',
+                '  <url>\n    <loc>https://big7construction.com/accessibility</loc>\n    <lastmod>2026-07-11</lastmod>\n  </url>\n',
                 "",
             ),
             "missing an entry for indexable page 'accessibility.html'",

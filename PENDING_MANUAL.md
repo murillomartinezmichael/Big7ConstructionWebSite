@@ -3,6 +3,11 @@
 Tick-level items only Mike can complete. Sweep at will; each ends in a
 checkbox so it clears with a stroke.
 
+> 🤖 **2026-07-19:** every "Log to Cockpit Work Log" item below is pre-staged
+> inside `../COCKPIT.html` — open it and click the one-time **"Import all"**
+> banner above the Work Log (27 entries fleet-wide, verified via headless
+> Playwright). Then check these boxes in one stroke.
+
 ## 2026-07-17 Cloudflare host of record
 
 - [x] **Bind the apex domain to the `big7` worker (Cloudflare dashboard)** — DONE

@@ -169,7 +169,7 @@ async function submitForm(e) {
 
   // ─── URL-param prefill (bio-link landing) ────────────────
   // Money path: a TikTok / Instagram / email-footer bio link like
-  //   https://big7construction.com/commercial-industrial.html?intent=service:tenant-improvement&src=tiktok-bio
+  //   https://big7construction.com/commercial-industrial?intent=service:tenant-improvement&src=tiktok-bio
   // lands the visitor on a form that already knows why they came.
   // Also accepts `?type=<projectType>` (direct radio value — bio-link
   // authors can pick from the radio values without knowing the
