@@ -13,8 +13,16 @@ checkbox so it clears with a stroke.
   repo's canonicals already point at the apex form, so no redirect is needed.
   Verified live: `/` 200 real content, `/commercial-industrial.html` 307
   (extensionless), `/big7.js` 200, `/home-repair.html` 301.
-  - **Next:** Search Console — resubmit `sitemap.xml`, and if `www` was ever
-    indexed, add a removal request so Google doesn't keep crawling a dead host.
+  - [x] **Next:** ~~Search Console — resubmit `sitemap.xml`~~ **DONE 2026-07-19** —
+    Mike created the Domain property (DNS TXT verification via Cloudflare
+    authorize flow) and submitted `https://big7construction.com/sitemap.xml`
+    (the relative form triggered "Invalid sitemap address"; full URL worked).
+    Sitemap pre-verified serving 200 `application/xml` with 4 apex URLs. `www`
+    was never in Search Console (fresh property) — no removal request needed.
+    Follow-up found during verification: canonical/sitemap URLs use the `.html`
+    form but the live host 307s `.html` → clean paths (canonicals point at
+    URLs that redirect away from themselves) — parked as next agent arc in
+    `TODO.md`.
 
 ## 2026-07-17 two-path restructure
 

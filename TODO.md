@@ -6,7 +6,20 @@
 
 # Big7Construction — TODO
 
-## SHIPPED (2026-07-17 eve, Fable — font-swap CLS fix, all six combos under 0.1)
+## NEXT AGENT ARC (parked 2026-07-19, found during Search Console verification)
+
+- **Canonical/sitemap URL-shape mismatch:** every page declares
+  `canonical = https://big7construction.com/<page>.html` and `sitemap.xml`
+  lists the same `.html` forms, but the live Cloudflare worker **307s
+  `.html` → clean extensionless paths** — so canonicals point at URLs that
+  redirect away from themselves. Google tolerates it but it muddies indexing
+  signals on a revenue site. Fix: flip canonicals + `og:url` + sitemap (+
+  JSON-LD `url`s if they carry `.html`) to the clean paths that actually
+  serve 200, and update the test suites that lock canonical/OG/sitemap
+  shapes (~30 min inc. tests). Context: sitemap submitted to the new Search
+  Console Domain property 2026-07-19 (status "Couldn't fetch" is the usual
+  first-submit placeholder; re-check after Google's first real crawl) —
+  fixing this before indexing settles is ideal.
 
 - Metric-tuned local fallback `@font-face`s (Georgia/Arial with `size-adjust`
   + ascent/descent overrides computed from the real woff2 metrics via
