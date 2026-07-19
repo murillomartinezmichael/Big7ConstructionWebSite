@@ -6,7 +6,17 @@
 
 # Big7Construction — TODO
 
-## NEXT AGENT ARC (parked 2026-07-19, found during Search Console verification)
+## ~~NEXT AGENT ARC~~ SHIPPED 2026-07-19 (`81d9f4d`) — canonical URL-shape fix
+
+All SEO-signal URLs (canonical, og:url, BreadcrumbList, Service.url,
+OfferCatalog, sitemap locs) flipped `.html` → clean extensionless paths that
+serve 200. Tests taught the clean-URL mapping (`_loc_to_repo_path`,
+offer-catalog on-disk check); 21 suites + selftests green; CI green;
+**verified live**: all 3 page canonicals + all 4 sitemap locs serve the clean
+form. Nav/internal hrefs deliberately untouched (worker serves both; flipping
+them is cosmetic, not an SEO signal). Original scoping note below.
+
+### (original parked note, for context)
 
 - **Canonical/sitemap URL-shape mismatch:** every page declares
   `canonical = https://big7construction.com/<page>.html` and `sitemap.xml`
