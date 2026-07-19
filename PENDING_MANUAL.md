@@ -8,6 +8,27 @@ checkbox so it clears with a stroke.
 > banner above the Work Log (27 entries fleet-wide, verified via headless
 > Playwright). Then check these boxes in one stroke.
 
+## 2026-07-19 competitor-research trust fixes — real-world prerequisites
+
+- [ ] **Claim the Google Business Profile for Big 7 Construction.**
+  - **What to do:** google.com/business → claim/create the listing for the
+    business (needs the real address + phone + postcard/phone verification).
+  - **Why blocked on him:** Google account ownership + business verification
+    are Mike/client-only.
+  - **Resumes:** review stars + `aggregateRating` JSON-LD can return to the
+    site once >=3 real reviews exist on the live profile (the fabricated
+    "4.9 across 60+ verified reviews" line was cut from all 3 pages
+    2026-07-19 per LAW #6 — do not re-add without real reviews to link).
+- [ ] **Provision the real business phone number (replaces 555-700-0007).**
+  - **What to do:** get the client's real line (or stand up the tracking
+    number), then swap it into all `tel:` anchors, visible text, and JSON-LD
+    `telephone` fields across index / both lanes / accessibility / 404 —
+    `tests/test_form.py` + `tests/test_jsonld.py` lock the tel↔JSON-LD
+    agreement, so one agent pass after the number lands keeps it green.
+  - **Why blocked on him:** phone provisioning is a client/business decision.
+  - **Resumes:** click-to-call + sticky call bar dial a real line; the
+    `contactOption: "TollFree"` question in TODO can be settled.
+
 ## 2026-07-19 SiteAudit 30-point findings — two Cloudflare toggles
 
 - [ ] **Turn on "Always Use HTTPS"** (Cloudflare dashboard → big7construction.com
