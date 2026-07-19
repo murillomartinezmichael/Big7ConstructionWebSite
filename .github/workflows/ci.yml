@@ -1,5 +1,5 @@
 name: CI
-on: { push: { branches: [main] }, pull_request: { branches: [main] } }
+on: { push: { branches: [main], paths-ignore: ['**.md', 'docs/**'] }, pull_request: { branches: [main] } }
 jobs:
   test:
     name: Static contracts + container boot smoke
