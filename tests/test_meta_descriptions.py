@@ -18,6 +18,12 @@ drift lock. Length bounds ([40, 220]) are set to accept shipped copy rather
 than mandate a rewrite — copy-tightening toward Google's ~160-char SERP cap
 is a separate copy-audit tick, not a mid-tick test gate.
 
+2026-07-19 extension: `<title>` length lock ([10, 60] decoded chars). The
+SiteAudit title_quality check flagged the 87-char homepage title — Google
+truncates/rewrites past ~60 chars (~600px), so the keyword payload after
+the cut was invisible in SERPs. All five shipped titles now fit; the lock
+keeps the next hero-copy session from silently growing one past the cap.
+
 Stdlib only (`html`, `re`, `pathlib`, `sys`).
 """
 from __future__ import annotations
@@ -46,6 +52,11 @@ TARGETS = (
 # lock shipped state; floor 40 rules out placeholder / accidentally-empty copy.
 MIN_LEN = 40
 MAX_LEN = 220
+
+# Google rewrites/truncates <title> past ~60 chars (~600px on desktop).
+# Floor 10 rules out placeholder titles ("x", "TODO").
+TITLE_MIN_LEN = 10
+TITLE_MAX_LEN = 60
 
 META_DESC_RE = re.compile(
     r"""<meta\s+[^>]*?name\s*=\s*(["'])description\1[^>]*?content\s*=\s*(["'])(?P<content>.*?)\2[^>]*?/?>""",
@@ -104,6 +115,15 @@ def assert_meta_description(path: Path) -> list[str]:
     title = _norm(_extract_title(html))
     if title and content.lower() == title.lower():
         errors.append(f"{path.name}: description is byte-identical to <title> — wasted SERP line")
+
+    if not title:
+        errors.append(f"{path.name}: missing or empty <title>")
+    else:
+        tlen = len(title)
+        if tlen < TITLE_MIN_LEN:
+            errors.append(f"{path.name}: <title> too short ({tlen} chars, floor {TITLE_MIN_LEN}): {title!r}")
+        if tlen > TITLE_MAX_LEN:
+            errors.append(f"{path.name}: <title> too long ({tlen} chars, SERP cap {TITLE_MAX_LEN}): {title!r}")
 
     return errors
 
@@ -186,6 +206,21 @@ def selftest() -> int:
                 "byte-identical to <title>",
                 _page(_VALID_DESC, _VALID_DESC),
             ),
+            (
+                "title past the ~60-char SERP cap",
+                "<title> too long",
+                _page(_VALID_TITLE + " · Commercial · Industrial · Residential GC", _VALID_DESC),
+            ),
+            (
+                "placeholder-short title",
+                "<title> too short",
+                _page("Big 7", _VALID_DESC),
+            ),
+            (
+                "title removed entirely",
+                "missing or empty <title>",
+                f'<!doctype html><html><head><meta name="description" content="{_VALID_DESC}" /></head><body></body></html>',
+            ),
         ]
 
         misses: list[str] = []
@@ -251,7 +286,10 @@ def main() -> int:
             print(f"FAIL: {e}", file=sys.stderr)
         return 1
 
-    print(f"OK: meta descriptions valid + unique across {len(TARGETS)} top-level pages")
+    print(
+        f"OK: meta descriptions valid + unique and <title>s within the "
+        f"{TITLE_MAX_LEN}-char SERP cap across {len(TARGETS)} top-level pages"
+    )
     return 0
 
 
