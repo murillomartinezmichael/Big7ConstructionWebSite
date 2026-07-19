@@ -19,6 +19,16 @@ checkbox so it clears with a stroke.
     site once >=3 real reviews exist on the live profile (the fabricated
     "4.9 across 60+ verified reviews" line was cut from all 3 pages
     2026-07-19 per LAW #6 — do not re-add without real reviews to link).
+- [ ] **Get the jobsite photo folder from the client.**
+  - **What to do:** ask the Big 7 client for their raw project-photo folder
+    (any size — the fleet PhotoPicker `big7` profile culls it:
+    `photopicker <folder> big7`).
+  - **Why blocked on him:** client conversation; only 2 real jobsite shots
+    exist in `images/` today.
+  - **Resumes:** the 2 imageless commercial pf-cards (№ 04 Buckhead, № 06
+    Norcross) get their own photos; `tests/test_images.py` per-page
+    src-uniqueness lock + floors (2/lane) can rise back to one photo per
+    card; the flagship case-study page gains real imagery.
 - [ ] **Provision the real business phone number (replaces 555-700-0007).**
   - **What to do:** get the client's real line (or stand up the tracking
     number), then swap it into all `tel:` anchors, visible text, and JSON-LD

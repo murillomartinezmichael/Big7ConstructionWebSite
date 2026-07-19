@@ -25,6 +25,11 @@ Locks (index.html):
      leaves the wrong half of the pair on the main thread).
   7. Total <img> count is at or above MIN_IMGS floor (guards a silent
      mass-delete regression of the portfolio grid).
+  8. No <img src> repeats on the same page (2026-07-19 competitor
+     research: jobsite-02.jpg shipped on 3 of 4 commercial pf-cards;
+     prequal buyers read duplicated photos as "no real portfolio". With
+     only 2 real shots on hand a card either gets its own photo or no
+     photo -- the LCP-preload uniqueness check never saw this class).
 
 Python 3.11+ stdlib only (`re`, `pathlib`, `sys`, `tempfile`). No pip
 install, no network.
@@ -45,8 +50,12 @@ IMAGES_DIR = REPO_ROOT / "images"
 MIN_IMGS = 6  # selftest fixture floor; real pages use PAGES below
 PAGES = (
     # (path, min imgs, require LCP hints: fetchpriority=high + preload-as-image)
+    # Lane floors are 2 (was 4 on commercial): only 2 real jobsite shots
+    # exist and the same-page uniqueness lock forbids repeats, so 2 imaged
+    # cards per lane is the honest maximum until the client sends real
+    # project photos (PENDING_MANUAL).
     ("index.html", 1, True),
-    ("commercial-industrial.html", 4, False),
+    ("commercial-industrial.html", 2, False),
     ("residential-construction.html", 2, False),
 )
 
@@ -95,6 +104,7 @@ def check(
         )
 
     fp_high_srcs: list[str] = []
+    src_counts: dict[str, int] = {}
 
     for i, m in enumerate(imgs):
         attrs = m.group("attrs")
@@ -134,6 +144,9 @@ def check(
                         f'file at {on_disk} (git rm without href update?)'
                     )
 
+        if src is not None:
+            src_counts[src] = src_counts.get(src, 0) + 1
+
         if fp == "high" and src is not None:
             fp_high_srcs.append(src)
 
@@ -156,6 +169,14 @@ def check(
             f'{fp_high_srcs}) -- LCP hint must be unique or the browser '
             f'has to arbitrate between competing "highest" claims'
         )
+
+    for s, n in sorted(src_counts.items()):
+        if n > 1:
+            errors.append(
+                f'<img src={s!r}> appears {n} times on the same page -- '
+                f'duplicated photos read as "no real portfolio"; each card '
+                f'gets its own shot or no shot'
+            )
 
     preload_hrefs = _preload_image_hrefs(html)
     if not preload_hrefs:
@@ -299,6 +320,13 @@ def _selftest() -> None:
                     '',
                 ),
                 'no <link rel="preload" as="image">',
+            ),
+            (
+                'same photo reused on two cards',
+                baseline.replace(
+                    'src="images/pf-1.jpg"', 'src="images/pf-0.jpg"', 1,
+                ),
+                'appears 2 times on the same page',
             ),
         ]
 
