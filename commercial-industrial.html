@@ -288,6 +288,13 @@
     }
     .top-links a:hover { color: var(--accent-600); }
     .top-links a.btn-accent { color: #fff; }
+    .top-links a[href^="tel:"] {
+      /* >=48px tap target (WCAG 2.5.8 — SiteAudit tap_target_size flags
+         bare 13px tel: links): padding + negative margin grow the hit box
+         without moving the rendered layout. */
+      padding: 17px 9px;
+      margin: -17px -9px;
+    }
 
     main { max-width: 960px; margin: 0 auto; padding: 56px 24px 96px; flex: 1; width: 100%; }
     section { margin: 0 0 72px; }
@@ -541,6 +548,48 @@
       .cred-note { grid-column: 1; }
       .process-steps li { grid-template-columns: 44px 1fr; }
     }
+    /* ─── STICKY MOBILE CALL BAR ─────────────────────────────── */
+    /* SiteAudit sticky_mobile_cta: >2-viewport page, no floating call CTA
+       on mobile. Fixed bottom bar <=768px only — tel: + intake deep-link,
+       both >=48px tap targets. body padding-bottom keeps the bar clear of
+       content; the entrance slide runs only under
+       prefers-reduced-motion: no-preference. */
+    .call-bar { display: none; }
+    @media (max-width: 768px) {
+      .call-bar {
+        position: fixed; left: 0; right: 0; bottom: 0;
+        z-index: 90; /* below .skip-link (100) */
+        display: flex; gap: 10px;
+        padding: 10px 14px calc(10px + env(safe-area-inset-bottom, 0px));
+        background: var(--paper); border-top: 1px solid rgba(0,0,0,0.08);
+      }
+      .call-bar a {
+        flex: 1; display: inline-flex; align-items: center; justify-content: center;
+        min-height: 48px; /* WCAG 2.5.8 / Google tap-target floor */
+        font-family: 'Barlow Condensed', 'Barlow Condensed Fallback', sans-serif;
+        font-weight: 600; font-size: 14px; letter-spacing: 0.08em;
+        text-transform: uppercase; text-decoration: none; border-radius: 3px;
+      }
+      .call-bar .cb-call {
+        border: 1px solid var(--ink-500); color: var(--ink-800);
+        background: transparent; font-variant-numeric: tabular-nums;
+      }
+      .call-bar .cb-call:hover { border-color: var(--accent-600); color: var(--accent-600); }
+      .call-bar .cb-bid { background: var(--accent-600); color: #fff; }
+      .call-bar .cb-bid:hover { color: #fff; filter: brightness(0.88); }
+      body { padding-bottom: 80px; }
+      /* Lift the SiteGuide chat launcher clear of the bar (widget injects
+         plain DOM into the page, so host CSS wins). */
+      .sg-trigger { bottom: 84px !important; }
+    }
+    @media (max-width: 768px) and (prefers-reduced-motion: no-preference) {
+      .call-bar { animation: call-bar-in 300ms ease-out; }
+      @keyframes call-bar-in {
+        from { transform: translateY(100%); }
+        to { transform: translateY(0); }
+      }
+    }
+
     @media (prefers-reduced-motion: reduce) {
       html { scroll-behavior: auto; }
       *, *::before, *::after {
@@ -1056,6 +1105,12 @@
     Bonded &amp; insured · Metro Atlanta commercial + industrial ·
     <a href="/">Home</a><a href="/residential-construction.html">Residential</a><a href="/accessibility.html">Accessibility</a>
   </footer>
+
+  <!-- ─── STICKY MOBILE CALL BAR (<=768px, see .call-bar CSS) ── -->
+  <nav class="call-bar" aria-label="Call or request a bid">
+    <a href="tel:5557000007" class="cb-call">Call (555) 700-0007</a>
+    <a href="#contact" class="cb-bid" data-intent="bid:sticky">Get a bid →</a>
+  </nav>
 
   <script defer src="/big7.js"></script>
 

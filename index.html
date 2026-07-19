@@ -591,8 +591,16 @@
       color: var(--ink-600);
       font-variant-numeric: tabular-nums;
       transition: color 0.2s;
+      /* >=48px tap target (WCAG 2.5.8 — SiteAudit tap_target_size measured
+         this link at 17px): vertical padding + negative margin grow the hit
+         box without moving the rendered line. */
+      padding: 16px 10px;
+      margin: -16px -10px;
     }
-    @media (min-width: 1100px) { .nav-phone { display: inline; } }
+    /* 769px (not 1100): below this the sticky .call-bar owns click-to-call,
+       above it the header phone must be the tappable number (SiteAudit
+       click_to_call). */
+    @media (min-width: 769px) { .nav-phone { display: inline-block; } }
     .nav-phone:hover { color: var(--accent-500); }
 
     .nav-cta { display: none; }
@@ -1147,6 +1155,61 @@
     @media (min-width: 768px) { .foot-bottom { flex-direction: row; } }
     .foot-bottom .tab { font-variant-numeric: tabular-nums; }
 
+    /* ─── STICKY MOBILE CALL BAR ─────────────────────────────── */
+    /* SiteAudit sticky_mobile_cta: the page is >2 viewports tall with no
+       floating call CTA on mobile. Fixed bottom bar <=768px only — tel: +
+       intake deep-link, both >=48px tap targets. body padding-bottom
+       reserves the bar's height so it never covers content; the entrance
+       slide only runs under prefers-reduced-motion: no-preference. */
+    .call-bar { display: none; }
+    @media (max-width: 768px) {
+      .call-bar {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 50; /* above nav.top (40), below skip-link (999) */
+        display: flex;
+        gap: 10px;
+        padding: 10px 14px calc(10px + env(safe-area-inset-bottom, 0px));
+        background: rgba(245, 241, 234, 0.97);
+        border-top: 1px solid var(--ink-100);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+      }
+      .call-bar a {
+        flex: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 48px; /* WCAG 2.5.8 / Google tap-target floor */
+        font-family: 'Inter', 'Inter Fallback', sans-serif;
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        text-decoration: none;
+        border: 1px solid transparent;
+      }
+      .call-bar .cb-call {
+        border-color: var(--ink-900);
+        color: var(--ink-900);
+        background: transparent;
+        font-variant-numeric: tabular-nums;
+      }
+      .call-bar .cb-bid { background: var(--accent-600); color: #fff; }
+      body { padding-bottom: 80px; }
+      /* Lift the SiteGuide chat launcher clear of the bar (widget injects
+         plain DOM into the page, so host CSS wins). */
+      .sg-trigger { bottom: 84px !important; }
+    }
+    @media (max-width: 768px) and (prefers-reduced-motion: no-preference) {
+      .call-bar { animation: call-bar-in 300ms ease-out; }
+      @keyframes call-bar-in {
+        from { transform: translateY(100%); }
+        to { transform: translateY(0); }
+      }
+    }
+
     /* ─── REDUCED MOTION ─────────────────────────────────────── */
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after {
@@ -1261,6 +1324,7 @@
         <a href="#contact" onclick="toggleMenu()"><span class="n">03</span>Contact</a>
         <a href="/commercial-industrial.html"><span class="n">→</span>Commercial &amp; Industrial</a>
         <a href="/residential-construction.html"><span class="n">→</span>Residential Construction</a>
+        <a href="tel:5557000007"><span class="n">→</span>Call (555) 700-0007</a>
         <a href="#contact" class="btn btn-accent" onclick="toggleMenu()" data-intent="bid:mobile-menu">Request a bid →</a>
       </div>
     </div>
@@ -1589,6 +1653,12 @@
       <p class="spec-label" style="color: var(--ink-500);">Licensed · Bonded · Insured</p>
     </div>
   </footer>
+
+  <!-- ─── STICKY MOBILE CALL BAR (<=768px, see .call-bar CSS) ── -->
+  <nav class="call-bar" aria-label="Call or request a bid">
+    <a href="tel:5557000007" class="cb-call">Call (555) 700-0007</a>
+    <a href="#contact" class="cb-bid" data-intent="bid:sticky">Get a bid →</a>
+  </nav>
 
   <div class="grain-overlay" aria-hidden="true"></div>
 

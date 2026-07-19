@@ -10,7 +10,7 @@
 # =============================================================================
 
 .DEFAULT_GOAL := help
-.PHONY: help build run test test-container test-jsonld test-seo-files test-conversion test-primary-ctas test-url-prefill test-og test-assets test-anchors test-nginx test-form test-font-preload test-images test-breadcrumbs test-service-schema test-offer-catalog test-dockerfile test-meta-descriptions test-intake-analytics test-a11y-baseline test-lane-nav test-404-lane-recovery test-unit test-integration test-e2e lint fmt clean docker docker-run deploy
+.PHONY: help build run test test-container test-jsonld test-seo-files test-conversion test-primary-ctas test-url-prefill test-og test-assets test-anchors test-nginx test-form test-font-preload test-images test-breadcrumbs test-service-schema test-offer-catalog test-dockerfile test-meta-descriptions test-intake-analytics test-a11y-baseline test-lane-nav test-404-lane-recovery test-click-to-call test-unit test-integration test-e2e lint fmt clean docker docker-run deploy
 
 help: ## Show this help
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -21,7 +21,7 @@ build: ## Clean-clone -> running prerequisites met (delegates to build.sh)
 run: ## Run the service locally
 	./scripts/run.sh
 
-test: test-jsonld test-seo-files test-conversion test-primary-ctas test-url-prefill test-og test-assets test-anchors test-nginx test-form test-font-preload test-images test-breadcrumbs test-service-schema test-offer-catalog test-dockerfile test-meta-descriptions test-intake-analytics test-a11y-baseline test-lane-nav test-404-lane-recovery ## Run all tests (stdlib-only smoke suite)
+test: test-jsonld test-seo-files test-conversion test-primary-ctas test-url-prefill test-og test-assets test-anchors test-nginx test-form test-font-preload test-images test-breadcrumbs test-service-schema test-offer-catalog test-dockerfile test-meta-descriptions test-intake-analytics test-a11y-baseline test-lane-nav test-404-lane-recovery test-click-to-call ## Run all tests (stdlib-only smoke suite)
 
 test-container: ## Build the production image; prove nginx boots and home/lane/404 routes respond correctly
 	python scripts/test-container-boot.py
@@ -109,6 +109,10 @@ test-lane-nav: ## Lane navigability: index Buyer-lanes nav + footer link all 3 l
 test-404-lane-recovery: ## 404.html recovery nav one-click routes to all 3 lane pages (was unwired from the chain)
 	python tests/test_404_lane_recovery.py
 	python tests/test_404_lane_recovery.py --selftest
+
+test-click-to-call: ## Header tel: tappable + >=48px hit box; sticky mobile call bar (tel: + bid:* intake, 48px targets, reduced-motion-gated, body padding) on all 3 pages
+	python tests/test_click_to_call.py
+	python tests/test_click_to_call.py --selftest
 
 test-unit: ## Run unit tests only
 	./scripts/test.sh unit
