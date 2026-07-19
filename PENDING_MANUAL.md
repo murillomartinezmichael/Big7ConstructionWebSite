@@ -42,14 +42,12 @@ checkbox so it clears with a stroke.
   - **Why blocked on him:** Cockpit Work Log is a browser localStorage write.
   - **Resumes:** Nothing blocked — logging only.
 
-- [ ] **Delete the two TEST rows from the n8n `leads` data table**
-  - **What to do:** In n8n (michaelmurillo.app.n8n.cloud) open the `leads`
-    data table and delete the rows named "TEST ROW — safe to delete" and
-    "TEST webhook e2e — safe to delete" (created 2026-07-17 while verifying
-    the two-path field mapping + production webhook).
-  - **Why blocked on him:** No delete-row surface via MCP; and if left, the
-    Follow-up Nudger will draft follow-up emails for them in 2 days.
-  - **Resumes:** Nothing blocked — cleanup only.
+- [x] ~~**Delete the two TEST rows from the n8n `leads` data table**~~
+  **DONE 2026-07-19 (agent)** — no delete-row MCP surface existed, so a temp
+  one-shot n8n workflow (Data Table deleteRows, `name like '%safe to delete%'`)
+  did it: dry-run first confirmed exactly rows 1+2 (the Big7 TESTs) + row 3
+  (the M³ marker lead from the same night's webhook verification) and nothing
+  else, then the real delete removed all 3. Temp workflow archived after use.
 - [ ] **Verify the two-path test intakes reached the Formspree inbox**
   - **What to do:** After the site deploys, submit each lane form once with
     a marker message and confirm both arrive with the right `_subject`
