@@ -8,6 +8,27 @@ checkbox so it clears with a stroke.
 > banner above the Work Log (27 entries fleet-wide, verified via headless
 > Playwright). Then check these boxes in one stroke.
 
+## 2026-07-19 SiteAudit 30-point findings — two Cloudflare toggles
+
+- [ ] **Turn on "Always Use HTTPS"** (Cloudflare dashboard → big7construction.com
+  zone → SSL/TLS → Edge Certificates). Verified live 2026-07-19:
+  `http://big7construction.com/` serves the full page over plain HTTP with a
+  200 — no redirect. Chrome shows "Not secure" next to the name for anyone who
+  types the bare domain. One toggle.
+  - **Resumes:** the site's own SiteAudit grade (currently B 85/100) — this is
+    one of its 3 remaining fails.
+- [ ] **Decide: keep or disable Cloudflare's AI-crawler block.** Cloudflare's
+  managed robots.txt on the zone is blocking GPTBot, ClaudeBot, CCBot,
+  Google-Extended, etc. (verified live). For a local contractor, being invisible
+  to AI assistants means not being in the running when someone asks ChatGPT/
+  Claude for "a good commercial GC in Atlanta" — the research pass says this is
+  the 2026 finding no competing local agency is even checking. If you want AI
+  visibility: Cloudflare → the zone → Security/Bots (or robots.txt management)
+  → disable the AI-crawler block. Your call — it's a legitimate content-rights
+  tradeoff, but for lead-gen the recommendation is disable.
+  - **Resumes:** clears the third SiteAudit fail; agent re-runs the audit to
+    confirm both.
+
 ## 2026-07-17 Cloudflare host of record
 
 - [x] **Bind the apex domain to the `big7` worker (Cloudflare dashboard)** — DONE

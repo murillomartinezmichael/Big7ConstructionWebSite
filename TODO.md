@@ -416,3 +416,48 @@ Source of product truth: ..\AI_HUB.md.
 - [ ] Add `?type=<projectType>` param on lane CTAs so the correct radio pre-selects for lane visitors
 - [ ] Resolve naming call first: residential lane covers two project types ΓÇö decide mapping before mechanical edit
 - [ ] Manual gate in `PENDING_MANUAL.md` (tick 28) ΓÇö Mike presses `l` in COCKPIT.html to log (browser `localStorage`, not CLI-doable)
+
+---
+
+## Competitor research — vetted upgrades (2026-07-19)
+
+38-agent adversarial research pass (independent researcher + critic per product, claims spot-verified against live competitor sites). Full fleet report: `../docs/research/COMPETITOR_RESEARCH_2026-07-19.md`.
+
+**Top competitors studied:** ARCO Design/Build, Choate Construction, New South Construction, Atlanta Design & Build, McCarthy Building Companies
+
+### Upgrades (impact-ranked)
+
+- [ ] **[high/S] (trust)** CUT the fabricated review line from all 3 pages now — the original research's 'link it to the live Google profile' is impossible, no profile exists (LAW #6). Log to PENDING_MANUAL: claim Google Business Profile + provision the real phone. Re-add stars plus aggregateRating JSON-LD only when >=3 real reviews exist, per TODO.md:345's own gate.
+  - *Pattern source:* Competitors make trust claims third-party-verifiable (ARCO's ENR ranking, ADB's NARI/BBB/GuildQuality badges — both verified live). Big7 shows '4.9 across 60+ verified reviews' on 3 pages (index.html:1448, commercial-industrial.html:830, residential-construction.html:836) with no link — and TODO.md:345 records there are NO real Google/BBB reviews yet. Site-wide phone is placeholder 555-700-0007 (index, both lanes, all JSON-LD).
+- [ ] **[high/S] (visuals)** Now, solo: stop tripling jobsite-02 (alternate the two real shots or drop the img on two cards) and add a cross-card image-uniqueness assertion to tests/test_images.py — today it only checks LCP-preload uniqueness (line 156). Real photos are client-blocked (TODO.md marks placeholder images PARKED, client-blocked): log 'get jobsite photo folder from client' to PENDING_MANUAL, then run fleet PhotoPicker big7 profile over it.
+  - *Pattern source:* New South shows distinct real photography per project. Big7 reuses images/jobsite-02.jpg on 3 of 4 commercial pf-cards (commercial-industrial.html:680, 694, 708); the repo holds only 2 jobsite photos total. Prequal buyers read duplicated photos as 'no real portfolio'.
+- [ ] **[high/S] (trust)** Generate a one-page capability-statement PDF compiling ONLY the already-published cred-table claims at docs/big7-capability-statement.pdf, repoint the line-771 link to it, lock with a test in tests/test_conversion.py. EMR/TRIR numbers must come from Mike's insurer — PENDING_MANUAL; add that cred-table row only when the real number lands (LAW #6 blocks inventing it).
+  - *Pattern source:* Commercial prequal teams screen EMR and bond letter before reading proposals. Big7's cred-table (commercial-industrial.html:739-770) has license/$5M GL/$25M bond/warranty copy but no EMR row, and 'Request the compliance packet ->' (line 771) routes to the intent-prefilled contact form — no packet exists to send.
+- [ ] **[high/S] (design-patterns)** Add a 'Who signs your contract' block to both lane pages between #credentials and #process: principal name, license-holder role, direct contact. Markup with per-page inline styles is an hour of solo work; the name/photo/title are Mike-gated content — log to PENDING_MANUAL and ship the block only when they land. Never ship placeholder humans.
+  - *Pattern source:* McCarthy and Choate build their trust layer on named people with faces. Big7 has zero named humans anywhere — anonymous testimonials ('Brookhaven owner') and 'same principals' in passing copy only (verified by grep across all pages).
+- [ ] **[high/M] (features)** Build ONE flagship case-study page (South Fulton distribution — the card with the most data) expanding only already-published facts (42,000 sq ft / 11 months / $8.4M / PEM-Concrete-MEP) into challenge -> approach -> result, ending in the intent-prefill CTA. Add to sitemap.xml, extend tests/test_anchors.py + test_seo_files.py (its indexable-page coverage lock will force the sitemap entry anyway). Photos, client quote, and permission to name the development are client-gated -> PENDING_MANUAL. Clone to the other 3 cards only after Mike confirms each project's facts — the original plan of 4 pages with schedule-vs-actual and quotes would fabricate content the repo doesn't have.
+  - *Pattern source:* Choate and ARCO give every portfolio project its own detail page. Big7's 4 pf-cards (commercial-industrial.html:665-720) all href='#contact' — the data-intent prefill makes the form smarter, but a research-stage buyer gets zero project depth before being asked to submit.
+- [ ] **[medium/S] (positioning)** Rewrite the commercial hero subline to lead with the flagship niche (warehouse/distribution + tenant fit-out) using numbers already published on that page — no new claims, one text edit plus meta/OG description sync, existing suites re-run. Confirm the numbers with Mike first: promoting them from pf-foot to hero raises their exposure. Skip the original plan's sector-card grid until more than one case-study page exists to link to.
+  - *Pattern source:* ARCO claims a rankable niche (verified: 'ENR #1 warehouse construction company'). Big7's commercial hero pitches 5 generic service lines with no flagship claim while its own pf-foot already carries the numbers (500+ projects, $180M+, zero recordables 3 yrs).
+- [ ] **[medium/S] (pricing)** Add one FAQ item to residential-construction.html reusing the in-repo researched ranges (service jobs $1K-$10K, roofs/baths $10K-$30K, kitchens $30K-$100K, additions $100K-$500K). Kill the financing-partners play entirely: Big7 has no financing partners, naming any would fabricate (LAW #6), and standing partnerships up is business dev, not a website edit.
+  - *Pattern source:* Residential remodel buyers screen on cost expectations. The original research's 'zero pricing signal anywhere' is FALSE — researched Metro-Atlanta ranges already ship as budget chips (residential-construction.html:969-984, sourced 2026-07-17) — but they are invisible until a visitor reaches the form, and the FAQ never answers 'what does it cost'.
+
+### Quick wins (<1 day each)
+
+- [ ] Delete the fabricated '4.9 across 60+ verified reviews' line from index.html:1448, commercial-industrial.html:830, and residential-construction.html:836 — TODO.md:345 confirms no real reviews exist (LAW #6). Log 'claim Google Business Profile' and 'provision real phone to replace 555-700-0007' to PENDING_MANUAL and keep moving.
+- [ ] De-duplicate the commercial portfolio images using the two real shots on hand (jobsite-02.jpg currently on 3 of 4 pf-cards) and add a cross-card image-uniqueness assertion to tests/test_images.py — it only guards LCP-preload uniqueness today (line 156).
+- [ ] Ship docs/big7-capability-statement.pdf compiled strictly from the existing cred-table claims (GA GC license, $5M GL, bonds to $25M, 2yr/10yr warranty) and repoint commercial-industrial.html line 771's 'Request the compliance packet ->' link to it; EMR/TRIR go to PENDING_MANUAL until Mike supplies real numbers.
+
+
+---
+
+## SiteAudit 30-point self-audit — agent-actionable fixes (2026-07-19)
+
+Ran the new 30-Point Mobile Lead-Leak Inspection against the live site: **B (85/100)** — Lead Capture 82, Trust 71 (dragged by the two Cloudflare gates in PENDING_MANUAL), Speed 100, Findability 83. Code-side fixes, one arc:
+
+- [ ] **tap_target_size FAIL** — the tap-to-call link measures 17px (WCAG 2.5.8 minimum is 24, Google wants 48). Find the small `tel:` anchor (likely footer or trust-strip), pad it to >=48px hit area.
+- [ ] **click_to_call WARN** — phone text is above the fold but the first `tel:` link isn't; make the header phone number itself a `tel:` anchor.
+- [ ] **sticky_mobile_cta WARN** — page is >2 viewports tall with no floating call bar; consider a bottom sticky "Call / Get a bid" bar on mobile (research: cheapest lead bump for contractor sites).
+- [ ] **title_quality WARN** — homepage `<title>` is 87 chars; Google chops ~60. Tighten to front-load "Commercial & Residential Construction — Metro Atlanta".
+
+Verify each with `SiteAudit: ./run.bat check https://big7construction.com --no-leads` (grade should climb toward A once the two PENDING_MANUAL Cloudflare toggles land too).
