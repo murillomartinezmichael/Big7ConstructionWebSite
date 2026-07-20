@@ -32,7 +32,7 @@ checkbox so it clears with a stroke.
   - **Resumes:** swap the testimonial attribution to be explicit rather
     than inferred.
 
-## 2026-07-20 capability statement + hero/FAQ copy
+## 2026-07-20 capability statement + hero/FAQ copy + case-study page
 
 - [ ] **Log this session to Cockpit Work Log** (COCKPIT.html — press `l`)
   - **Card:** Big7Construction
@@ -42,11 +42,16 @@ checkbox so it clears with a stroke.
     to lead with the warehouse/distribution + tenant fit-out niche and the
     page's own pf-foot numbers. New residential FAQ item answers "what
     does this cost" with the existing budget ranges + two real portfolio
-    numbers, mirrored into the FAQPage JSON-LD. All 22 test suites green.
-  - **Next up:** two open competitor-research items remain and are
-    Mike-gated: a "Who signs your contract" trust block (needs a real
-    principal name/photo) and a flagship case-study page (bigger effort,
-    still agent-doable — next session candidate).
+    numbers, mirrored into the FAQPage JSON-LD. Flagship case-study page
+    (`south-fulton-distribution.html`) shipped — challenge/approach/result
+    built from already-published facts + the matching real testimonial,
+    wired into sitemap/Dockerfile/6 test files. All 22 test suites green
+    across both commits (`0e1749b`, `d78f9b0`).
+  - **Next up:** only Mike-gated items remain from the 2026-07-19
+    competitor-research batch: a "Who signs your contract" trust block
+    (needs a real principal name/photo) and cloning the case-study
+    template to the other 3 pf-cards (needs Mike to confirm those
+    projects' facts — see the entry above this one).
   - **Move card to:** In Progress (Big7 is a rolling site; no "Done" state).
   - **Why blocked on Mike:** COCKPIT.html work log lives in browser
     `localStorage` — cannot be written from CLI. 30 seconds in the browser.
