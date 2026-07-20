@@ -8,6 +8,30 @@ checkbox so it clears with a stroke.
 > banner above the Work Log (27 entries fleet-wide, verified via headless
 > Playwright). Then check these boxes in one stroke.
 
+## 2026-07-20 flagship case-study page — next-tier gates
+
+- [ ] **Confirm real project facts for the other 3 pf-cards before cloning
+  the case-study page.** `south-fulton-distribution.html` shipped for the
+  South Fulton Distribution Facility (Industrial № 01) using only
+  already-published data. TODO.md's plan is to clone the same
+  challenge/approach/result template to the other 3 commercial-industrial
+  pf-cards (Tenant Improvement № 02, Commercial № 04, Structural Repair
+  № 06) — but each needs Mike to confirm the facts are still accurate
+  (client relationship status, whether the project can be named) before an
+  agent fabricates a narrative around them.
+  - **Why blocked on him:** client relationship / naming-rights judgment
+    call, not a data lookup.
+  - **Resumes:** agent clones the page template for the confirmed project(s).
+- [ ] **Get a real client quote for the South Fulton project (optional
+  upgrade).** The shipped page's testimonial is the existing Marcus H.
+  quote, matched to this project by its distinct 42,000 sq ft size (both
+  appear once each in the repo) — accurate but inferential. A quote
+  Mike can confirm is literally about *this* project (with permission to
+  publish) would remove the inference.
+  - **Why blocked on him:** client contact.
+  - **Resumes:** swap the testimonial attribution to be explicit rather
+    than inferred.
+
 ## 2026-07-20 capability statement + hero/FAQ copy
 
 - [ ] **Log this session to Cockpit Work Log** (COCKPIT.html — press `l`)

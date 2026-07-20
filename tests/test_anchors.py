@@ -57,6 +57,11 @@ PAGES = (
     ("index.html", 5, ("main", "contact")),
     ("commercial-industrial.html", 10, ("main", "contact")),
     ("residential-construction.html", 10, ("main", "contact", "home-repair")),
+    # Case-study page (2026-07-20): no #contact section of its own — its
+    # CTAs link cross-page to commercial-industrial.html#contact, which
+    # HREF_ANCHOR_RE does not match (only bare href="#name"), so 0 is the
+    # honest floor here.
+    ("south-fulton-distribution.html", 0, ("main",)),
 )
 
 # Skip-link target — WCAG 2.4.1 "Bypass Blocks". Assert unconditionally so

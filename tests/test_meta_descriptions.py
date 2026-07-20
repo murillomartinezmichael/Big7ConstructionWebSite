@@ -44,6 +44,7 @@ TARGETS = (
     "accessibility.html",
     "commercial-industrial.html",
     "residential-construction.html",
+    "south-fulton-distribution.html",
 )
 
 # Google's typical SERP truncation is ~155–160 chars on desktop. Bing tolerates
