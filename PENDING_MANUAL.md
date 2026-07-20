@@ -8,6 +8,27 @@ checkbox so it clears with a stroke.
 > banner above the Work Log (27 entries fleet-wide, verified via headless
 > Playwright). Then check these boxes in one stroke.
 
+## 2026-07-20 capability statement + hero/FAQ copy
+
+- [ ] **Log this session to Cockpit Work Log** (COCKPIT.html — press `l`)
+  - **Card:** Big7Construction
+  - **What shipped:** `docs/big7-capability-statement.pdf` compiled from the
+    published cred-table; compliance-packet CTA now downloads the real
+    file instead of routing to the contact form. Commercial hero rewritten
+    to lead with the warehouse/distribution + tenant fit-out niche and the
+    page's own pf-foot numbers. New residential FAQ item answers "what
+    does this cost" with the existing budget ranges + two real portfolio
+    numbers, mirrored into the FAQPage JSON-LD. All 22 test suites green.
+  - **Next up:** two open competitor-research items remain and are
+    Mike-gated: a "Who signs your contract" trust block (needs a real
+    principal name/photo) and a flagship case-study page (bigger effort,
+    still agent-doable — next session candidate).
+  - **Move card to:** In Progress (Big7 is a rolling site; no "Done" state).
+  - **Why blocked on Mike:** COCKPIT.html work log lives in browser
+    `localStorage` — cannot be written from CLI. 30 seconds in the browser.
+  - **Resumes:** Cockpit shows the entry; next Big7 tick can proceed with a
+    clean log timeline.
+
 ## 2026-07-19 competitor-research trust fixes — real-world prerequisites
 
 - [ ] **Claim the Google Business Profile for Big 7 Construction.**
