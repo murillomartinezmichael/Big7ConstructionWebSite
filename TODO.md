@@ -6,6 +6,23 @@
 
 # Big7Construction — TODO
 
+## SHIPPED 2026-07-20 (re-audit) — South Fulton case-study page was a click-orphan
+
+Fleet re-audit verified the `south-fulton-distribution.html` case-study page
+(commit `d78f9b0`) landed correctly — committed, sitemap/Dockerfile/tests
+wired, all 22 suites green — but found one real gap: the industrial-01
+pf-card on `commercial-industrial.html` still had `href="#contact"`, so no
+human click path reached the case-study page (only a direct URL or SERP
+result). Same orphan-page bug class `test_lane_nav.py` closed for the two
+lane pages on 2026-07-16. Fixed: pf-card now links to
+`/south-fulton-distribution.html`, with a small "View full case study →"
+label so it visually reads differently from the other 3 pf-cards that still
+route to `#contact` (their case-study pages don't exist yet — client-gated,
+see PENDING_MANUAL). Locked against regression in `tests/test_anchors.py`
+(`check_case_study_reachable`, +1 selftest mutation). All 23 suites green
+(golden + selftest); `preflight-deploy.py` READY; tracked-imports clean.
+Left local, not pushed — see session note below.
+
 ## SHIPPED 2026-07-20 — capability-statement PDF (competitor-research trust fix)
 
 Closed the last open item from the 2026-07-19 competitor-research batch: the

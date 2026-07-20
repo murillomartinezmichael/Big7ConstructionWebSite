@@ -8,6 +8,26 @@ checkbox so it clears with a stroke.
 > banner above the Work Log (27 entries fleet-wide, verified via headless
 > Playwright). Then check these boxes in one stroke.
 
+## 2026-07-20 fleet re-audit — case-study orphan-page fix
+
+- [ ] **Log this session to Cockpit Work Log** (COCKPIT.html — press `l`)
+  - **Card:** Big7Construction
+  - **What shipped:** Re-audit verified `south-fulton-distribution.html`
+    (commit `d78f9b0`) landed clean — committed, tests green, sitemap/
+    Dockerfile wired — but found the industrial-01 pf-card on
+    `commercial-industrial.html` still had `href="#contact"`, so the
+    case-study page had zero human click path (direct-URL/SERP only).
+    Repointed the pf-card to `/south-fulton-distribution.html` + added a
+    "View full case study →" label; locked with a new
+    `check_case_study_reachable` assertion in `tests/test_anchors.py`
+    (+1 selftest mutation). All 23 suites green; preflight READY;
+    tracked-imports clean. Left local (not pushed) — see TODO.md.
+  - **Move card to:** In Progress (Big7 is a rolling site; no "Done" state).
+  - **Why blocked on Mike:** COCKPIT.html work log lives in browser
+    `localStorage` — cannot be written from CLI. 30 seconds in the browser.
+  - **Resumes:** Cockpit shows the entry; next Big7 tick can proceed with a
+    clean log timeline.
+
 ## 2026-07-20 flagship case-study page — next-tier gates
 
 - [ ] **Confirm real project facts for the other 3 pf-cards before cloning

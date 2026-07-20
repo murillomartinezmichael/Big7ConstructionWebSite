@@ -68,6 +68,30 @@ PAGES = (
 # a future edit can't silently drop it.
 REQUIRED_ANCHORS = ("main", "contact")
 
+# Cross-page reachability lock (2026-07-20 fix): south-fulton-distribution.html
+# shipped fully wired into sitemap/Dockerfile/OG/meta/a11y tests, but its ONLY
+# inbound link was itself — the industrial-01 pf-card on
+# commercial-industrial.html pointed href="#contact" instead of the case-study
+# page, so a human could reach it only via a direct URL or SERP click (the
+# same orphan-page bug class test_lane_nav.py locked for the two lane pages
+# on 2026-07-16). Fixed by repointing the pf-card's href; this lock guards
+# the fix against silent regression (e.g. a future portfolio-grid refactor
+# reverting every card back to a uniform href="#contact").
+CASE_STUDY_PAGE = "south-fulton-distribution.html"
+CASE_STUDY_HOST_PAGE = "commercial-industrial.html"
+CASE_STUDY_LINK_RE = re.compile(r'href="/?south-fulton-distribution\.html"', re.IGNORECASE)
+
+
+def check_case_study_reachable(host_html: str) -> list[str]:
+    """Return errors if commercial-industrial.html has no real link to the
+    South Fulton case-study page. Empty list = PASS."""
+    if CASE_STUDY_LINK_RE.search(host_html):
+        return []
+    return [
+        f"{CASE_STUDY_HOST_PAGE} has no href to {CASE_STUDY_PAGE} — the "
+        f"case-study page is orphaned (reachable only by direct URL/SERP)"
+    ]
+
 
 def check_anchors(
     html: str,
@@ -225,12 +249,22 @@ def selftest() -> int:
         if err:
             misses.append(err)
 
+    # check_case_study_reachable — separate mini-fixture (it inspects one
+    # <a href> pattern on a host page, not the anchor-id contract above).
+    host_baseline = '<a class="pf-card" href="/south-fulton-distribution.html" data-intent="portfolio:industrial-01">card</a>'
+    if check_case_study_reachable(host_baseline):
+        misses.append("case-study reachable baseline: expected PASS, got a failure")
+    orphaned = host_baseline.replace('href="/south-fulton-distribution.html"', 'href="#contact"')
+    orphan_errors = check_case_study_reachable(orphaned)
+    if not orphan_errors or "orphaned" not in orphan_errors[0]:
+        misses.append(f"case-study re-orphaned mutation: expected 'orphaned' failure, got {orphan_errors!r}")
+
     if misses:
         for m in misses:
             print(f"SELFTEST FAIL: {m}", file=sys.stderr)
         return 1
 
-    print(f"SELFTEST OK: baseline PASS + {len(mutations)}/{len(mutations)} mutations caught")
+    print(f"SELFTEST OK: baseline PASS + {len(mutations)}/{len(mutations)} mutations caught + case-study reachability lock verified")
     return 0
 
 
@@ -257,10 +291,19 @@ def main() -> int:
     if failed:
         return 1
 
+    host_path = REPO_ROOT / CASE_STUDY_HOST_PAGE
+    host_html = host_path.read_text(encoding="utf-8")
+    case_study_errors = check_case_study_reachable(host_html)
+    if case_study_errors:
+        for e in case_study_errors:
+            print(f"FAIL: {e}", file=sys.stderr)
+        return 1
+
     print(
         f"OK: {total_refs} href=\"#...\" references across {len(PAGES)} pages all "
         f"resolve to real ids; per-page #contact floors hold; skip-link, money "
-        f"targets, and the residential #home-repair 301 target present"
+        f"targets, and the residential #home-repair 301 target present; "
+        f"{CASE_STUDY_PAGE} is human-reachable from {CASE_STUDY_HOST_PAGE}"
     )
     return 0
 
