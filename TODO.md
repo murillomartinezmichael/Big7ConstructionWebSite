@@ -6,6 +6,24 @@
 
 # Big7Construction — TODO
 
+## SHIPPED 2026-07-20 — capability-statement PDF (competitor-research trust fix)
+
+Closed the last open item from the 2026-07-19 competitor-research batch: the
+`#credentials` block's "Request the compliance packet" CTA routed to the
+contact form with nothing to actually send. Compiled
+`docs/big7-capability-statement.pdf` strictly from the cred-table's own
+published claims (license, $5M GL, bonds to $25M, warranty, safety,
+associations, track record) via a one-off reportlab script (build tool only —
+not a repo/runtime dependency) — zero fabricated numbers, EMR/TRIR still
+withheld pending real figures from Mike's insurer (unchanged PENDING_MANUAL
+item). Repointed `commercial-industrial.html`'s CTA to the PDF
+(`target="_blank"`), added the file to the Dockerfile fallback's COPY block
+(Cloudflare/wrangler already serves the whole repo dir so it needed no
+config there), and locked both halves — file exists + non-trivial size, and
+the on-page href still points at it — in `tests/test_conversion.py`
+(`check_compliance_packet_link`, +1 selftest mutation). All 22 test suites
+green (golden + selftest); `preflight-deploy.py` READY; tracked-imports clean.
+
 ## ~~NEXT AGENT ARC~~ SHIPPED 2026-07-19 (`81d9f4d`) — canonical URL-shape fix
 
 All SEO-signal URLs (canonical, og:url, BreadcrumbList, Service.url,
@@ -427,11 +445,11 @@ Source of product truth: ..\AI_HUB.md.
 
 ### Upgrades (impact-ranked)
 
-- [ ] **[high/S] (trust)** CUT the fabricated review line from all 3 pages now — the original research's 'link it to the live Google profile' is impossible, no profile exists (LAW #6). Log to PENDING_MANUAL: claim Google Business Profile + provision the real phone. Re-add stars plus aggregateRating JSON-LD only when >=3 real reviews exist, per TODO.md:345's own gate.
+- [x] **[high/S] (trust)** ~~CUT the fabricated review line from all 3 pages now~~ **SHIPPED 2026-07-19 (`357cbfb`)** — the original research's 'link it to the live Google profile' is impossible, no profile exists (LAW #6). Logged to PENDING_MANUAL: claim Google Business Profile + provision the real phone. Re-add stars plus aggregateRating JSON-LD only when >=3 real reviews exist, per TODO.md:345's own gate.
   - *Pattern source:* Competitors make trust claims third-party-verifiable (ARCO's ENR ranking, ADB's NARI/BBB/GuildQuality badges — both verified live). Big7 shows '4.9 across 60+ verified reviews' on 3 pages (index.html:1448, commercial-industrial.html:830, residential-construction.html:836) with no link — and TODO.md:345 records there are NO real Google/BBB reviews yet. Site-wide phone is placeholder 555-700-0007 (index, both lanes, all JSON-LD).
-- [ ] **[high/S] (visuals)** Now, solo: stop tripling jobsite-02 (alternate the two real shots or drop the img on two cards) and add a cross-card image-uniqueness assertion to tests/test_images.py — today it only checks LCP-preload uniqueness (line 156). Real photos are client-blocked (TODO.md marks placeholder images PARKED, client-blocked): log 'get jobsite photo folder from client' to PENDING_MANUAL, then run fleet PhotoPicker big7 profile over it.
+- [x] **[high/S] (visuals)** ~~Now, solo: stop tripling jobsite-02~~ **SHIPPED 2026-07-19 (`dda4d1b`)** — alternated the two real shots + added a cross-card image-uniqueness assertion to tests/test_images.py. Real photos remain client-blocked (TODO.md marks placeholder images PARKED, client-blocked): 'get jobsite photo folder from client' stays logged in PENDING_MANUAL for the fleet PhotoPicker big7 profile.
   - *Pattern source:* New South shows distinct real photography per project. Big7 reuses images/jobsite-02.jpg on 3 of 4 commercial pf-cards (commercial-industrial.html:680, 694, 708); the repo holds only 2 jobsite photos total. Prequal buyers read duplicated photos as 'no real portfolio'.
-- [ ] **[high/S] (trust)** Generate a one-page capability-statement PDF compiling ONLY the already-published cred-table claims at docs/big7-capability-statement.pdf, repoint the line-771 link to it, lock with a test in tests/test_conversion.py. EMR/TRIR numbers must come from Mike's insurer — PENDING_MANUAL; add that cred-table row only when the real number lands (LAW #6 blocks inventing it).
+- [x] **[high/S] (trust)** ~~Generate a one-page capability-statement PDF~~ **SHIPPED 2026-07-20** — `docs/big7-capability-statement.pdf` compiled ONLY from the already-published cred-table claims, `commercial-industrial.html`'s compliance-packet CTA repointed to it, locked with `check_compliance_packet_link()` in `tests/test_conversion.py`. EMR/TRIR numbers must still come from Mike's insurer — PENDING_MANUAL; add that cred-table row only when the real number lands (LAW #6 blocks inventing it).
   - *Pattern source:* Commercial prequal teams screen EMR and bond letter before reading proposals. Big7's cred-table (commercial-industrial.html:739-770) has license/$5M GL/$25M bond/warranty copy but no EMR row, and 'Request the compliance packet ->' (line 771) routes to the intent-prefilled contact form — no packet exists to send.
 - [ ] **[high/S] (design-patterns)** Add a 'Who signs your contract' block to both lane pages between #credentials and #process: principal name, license-holder role, direct contact. Markup with per-page inline styles is an hour of solo work; the name/photo/title are Mike-gated content — log to PENDING_MANUAL and ship the block only when they land. Never ship placeholder humans.
   - *Pattern source:* McCarthy and Choate build their trust layer on named people with faces. Big7 has zero named humans anywhere — anonymous testimonials ('Brookhaven owner') and 'same principals' in passing copy only (verified by grep across all pages).
@@ -444,9 +462,9 @@ Source of product truth: ..\AI_HUB.md.
 
 ### Quick wins (<1 day each)
 
-- [ ] Delete the fabricated '4.9 across 60+ verified reviews' line from index.html:1448, commercial-industrial.html:830, and residential-construction.html:836 — TODO.md:345 confirms no real reviews exist (LAW #6). Log 'claim Google Business Profile' and 'provision real phone to replace 555-700-0007' to PENDING_MANUAL and keep moving.
-- [ ] De-duplicate the commercial portfolio images using the two real shots on hand (jobsite-02.jpg currently on 3 of 4 pf-cards) and add a cross-card image-uniqueness assertion to tests/test_images.py — it only guards LCP-preload uniqueness today (line 156).
-- [ ] Ship docs/big7-capability-statement.pdf compiled strictly from the existing cred-table claims (GA GC license, $5M GL, bonds to $25M, 2yr/10yr warranty) and repoint commercial-industrial.html line 771's 'Request the compliance packet ->' link to it; EMR/TRIR go to PENDING_MANUAL until Mike supplies real numbers.
+- [x] ~~Delete the fabricated '4.9 across 60+ verified reviews' line~~ SHIPPED 2026-07-19 (`357cbfb`).
+- [x] ~~De-duplicate the commercial portfolio images~~ SHIPPED 2026-07-19 (`dda4d1b`).
+- [x] ~~Ship docs/big7-capability-statement.pdf~~ SHIPPED 2026-07-20 — compiled strictly from the existing cred-table claims, link repointed, locked in tests/test_conversion.py. EMR/TRIR still in PENDING_MANUAL until Mike supplies real numbers.
 
 
 ---
@@ -455,9 +473,9 @@ Source of product truth: ..\AI_HUB.md.
 
 Ran the new 30-Point Mobile Lead-Leak Inspection against the live site: **B (85/100)** — Lead Capture 82, Trust 71 (dragged by the two Cloudflare gates in PENDING_MANUAL), Speed 100, Findability 83. Code-side fixes, one arc:
 
-- [ ] **tap_target_size FAIL** — the tap-to-call link measures 17px (WCAG 2.5.8 minimum is 24, Google wants 48). Find the small `tel:` anchor (likely footer or trust-strip), pad it to >=48px hit area.
-- [ ] **click_to_call WARN** — phone text is above the fold but the first `tel:` link isn't; make the header phone number itself a `tel:` anchor.
-- [ ] **sticky_mobile_cta WARN** — page is >2 viewports tall with no floating call bar; consider a bottom sticky "Call / Get a bid" bar on mobile (research: cheapest lead bump for contractor sites).
-- [ ] **title_quality WARN** — homepage `<title>` is 87 chars; Google chops ~60. Tighten to front-load "Commercial & Residential Construction — Metro Atlanta".
+- [x] ~~**tap_target_size FAIL**~~ SHIPPED 2026-07-19 (`1773b36`) — header phone is now a >=48px tappable `tel:` anchor + sticky mobile call bar on all 3 pages.
+- [x] ~~**click_to_call WARN**~~ SHIPPED 2026-07-19 (`1773b36`) — header phone number is itself a `tel:` anchor above the fold.
+- [x] ~~**sticky_mobile_cta WARN**~~ SHIPPED 2026-07-19 (`1773b36`) — bottom sticky "Get a bid" call bar shipped on mobile.
+- [x] ~~**title_quality WARN**~~ SHIPPED 2026-07-19 (`f02cebf`) — homepage `<title>` tightened 87 → 60 chars, front-loaded service + metro.
 
 Verify each with `SiteAudit: ./run.bat check https://big7construction.com --no-leads` (grade should climb toward A once the two PENDING_MANUAL Cloudflare toggles land too).

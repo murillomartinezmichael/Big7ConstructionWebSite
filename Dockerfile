@@ -9,6 +9,7 @@ COPY big7.js            /usr/share/nginx/html/big7.js
 COPY robots.txt         /usr/share/nginx/html/robots.txt
 COPY sitemap.xml        /usr/share/nginx/html/sitemap.xml
 COPY images/            /usr/share/nginx/html/images/
+COPY docs/big7-capability-statement.pdf /usr/share/nginx/html/docs/big7-capability-statement.pdf
 
 RUN rm /etc/nginx/conf.d/default.conf
 COPY nginx.conf /etc/nginx/conf.d/default.conf
