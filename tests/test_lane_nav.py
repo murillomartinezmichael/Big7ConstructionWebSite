@@ -33,15 +33,33 @@ INDEX = REPO_ROOT / "index.html"
 
 # 2026-07-17 two-path restructure: Home Repair folded into the residential
 # page (#home-repair section, 301 from the old URL) — two lanes remain.
+# 2026-08-03 clean-URL migration: these are the HREF forms the pages must use
+# — extensionless, matching the canonicals/sitemap/JSON-LD and what the live
+# Cloudflare worker serves 200 on. The `.html` form 307s, so linking it would
+# cost every homepage->lane click an extra hop. Rejecting `.html` here (rather
+# than accepting both) is what stops the old shape drifting back.
 LANE_PATHS = (
-    "/commercial-industrial.html",
-    "/residential-construction.html",
+    "/commercial-industrial",
+    "/residential-construction",
 )
 
 LANE_LABEL_HINT = {
-    "/commercial-industrial.html": "commercial",
-    "/residential-construction.html": "residential",
+    "/commercial-industrial": "commercial",
+    "/residential-construction": "residential",
 }
+
+
+def _lane_file(lane_path: str) -> Path:
+    """Clean URL -> the repo-root file that serves it (`/foo` -> `foo.html`).
+
+    Mirrors tests/test_seo_files.py `_loc_to_repo_path`, so the nav contract
+    and the sitemap contract resolve clean URLs the same way.
+    """
+    rel = lane_path.lstrip("/")
+    direct = REPO_ROOT / rel
+    if direct.is_file():
+        return direct
+    return REPO_ROOT / (rel + ".html")
 
 BUYER_NAV_RE = re.compile(
     r'<nav\b[^>]*\baria-label="Buyer lanes"[^>]*>(?P<body>.*?)</nav>',
@@ -146,7 +164,7 @@ def check_lane_page(page_path: str, html: str) -> list[str]:
 def check_on_disk() -> list[str]:
     errors: list[str] = []
     for lane in LANE_PATHS:
-        on_disk = REPO_ROOT / lane.lstrip("/")
+        on_disk = _lane_file(lane)
         if not on_disk.is_file():
             errors.append(
                 f"lane page {lane!r} referenced by the nav contract does not exist "
@@ -159,18 +177,18 @@ def _selftest() -> int:
     idx_baseline = (
         "<html><body>"
         '<nav aria-label="Buyer lanes">'
-        '<a href="/commercial-industrial.html">Commercial &amp; Industrial</a>'
-        '<a href="/residential-construction.html">Residential Construction</a>'
+        '<a href="/commercial-industrial">Commercial &amp; Industrial</a>'
+        '<a href="/residential-construction">Residential Construction</a>'
         "</nav>"
         "<footer><ul>"
-        '<li><a href="/commercial-industrial.html">Commercial &amp; Industrial</a></li>'
-        '<li><a href="/residential-construction.html">Residential Construction</a></li>'
+        '<li><a href="/commercial-industrial">Commercial &amp; Industrial</a></li>'
+        '<li><a href="/residential-construction">Residential Construction</a></li>'
         "</ul></footer></body></html>"
     )
     lane_baseline = (
         "<html><body><main>content</main>"
         '<nav aria-label="Other lanes"><p>'
-        '<a href="/residential-construction.html">Residential Construction</a> · '
+        '<a href="/residential-construction">Residential Construction</a> · '
         '<a href="/">All services</a></p></nav>'
         "</body></html>"
     )
@@ -178,7 +196,7 @@ def _selftest() -> int:
     if check_index(idx_baseline):
         print("SELFTEST ABORT: index baseline fails check_index()", file=sys.stderr)
         return 1
-    if check_lane_page("/commercial-industrial.html", lane_baseline):
+    if check_lane_page("/commercial-industrial", lane_baseline):
         print("SELFTEST ABORT: lane baseline fails check_lane_page()", file=sys.stderr)
         return 1
 
@@ -193,9 +211,9 @@ def _selftest() -> int:
         (
             "one lane dropped from Buyer-lanes nav",
             idx_baseline.replace(
-                '<a href="/residential-construction.html">Residential Construction</a></nav>', "</nav>"
+                '<a href="/residential-construction">Residential Construction</a></nav>', "</nav>"
             ),
-            "missing a link to '/residential-construction.html'",
+            "missing a link to '/residential-construction'",
         ),
         (
             "lane link text rewritten opaque",
@@ -207,17 +225,17 @@ def _selftest() -> int:
         (
             "same lane listed twice in Buyer-lanes nav",
             idx_baseline.replace(
-                '<a href="/residential-construction.html">Residential Construction</a></nav>',
-                '<a href="/commercial-industrial.html">dup</a></nav>',
+                '<a href="/residential-construction">Residential Construction</a></nav>',
+                '<a href="/commercial-industrial">dup</a></nav>',
             ),
             "more than once",
         ),
         (
             "footer lane link dropped",
             idx_baseline.replace(
-                '<li><a href="/residential-construction.html">Residential Construction</a></li>', "", 1
+                '<li><a href="/residential-construction">Residential Construction</a></li>', "", 1
             ),
-            "footer sitemap is missing a link to '/residential-construction.html'",
+            "footer sitemap is missing a link to '/residential-construction'",
         ),
     ]
     for label, mutated, needle in idx_cases:
@@ -239,9 +257,9 @@ def _selftest() -> int:
         (
             "sibling link dropped from Other-lanes nav",
             lane_baseline.replace(
-                '<a href="/residential-construction.html">Residential Construction</a> · ', ""
+                '<a href="/residential-construction">Residential Construction</a> · ', ""
             ),
-            "missing sibling '/residential-construction.html'",
+            "missing sibling '/residential-construction'",
         ),
         (
             "all-services link dropped from Other-lanes nav",
@@ -253,7 +271,7 @@ def _selftest() -> int:
         if mutated == lane_baseline:
             failures.append(f"{label}: mutation was a no-op")
             continue
-        errs = check_lane_page("/commercial-industrial.html", mutated)
+        errs = check_lane_page("/commercial-industrial", mutated)
         if not errs:
             failures.append(f"{label}: slipped through")
         elif not any(needle in e for e in errs):
@@ -282,7 +300,7 @@ def main(argv: list[str]) -> int:
     errors += check_index(INDEX.read_text(encoding="utf-8"))
 
     for lane in LANE_PATHS:
-        page = REPO_ROOT / lane.lstrip("/")
+        page = _lane_file(lane)
         if not page.exists():
             errors.append(f"lane page {lane!r} missing on disk")
             continue

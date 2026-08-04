@@ -127,10 +127,19 @@ def check_shim(index_html: str, big7_js: str) -> list[str]:
                 f"shim TYPE_TO_LANE missing projectType(s) {sorted(missing)} — those "
                 f"legacy URLs would dead-end on the formless chooser page"
             )
+        # Clean extensionless targets (2026-08-03): the shim performs a client
+        # -side redirect, so a `.html` target would cost the visitor an extra
+        # 307 hop on the live worker before the form even loads. Rejecting the
+        # `.html` form here keeps the money URL one hop.
         bad = {v for v in lane_map.values()
-               if v not in ("/commercial-industrial.html", "/residential-construction.html")}
+               if v not in ("/commercial-industrial", "/residential-construction")}
         if bad:
-            errors.append(f"shim TYPE_TO_LANE routes to unknown page(s): {sorted(bad)}")
+            errors.append(
+                f"shim TYPE_TO_LANE routes to unknown page(s): {sorted(bad)} — "
+                f"expected the clean extensionless lane paths "
+                f"('/commercial-industrial', '/residential-construction'); the "
+                f"'.html' form costs a 307 hop on the live host"
+            )
     return errors
 
 
@@ -322,9 +331,21 @@ def _selftest(html: str, index_html: str, big7_js: str) -> int:
         (
             "shim TYPE_TO_LANE loses a projectType (URL dead-ends)",
             index_html.replace(
-                "'trades-only':          '/residential-construction.html'", "'x': '/residential-construction.html'", 1
+                "'trades-only':          '/residential-construction'", "'x': '/residential-construction'", 1
             ),
             "TYPE_TO_LANE missing projectType",
+        ),
+        # 2026-08-03 clean-URL lock: a lane target that regains its `.html`
+        # extension must FAIL — that form 307s on the live worker, so the
+        # legacy money URL would pay an extra hop before the form renders.
+        (
+            "shim TYPE_TO_LANE regains a redirecting `.html` target",
+            index_html.replace(
+                "'trades-only':          '/residential-construction'",
+                "'trades-only':          '/residential-construction.html'",
+                1,
+            ),
+            "routes to unknown page(s)",
         ),
     ]
     for label, mutated_index, needle in shim_cases:

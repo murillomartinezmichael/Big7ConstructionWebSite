@@ -77,9 +77,14 @@ REQUIRED_ANCHORS = ("main", "contact")
 # on 2026-07-16). Fixed by repointing the pf-card's href; this lock guards
 # the fix against silent regression (e.g. a future portfolio-grid refactor
 # reverting every card back to a uniform href="#contact").
+#
+# 2026-08-03: the link must now use the CLEAN extensionless path — the `.html`
+# form 307s on the live worker, so a `.html` card href costs the visitor an
+# extra hop. The regex rejects `.html` rather than tolerating both forms, so
+# the clean shape cannot silently drift back.
 CASE_STUDY_PAGE = "south-fulton-distribution.html"
 CASE_STUDY_HOST_PAGE = "commercial-industrial.html"
-CASE_STUDY_LINK_RE = re.compile(r'href="/?south-fulton-distribution\.html"', re.IGNORECASE)
+CASE_STUDY_LINK_RE = re.compile(r'href="/south-fulton-distribution"', re.IGNORECASE)
 
 
 def check_case_study_reachable(host_html: str) -> list[str]:
@@ -251,10 +256,15 @@ def selftest() -> int:
 
     # check_case_study_reachable — separate mini-fixture (it inspects one
     # <a href> pattern on a host page, not the anchor-id contract above).
-    host_baseline = '<a class="pf-card" href="/south-fulton-distribution.html" data-intent="portfolio:industrial-01">card</a>'
+    host_baseline = '<a class="pf-card" href="/south-fulton-distribution" data-intent="portfolio:industrial-01">card</a>'
     if check_case_study_reachable(host_baseline):
         misses.append("case-study reachable baseline: expected PASS, got a failure")
-    orphaned = host_baseline.replace('href="/south-fulton-distribution.html"', 'href="#contact"')
+    # Extra mutation (2026-08-03): the legacy `.html` href must FAIL now, so a
+    # revert to the redirecting form is caught, not silently tolerated.
+    legacy = host_baseline.replace('href="/south-fulton-distribution"', 'href="/south-fulton-distribution.html"')
+    if not check_case_study_reachable(legacy):
+        misses.append("case-study `.html` href: expected FAIL (307 hop), got PASS")
+    orphaned = host_baseline.replace('href="/south-fulton-distribution"', 'href="#contact"')
     orphan_errors = check_case_study_reachable(orphaned)
     if not orphan_errors or "orphaned" not in orphan_errors[0]:
         misses.append(f"case-study re-orphaned mutation: expected 'orphaned' failure, got {orphan_errors!r}")
