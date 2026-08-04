@@ -26,6 +26,17 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 CONTAINER_PORT = 8080
 ROUTES = (
     ("/", 200),
+    # Clean extensionless paths — the shape every internal link, canonical,
+    # sitemap loc and JSON-LD url uses (2026-08-03 migration). These only
+    # resolve because nginx.conf's `location /` try_files carries `$uri.html`;
+    # without it the fallback 404s on the site's entire navigation.
+    ("/commercial-industrial", 200),
+    ("/residential-construction", 200),
+    ("/south-fulton-distribution", 200),
+    ("/accessibility", 200),
+    # Legacy `.html` form still serves on the fallback (Cloudflare 307s it to
+    # the clean path; nginx has no such rewrite). Kept green so an old
+    # bookmark or inbound link never hard-fails on the fallback host.
     ("/commercial-industrial.html", 200),
     ("/residential-construction.html", 200),
     ("/big7.js", 200),
@@ -33,8 +44,10 @@ ROUTES = (
 )
 # Retired routes that must permanently redirect (2026-07-17 two-path
 # restructure): (path, expected status, expected Location header).
+# Target is the CLEAN path (2026-08-03): the `.html` target chained
+# 301 -> 307 -> 200 on the live host.
 REDIRECTS = (
-    ("/home-repair.html", 301, "/residential-construction.html#home-repair"),
+    ("/home-repair.html", 301, "/residential-construction#home-repair"),
 )
 HTTP = urllib.request.build_opener(urllib.request.ProxyHandler({}))
 
