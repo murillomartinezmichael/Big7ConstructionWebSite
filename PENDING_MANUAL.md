@@ -8,6 +8,48 @@ checkbox so it clears with a stroke.
 > banner above the Work Log (27 entries fleet-wide, verified via headless
 > Playwright). Then check these boxes in one stroke.
 
+## 2026-08-03 canonical `.html` -> clean-path arc (part 2) — manual gates
+
+- [ ] **Run the container smoke with Docker running:** `make test-container`
+  - **Why blocked on Mike:** the Docker daemon was down this session
+    (`npipe:////./pipe/dockerDesktopLinuxEngine` not found), so the one gate
+    that actually boots nginx could not run. This session changed
+    `nginx.conf` (`try_files $uri $uri.html $uri/ =404;` + the `/home-repair.html`
+    301 target), and `scripts/test-container-boot.py` was updated to assert
+    BOTH URL forms serve 200 on the fallback plus the clean redirect target.
+    Those expectations are **verified by static test only, not by a real
+    container boot.**
+  - **Resumes:** start Docker Desktop, run `make test-container`. Green = the
+    Railway fallback genuinely serves the clean paths every internal link now
+    points at. Red = the try_files change needs a look before the next push.
+
+- [ ] **After the next push, re-probe the live host once the CF worker
+  redeploys.** The `_redirects` fix (`/home-repair.html` -> clean path) only
+  takes effect on deploy.
+  - **Why blocked on Mike:** this session is push-restricted (local commits
+    only), and Workers Builds deploys from `main`.
+  - **Resumes:** `curl -sI https://big7construction.com/home-repair.html` should
+    show `location: /residential-construction` (one 301, no 307 chain).
+    Today it still returns the old `/residential-construction.html`.
+
+- [ ] **Log this session to Cockpit Work Log** (COCKPIT.html — press `l`)
+  - **Card:** Big7Construction
+  - **What shipped:** Closed part 2 of the canonical URL arc. Part 1
+    (`81d9f4d`) had flipped canonical/og:url/JSON-LD/sitemap to clean
+    extensionless paths but deliberately left internal links on `.html`, so
+    every homepage->lane click paid a 307 hop. Flipped 47 internal hrefs
+    across 5 pages + index.html's legacy money-URL shim; found and fixed a
+    real `301 -> 307 -> 200` chain on `/home-repair.html`; added
+    `$uri.html` to the nginx fallback so it can serve the clean paths. Locked
+    the whole shape in a new `tests/test_url_shape.py` (7 surfaces, 10
+    selftest mutations) and migrated the 4 suites that hard-coded `.html`.
+    23 suites / 46 checks green; preflight READY; every internal link target
+    re-probed live at 200 with no redirect hop. Left local (not pushed).
+  - **Move card to:** In Progress (Big7 is a rolling site; no "Done" state).
+  - **Why blocked on Mike:** COCKPIT.html work log lives in browser
+    `localStorage` — cannot be written from CLI. 30 seconds in the browser.
+  - **Resumes:** Cockpit shows the entry; next Big7 tick has a clean timeline.
+
 ## 2026-07-20 fleet re-audit — case-study orphan-page fix
 
 - [ ] **Log this session to Cockpit Work Log** (COCKPIT.html — press `l`)

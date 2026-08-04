@@ -6,6 +6,93 @@
 
 # Big7Construction — TODO
 
+## SHIPPED 2026-08-03 — canonical `.html` -> clean-path arc CLOSED (part 2)
+
+Part 1 (`81d9f4d`, 2026-07-19) flipped the SEO-signal URLs and explicitly
+parked internal links as "cosmetic, not an SEO signal". That was half true:
+they aren't a crawl signal, but every internal click was paying a 307 hop,
+and the parked note's own scoping ("PARKED 2026-07-17: Extensionless-URL
+migration") called for exactly this. Both halves now ship, so the repo
+speaks ONE URL shape end to end.
+
+**Verified live before touching anything** (read-only probes, 2026-08-03) —
+the mission's three premises all held:
+  - every canonical/og:url/JSON-LD/sitemap URL already used the apex form
+  - `www` is decommissioned (no `www.` string anywhere in shipped files)
+  - `.html` 307s to the clean path: `/commercial-industrial.html` -> 307 ->
+    `/commercial-industrial` (same for the other 3 pages; `/index.html` -> `/`)
+
+**Real bug found by probing, not by reading:** `/home-repair.html` 301'd to
+`/residential-construction.html`, which then 307s — a **301 -> 307 -> 200
+chain** on the retired lane's legacy inbound links. Both `_redirects` and
+`nginx.conf` now target the clean path directly.
+
+Shipped (`fae2640`, `e8cee12` — local only, NOT pushed):
+- **47 internal hrefs** across 5 pages flipped to the clean form: nav, mobile
+  menu, footer sitemap, lane cross-links, the portfolio pf-card, CTAs, the
+  404 recovery nav — plus **index.html's `TYPE_TO_LANE` legacy money-URL
+  shim**, which did a client-side redirect into a URL that then 307'd again
+  (the worst offender: a bio-link click paid two hops before the form loaded).
+- **nginx fallback made capable of serving the new shape:** `location /`
+  try_files gains `$uri.html`. Without it the Railway fallback would 404 on
+  the site's entire navigation. Chain still ends `=404`, so typos stay 404s.
+- **`big7.js` keeps its defensive `.html` strip** — a bookmarked legacy URL
+  must still report the same analytics page slug, not split the funnel into
+  two page keys. Comment now explains why it stays.
+- **New `tests/test_url_shape.py` (suite #23)** — the actual anti-drift lock.
+  Asserts ONE shape (apex, https, no `www`, no `.html`) across **seven
+  surfaces at once**: canonical, og:url, JSON-LD, internal hrefs, sitemap
+  locs, `_redirects` targets, and the nginx fallback (try_files carries
+  `$uri.html` AND ends `=404`; 301 targets clean). Plus a hard
+  `www.big7construction.com` ban across every shipped file. 10 selftest
+  mutations, all caught. Why it was needed: the old per-surface tests each
+  knew about one file, so the shape could revert one surface at a time with
+  everything still green.
+- **4 suites migrated** off the hard-coded `.html` shape — each now REJECTS
+  `.html` rather than tolerating both forms (that rejection is what stops the
+  drift): `test_lane_nav`, `test_404_lane_recovery` (both gained a
+  `_lane_file()` resolver, since a clean URL no longer maps 1:1 to a
+  filename), `test_anchors`, `test_url_prefill`. Repaired a `test_url_prefill`
+  selftest mutation that had silently become a **no-op**, and added 2 new
+  mutations. All three resolvers now mirror `test_seo_files._loc_to_repo_path`.
+
+**Gates (real output):** `23 SUITES | checks passed: 46 | failed: 0` (golden +
+selftest) · `preflight-deploy.py --strict` -> **READY** (1 optional live probe
+skipped) · `check-tracked-imports.py` exit 0 · every internal link target
+re-probed live: `/`, `/accessibility`, `/commercial-industrial`,
+`/residential-construction`, `/south-fulton-distribution`,
+`/docs/big7-capability-statement.pdf` — **all 200, no redirect hop** ·
+`test_a11y_baseline` green on all 6 pages (LAW #11 baseline held; only hrefs
+changed, and the `/accessibility` footer link is still present everywhere).
+
+**NOT verified this session (honest gap, see PENDING_MANUAL):**
+`make test-container` could not run — the Docker daemon was down. The
+`nginx.conf` change is covered by static tests only, not by a real container
+boot. That is the one thing to run before the next push.
+
+**NEXT ACTION:** start Docker Desktop, run `make test-container` (expects `/`
++ both URL forms of each lane + `/big7.js` at 200, `/home-repair.html` 301 ->
+`/residential-construction#home-repair`, missing route 404). If green, push
+`main` (2 commits: `fae2640`, `e8cee12`) — Workers Builds auto-deploys — then
+re-probe `curl -sI https://big7construction.com/home-repair.html` and confirm
+`location: /residential-construction` (one 301, no 307 chain).
+
+**PARKED (2026-08-03):**
+- **nginx `.html` -> clean 301 on the fallback.** Cloudflare 307s the `.html`
+  form; nginx now serves both at 200, so the fallback has a duplicate-content
+  shape the live host doesn't. Deliberately NOT added: it needs a regex
+  `location` block (which resets nginx `add_header` inheritance — all 5
+  security headers would have to be repeated, and `test_nginx_headers` would
+  need the new block added to its protected-locations spec), and it could not
+  be boot-verified this session with Docker down. Low value while Railway is
+  fallback-only and uncrawled. Do it in the same session that runs the
+  container gate.
+- Fragment support in CF `_redirects` is still undocumented, so
+  `/home-repair*` lands on `/residential-construction` without the
+  `#home-repair` fragment on Cloudflare (nginx keeps the fragment). Unchanged
+  from 2026-07-17; revisit only if analytics shows the landing is confusing.
+
+
 ## SHIPPED 2026-07-20 (re-audit) — South Fulton case-study page was a click-orphan
 
 Fleet re-audit verified the `south-fulton-distribution.html` case-study page
