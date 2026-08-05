@@ -15,6 +15,12 @@ Thumbs.db
 
 # Repo-specific docs that don't need to ship in the image
 docs/
+# ...except the capability statement. The Dockerfile COPYs it and the site links
+# it publicly at /docs/big7-capability-statement.pdf. Without this negation the
+# image has failed to build since 2026-07-20 — d78f9b0 added the COPY that day,
+# while the docs/ rule above dates from 94a237c on 2026-07-03. Caught 2026-08-04,
+# the first time the container smoke test was run since.
+!docs/big7-capability-statement.pdf
 tests/
 BRD.md
 TRD.md
