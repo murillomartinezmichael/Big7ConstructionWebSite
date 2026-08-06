@@ -1,0 +1,23 @@
+{
+  "_readme": [
+    "SINGLE SOURCE OF TRUTH for site-wide business facts.",
+    "The site is static with no build step (ADR no-build rule), so pages",
+    "carry the rendered values inline — this file is the canonical value the",
+    "test suite locks every surface against. tests/test_phone.py fails the",
+    "moment any tel: href, visible number, JSON-LD telephone, or big7.js",
+    "copy disagrees with `phone.digits` below.",
+    "",
+    "TO CHANGE THE PHONE NUMBER:",
+    "  1. Edit phone.digits (10 digits, no punctuation).",
+    "  2. Set phone.placeholder to false once the number is the client's",
+    "     real line (while true, the suite prints a loud warning).",
+    "  3. Run `python tests/test_phone.py` — it lists every file still",
+    "     carrying the old number. Update each (tel:XXXXXXXXXX hrefs,",
+    "     (XXX) XXX-XXXX display text, +1-XXX-XXX-XXXX JSON-LD).",
+    "  4. Re-run until green, then run the full `make test` chain."
+  ],
+  "phone": {
+    "digits": "5557000007",
+    "placeholder": true
+  }
+}

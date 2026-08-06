@@ -1,16 +1,17 @@
 # AGENTS.md
 
 ## What This Is
-Static marketing website for Big 7 Construction — a full-service commercial, industrial, and residential contractor. Single-file HTML site served via nginx:alpine on Railway.
+Static marketing website for Big 7 Construction — a full-service commercial, industrial, and residential contractor. Multi-page static HTML site served via **Cloudflare Workers static assets** (worker `big7`, auto-deploys from GitHub `main`; live at the apex `big7construction.com` — `www` intentionally decommissioned). nginx:alpine on Railway stays in-repo as a tested fallback. **Live paying-client site — treat every content change as client-visible.**
 
 ## Stack
-Single-file HTML5 + embedded CSS (no JS framework, no build step) → nginx:alpine Docker on Railway (port 8080)
+Multi-page HTML5 + per-page inline CSS + shared `big7.js` (no framework, no build step) → Cloudflare Workers static assets (`_headers` + `_redirects`) with nginx:alpine Docker on Railway as fallback
 
 ## Key Files
-- `index.html` — entire site: HTML + all CSS in `<style>` block. Fonts: Anton + Barlow (Google Fonts). Color palette: warm off-white, orange-red, electric blue
+- `index.html` (chooser homepage) + `commercial-industrial.html` / `residential-construction.html` (lane pages with own intake forms) + `south-fulton-distribution.html` (case study) + `accessibility.html` + `404.html`. Fonts: Fraunces + Barlow Condensed + Inter (Google Fonts, async pattern). Palette: warm off-white, orange-red, electric blue
+- `big7.js` — shared money-path JS (Formspree submit, prefill, analytics). Test-locked money code (LAW #6/7) — do NOT treat this repo as "no JS"
+- `site.config.json` — single source of truth for the business phone; `tests/test_phone.py` locks every surface against it (number is still the 555 placeholder — client-gated, see PENDING_MANUAL.md)
 - `images/` — project photos and assets
-- `nginx.conf` — nginx config; PORT is injected at runtime via `sed`
-- `Dockerfile` — `FROM nginx:alpine`, copies site files, runs `sed` to set port
+- `nginx.conf` / `Dockerfile` — Railway fallback; PORT injected at runtime via `sed`
 
 ## Run Locally
 ```bash
@@ -19,15 +20,18 @@ python -m http.server 8080
 # Open http://localhost:8080
 ```
 
+## Test
+`make test` — 24 stdlib-only suites (golden + selftest each), or `python tests/test_<name>.py [--selftest]` directly.
+
 ## Deploy
-Railway — push to main triggers Docker build. nginx serves on `${PORT:-8080}`. Port is injected at container start via `sed -i s/NGINX_PORT/${PORT:-8080}/g nginx.conf`.
+Push to `main` → Cloudflare Workers Builds auto-deploys. Railway fallback: Docker build of nginx:alpine serving on `${PORT:-8080}`.
 
 ## Env Vars
 None — fully static site. Railway injects `PORT` automatically for the nginx config substitution.
 
 ## Rules
-- No JavaScript — pure HTML + CSS
-- All styles in the `<style>` block inside `index.html`
+- JS is allowed but minimal and dependency-free: shared money-path code lives in `big7.js` (one copy, test-locked); page-specific decorative JS stays inline on its page. No frameworks, no bundler
+- Styles stay per-page in each file's `<style>` block (shared-CSS extraction is a parked follow-up)
 - Images go in `images/` and are copied into the Docker image
 - YAGNI — no CMS, no JS framework, no build tools
 

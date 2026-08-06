@@ -6,6 +6,59 @@
 
 # Big7Construction — TODO
 
+## REVIEW BRANCH 2026-08-05 — professionalization pass
+
+Base: HEAD `382e29e` == `origin/main` (tree was clean at session start).
+Mike authorized a publication branch on 2026-08-05. The code, configuration,
+tests, and docs below travel together; merging remains the production gate.
+
+1. **Phone single-sourced** — new `site.config.json` (canonical digits +
+   `placeholder: true` flag, swap procedure in its header) + new
+   `tests/test_phone.py` / `make test-phone` (suite #24, wired into
+   `make test`, so CI picks it up). Locks all 48 occurrences across
+   index / both lanes / case study / accessibility / big7.js: tel: hrefs,
+   display text, JSON-LD. Prints a loud WARN (stays green) while the 555
+   placeholder ships; `placeholder: false` with a 555 exchange is a hard
+   fail. Real-number swap: PENDING_MANUAL (updated with exact procedure).
+2. **Photo content-hash lock** — `tests/test_images.py` now md5-hashes
+   `images/` and fails on byte-identical files under different names
+   (audit: jobsite-01.jpg == jobsite-02.jpg, md5 `ab0eb021…`, was serving
+   as 4 "different" project photos). The known pair is allowlisted at WARN
+   level (`KNOWN_DUPLICATE_GROUPS`) until real client photos land — remove
+   the entry then. Plus honest alt texts: all 6 `<img>`s using the jobsite
+   files now say what the photo actually shows ("Aerial view of an active
+   construction jobsite — sitework and concrete formwork in progress")
+   instead of naming four distinct projects that aren't pictured (LAW 6).
+3. **Unattributable testimonials removed for review** from
+   commercial-industrial (3 quotes incl. "Marcus H."), residential (1),
+   index trust strip (1), south-fulton Result section (1) — each replaced
+   with a dated comment. Verbatim quotes + the sign-off-or-ship decision:
+   PENDING_MANUAL § "2026-08-05 unattributable testimonials".
+4. **README.md rewritten to reality** (was: Railway-primary, "single-page
+   site", Anton+Barlow fonts): now Cloudflare Workers primary + Railway
+   fallback, 6-page map, big7.js money code, Fraunces/Barlow Condensed/
+   Inter, run/test/deploy paths a stranger can follow. **AGENTS.md**
+   corrected the same way (it told agent seats "No JavaScript — pure
+   HTML + CSS", which contradicts test-locked big7.js). RUNBOOK.md is
+   still stale the same way (Railway-first, "no JS", Anton+Barlow) —
+   PARKED, next docs tick.
+5. **Stale push-status notes corrected** in this file + PENDING_MANUAL
+   ("fae2640/e8cee12/d78f9b0 not pushed" — all verified on `origin/main`).
+   Live re-probe done: `/home-repair.html` → one 301 →
+   `/residential-construction` (no 307 chain) — that manual gate is closed.
+
+**Gates (real output, 2026-08-05):** all **24 suites** (23 existing + new
+test_phone) golden + selftest — `PASSED: 24 / 24`. test_phone golden:
+`OK: 48 phone occurrences across 6 surfaces all agree` + WARN block.
+test_images golden: `OK: 5 <img> tags across 3 pages … no un-allowlisted
+byte-identical files` + KNOWN-duplicate WARN. **NOT run: `make
+test-container`** — Docker daemon down again this session (unchanged gap;
+nginx.conf untouched today, so risk unchanged from 2026-08-03).
+
+**NEXT ACTION (cold-start):** review the publication PR, provide the client's
+real phone number, then run `make test-container` with Docker Desktop before
+merging. The safer testimonial decision—removal until sources exist—is selected.
+
 ## SHIPPED 2026-08-03 — canonical `.html` -> clean-path arc CLOSED (part 2)
 
 Part 1 (`81d9f4d`, 2026-07-19) flipped the SEO-signal URLs and explicitly
@@ -27,7 +80,9 @@ the mission's three premises all held:
 chain** on the retired lane's legacy inbound links. Both `_redirects` and
 `nginx.conf` now target the clean path directly.
 
-Shipped (`fae2640`, `e8cee12` — local only, NOT pushed):
+Shipped (`fae2640`, `e8cee12` — ~~local only, NOT pushed~~ **correction
+2026-08-05: both are on `origin/main`**; HEAD `382e29e` == origin/main,
+verified with `git branch -r --contains`):
 - **47 internal hrefs** across 5 pages flipped to the clean form: nav, mobile
   menu, footer sitemap, lane cross-links, the portfolio pf-card, CTAs, the
   404 recovery nav — plus **index.html's `TYPE_TO_LANE` legacy money-URL
@@ -70,12 +125,16 @@ changed, and the `/accessibility` footer link is still present everywhere).
 `nginx.conf` change is covered by static tests only, not by a real container
 boot. That is the one thing to run before the next push.
 
-**NEXT ACTION:** start Docker Desktop, run `make test-container` (expects `/`
-+ both URL forms of each lane + `/big7.js` at 200, `/home-repair.html` 301 ->
-`/residential-construction#home-repair`, missing route 404). If green, push
-`main` (2 commits: `fae2640`, `e8cee12`) — Workers Builds auto-deploys — then
-re-probe `curl -sI https://big7construction.com/home-repair.html` and confirm
-`location: /residential-construction` (one 301, no 307 chain).
+**NEXT ACTION** *(corrected 2026-08-05 — the original note claimed the
+commits were unpushed; they are on `origin/main` and the CF worker has
+deployed them. Live re-probe DONE 2026-08-05:
+`curl -sI https://big7construction.com/home-repair.html` returns **one 301
+with `Location: /residential-construction`** — no 307 chain. What remains:)*
+start Docker Desktop, run `make test-container` (expects `/` + both URL forms
+of each lane + `/big7.js` at 200, `/home-repair.html` 301 ->
+`/residential-construction#home-repair`, missing route 404). Docker was down
+again on 2026-08-05, so the nginx fallback's `try_files` change is still
+static-test-verified only.
 
 **PARKED (2026-08-03):**
 - **nginx `.html` -> clean 301 on the fallback.** Cloudflare 307s the `.html`
@@ -108,7 +167,8 @@ route to `#contact` (their case-study pages don't exist yet — client-gated,
 see PENDING_MANUAL). Locked against regression in `tests/test_anchors.py`
 (`check_case_study_reachable`, +1 selftest mutation). All 23 suites green
 (golden + selftest); `preflight-deploy.py` READY; tracked-imports clean.
-Left local, not pushed — see session note below.
+~~Left local, not pushed — see session note below.~~ *(Correction
+2026-08-05: `d78f9b0` and this fix are on `origin/main`.)*
 
 ## SHIPPED 2026-07-20 — capability-statement PDF (competitor-research trust fix)
 

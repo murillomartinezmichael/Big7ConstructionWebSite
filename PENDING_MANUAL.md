@@ -8,6 +8,40 @@ checkbox so it clears with a stroke.
 > banner above the Work Log (27 entries fleet-wide, verified via headless
 > Playwright). Then check these boxes in one stroke.
 
+## 2026-08-05 unattributable testimonials — DECIDED: remove until sourced
+
+- [x] **Decision: ship the testimonial removal.** The
+  professionalization audit flagged the quotes on `commercial-industrial.html`
+  as unattributable; the same exposure exists on three more surfaces. All four
+  are removed on the review branch, each replaced by a dated HTML comment
+  pointing here. Layout is intact and all 24 suites are green locally. Michael's
+  2026-08-05 instruction to commit and push the ready fleet work selected the
+  safer removal path; a sourced quote may be restored later with written client
+  permission and a DECISIONS.md receipt.
+  - **Surfaces + verbatim removed content:**
+    - `commercial-industrial.html` (§ Testimonials, 3 quotes):
+      1. "Big 7 held the schedule down to the day and finished the punch
+         list two weeks early. Every RFI answered inside 24 hours. That
+         never happens." — *Marcus H., Director of Development · Private
+         industrial client · 42,000 sq ft distribution facility*
+      2. "They ran the buildout after-hours so the neighboring tenants
+         never saw a lift. Rare discipline for a GC." — *Private
+         hospitality client · Ownership*
+      3. "Coordinated the TI around a live tenant floor without a single
+         work-order complaint. That is what we pay a real GC for." —
+         *Private commercial tenant · Asset Mgr*
+    - `residential-construction.html` (§ Testimonials, 1 quote):
+      "They ran the residential side with the same PM software and safety
+      stack as the commercial jobs. It shows in the finish." — *Brookhaven
+      owner, Homeowner · 6,200 sq ft custom residence*
+    - `index.html` (trust strip): quote 1 above, same attribution.
+    - `south-fulton-distribution.html` (§ Result): quote 1 above, same
+      attribution. (The 2026-07-20 item below already flagged this one as
+      "accurate but inferential" — this supersedes it until a documented
+      source exists.)
+  - **Resumes:** the 2026-07-20 "real client quote for South Fulton" item below
+    remains the upgrade path if the client re-confirms in writing.
+
 ## 2026-08-03 canonical `.html` -> clean-path arc (part 2) — manual gates
 
 - [ ] **Run the container smoke with Docker running:** `make test-container`
@@ -23,14 +57,13 @@ checkbox so it clears with a stroke.
     Railway fallback genuinely serves the clean paths every internal link now
     points at. Red = the try_files change needs a look before the next push.
 
-- [ ] **After the next push, re-probe the live host once the CF worker
-  redeploys.** The `_redirects` fix (`/home-repair.html` -> clean path) only
-  takes effect on deploy.
-  - **Why blocked on Mike:** this session is push-restricted (local commits
-    only), and Workers Builds deploys from `main`.
-  - **Resumes:** `curl -sI https://big7construction.com/home-repair.html` should
-    show `location: /residential-construction` (one 301, no 307 chain).
-    Today it still returns the old `/residential-construction.html`.
+- [x] ~~**After the next push, re-probe the live host once the CF worker
+  redeploys.**~~ **DONE 2026-08-05 (agent, read-only probe)** — the commits
+  were already on `origin/main` and the worker had redeployed:
+  `curl -sI https://big7construction.com/home-repair.html` returns **one
+  `301` with `Location: /residential-construction`** — no 307 chain.
+  (The stale "not pushed" status notes in TODO.md were corrected the same
+  session.)
 
 - [ ] **Log this session to Cockpit Work Log** (COCKPIT.html — press `l`)
   - **Card:** Big7Construction
@@ -44,7 +77,8 @@ checkbox so it clears with a stroke.
     the whole shape in a new `tests/test_url_shape.py` (7 surfaces, 10
     selftest mutations) and migrated the 4 suites that hard-coded `.html`.
     23 suites / 46 checks green; preflight READY; every internal link target
-    re-probed live at 200 with no redirect hop. Left local (not pushed).
+    re-probed live at 200 with no redirect hop. Left local (not pushed)
+    *(since pushed — on `origin/main`, verified 2026-08-05)*.
   - **Move card to:** In Progress (Big7 is a rolling site; no "Done" state).
   - **Why blocked on Mike:** COCKPIT.html work log lives in browser
     `localStorage` — cannot be written from CLI. 30 seconds in the browser.
@@ -63,7 +97,8 @@ checkbox so it clears with a stroke.
     "View full case study →" label; locked with a new
     `check_case_study_reachable` assertion in `tests/test_anchors.py`
     (+1 selftest mutation). All 23 suites green; preflight READY;
-    tracked-imports clean. Left local (not pushed) — see TODO.md.
+    tracked-imports clean. Left local (not pushed) — see TODO.md
+    *(since pushed — on `origin/main`, verified 2026-08-05)*.
   - **Move card to:** In Progress (Big7 is a rolling site; no "Done" state).
   - **Why blocked on Mike:** COCKPIT.html work log lives in browser
     `localStorage` — cannot be written from CLI. 30 seconds in the browser.
@@ -142,14 +177,26 @@ checkbox so it clears with a stroke.
     src-uniqueness lock + floors (2/lane) can rise back to one photo per
     card; the flagship case-study page gains real imagery.
 - [ ] **Provision the real business phone number (replaces 555-700-0007).**
+  *(Procedure updated 2026-08-05 — the number is now single-sourced in
+  `site.config.json` and locked by `tests/test_phone.py`, which fails on any
+  surface that disagrees and prints a loud WARN on every `make test` run
+  while the placeholder ships.)*
   - **What to do:** get the client's real line (or stand up the tracking
-    number), then swap it into all `tel:` anchors, visible text, and JSON-LD
-    `telephone` fields across index / both lanes / accessibility / 404 —
-    `tests/test_form.py` + `tests/test_jsonld.py` lock the tel↔JSON-LD
-    agreement, so one agent pass after the number lands keeps it green.
+    number). Then the exact swap:
+    1. Edit `site.config.json`: set `phone.digits` to the 10 digits, set
+       `phone.placeholder` to `false` (the test hard-fails if the flag is
+       flipped while a 555 exchange remains — it can't be gamed).
+    2. Run `python tests/test_phone.py` — it lists **every file still
+       carrying the old number** (48 occurrences across index / both lanes /
+       case study / accessibility / big7.js as of 2026-08-05). Swap each
+       (or tell an agent: "real number is XXX-XXX-XXXX, run the phone swap"
+       — one mechanical pass).
+    3. Re-run until green, then full `make test` (test_form/test_jsonld/
+       test_click_to_call also lock tel↔JSON-LD agreement).
   - **Why blocked on him:** phone provisioning is a client/business decision.
-  - **Resumes:** click-to-call + sticky call bar dial a real line; the
-    `contactOption: "TollFree"` question in TODO can be settled.
+  - **Resumes:** click-to-call + sticky call bar dial a real line; the WARN
+    block disappears from `make test`; the `contactOption: "TollFree"`
+    question in TODO can be settled.
 
 ## 2026-07-19 SiteAudit 30-point findings — two Cloudflare toggles
 
