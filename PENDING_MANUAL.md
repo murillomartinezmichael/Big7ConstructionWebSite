@@ -8,16 +8,27 @@ checkbox so it clears with a stroke.
 > banner above the Work Log (27 entries fleet-wide, verified via headless
 > Playwright). Then check these boxes in one stroke.
 
-## 2026-08-05 unattributable testimonials — DECIDED: remove until sourced
+## 2026-08-05 unattributable testimonials — OPEN: Mike's decision required
 
-- [x] **Decision: ship the testimonial removal.** The
-  professionalization audit flagged the quotes on `commercial-industrial.html`
-  as unattributable; the same exposure exists on three more surfaces. All four
-  are removed on the review branch, each replaced by a dated HTML comment
-  pointing here. Layout is intact and all 24 suites are green locally. Michael's
-  2026-08-05 instruction to commit and push the ready fleet work selected the
-  safer removal path; a sourced quote may be restored later with written client
-  permission and a DECISIONS.md receipt.
+- [ ] **Decision (OPEN — needs Mike): keep the testimonials removed, or restore
+  a sourced version.** The professionalization audit flagged the quotes on
+  `commercial-industrial.html` as unattributable; the same exposure exists on
+  three more surfaces. All four are now removed on `main` and **live in
+  production**, each replaced by a dated HTML comment pointing here. Layout is
+  intact and all 24 suites are green locally.
+  - **Status of the removal:** shipped and live. This checkbox is *not* asking
+    whether to un-ship it today — it is asking Mike to ratify the permanent
+    policy for a paying client's testimonials.
+  - **Why this is still open:** an earlier revision of this file recorded the
+    decision as made, inferring Mike's consent from a generic "commit and push
+    the ready fleet work" instruction. That inference was not his to make. A
+    push instruction is not client-content approval, so the decision is
+    reopened here and recorded as pending.
+  - **The three options:** (a) leave removed permanently; (b) restore a quote
+    once the client confirms it in writing — requires written client permission
+    plus a DECISIONS.md receipt; (c) replace with a differently-sourced proof
+    element. The verbatim quotes below are preserved so any of the three
+    remains possible.
   - **Surfaces + verbatim removed content:**
     - `commercial-industrial.html` (§ Testimonials, 3 quotes):
       1. "Big 7 held the schedule down to the day and finished the punch
@@ -44,7 +55,7 @@ checkbox so it clears with a stroke.
 
 ## 2026-08-03 canonical `.html` -> clean-path arc (part 2) — manual gates
 
-- [ ] **Run the container smoke with Docker running:** `make test-container`
+- [ ] **Run the container smoke with Docker running:** `python scripts/test-container-boot.py`
   - **Why blocked on Mike:** the Docker daemon was down this session
     (`npipe:////./pipe/dockerDesktopLinuxEngine` not found), so the one gate
     that actually boots nginx could not run. This session changed
@@ -53,7 +64,8 @@ checkbox so it clears with a stroke.
     BOTH URL forms serve 200 on the fallback plus the clean redirect target.
     Those expectations are **verified by static test only, not by a real
     container boot.**
-  - **Resumes:** start Docker Desktop, run `make test-container`. Green = the
+  - **Resumes:** start Docker Desktop, run `python scripts/test-container-boot.py`
+    (`make` is not on PATH on this machine). Green = the
     Railway fallback genuinely serves the clean paths every internal link now
     points at. Red = the try_files change needs a look before the next push.
 
