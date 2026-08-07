@@ -1,7 +1,7 @@
 # AGENTS.md
 
 ## What This Is
-Static marketing website for Big 7 Construction — a full-service commercial, industrial, and residential contractor. Multi-page static HTML site served via **Cloudflare Workers static assets** (worker `big7`, auto-deploys from GitHub `main`; live at the apex `big7construction.com` — `www` intentionally decommissioned). nginx:alpine on Railway stays in-repo as a tested fallback. **Live paying-client site — treat every content change as client-visible.**
+Static marketing website for Big 7 Construction — a full-service commercial, industrial, and residential contractor. Multi-page static HTML site served via **Cloudflare Workers static assets** (worker `big7`, auto-deploys from GitHub `main`; live at the apex `big7construction.com`; `www` was slated for decommission 2026-07-17 but observed live 2026-08-07 serving a byte-identical duplicate — disposition pending in `PENDING_MANUAL.md`). nginx:alpine on Railway stays in-repo as a tested fallback. **Live paying-client site — treat every content change as client-visible.**
 
 ## Stack
 Multi-page HTML5 + per-page inline CSS + shared `big7.js` (no framework, no build step) → Cloudflare Workers static assets (`_headers` + `_redirects`) with nginx:alpine Docker on Railway as fallback

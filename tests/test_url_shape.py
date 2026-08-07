@@ -13,8 +13,10 @@ Three separate facts make that shape load-bearing rather than cosmetic:
      pages extensionless and **307s the `.html` form** — verified live
      2026-08-03. So a `.html` URL anywhere costs a redirect hop, and a `.html`
      canonical points at a URL that redirects away from itself.
-  2. `www` was **intentionally decommissioned** (Mike's call, 2026-07-17) —
-     apex is the sole host. A `www.` URL in shipped markup is a dead host.
+  2. `www` was slated for decommission (Mike's call, 2026-07-17); observed
+     2026-08-07 it still serves a byte-identical duplicate of apex (disposition
+     pending in PENDING_MANUAL.md). Either way apex is the sole canonical
+     host, so a `www.` URL in shipped markup is wrong.
   3. The SEO-signal half of this arc shipped 2026-07-19 (`81d9f4d`) and the
      internal-link half shipped 2026-08-03. Both halves were previously
      guarded only by per-surface tests that each knew about one file, so the
@@ -44,7 +46,8 @@ Contract asserted
      `location /` try_files includes `$uri.html`, and still ends in `=404`.
      Its `return 301` targets are clean too, so the fallback matches CF.
   7. The literal string `www.big7construction.com` appears nowhere in any
-     shipped file — `www` is decommissioned, not redirected.
+     shipped file — apex is the sole canonical host (www's live disposition
+     is a pending dashboard decision, not a markup concern).
 
 Python 3.11+ stdlib only (`re`, `pathlib`, `sys`). No pip, no network.
 
@@ -216,7 +219,7 @@ def check_nginx(text: str) -> list[str]:
 
 
 def check_no_www(repo_root: Path) -> list[str]:
-    """Contract 7 — `www` is decommissioned, so it must appear in no shipped file."""
+    """Contract 7 — apex is the sole canonical host; `www` must appear in no shipped file."""
     errors: list[str] = []
     shipped = sorted(repo_root.glob("*.html"))
     for extra in ("sitemap.xml", "robots.txt", "_redirects", "_headers", "big7.js", "nginx.conf"):
