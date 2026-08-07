@@ -36,6 +36,10 @@ jobs:
   verify:
     name: standards
     runs-on: ubuntu-latest
+    # Cap runaway runs: this job normally finishes in ~16s, but it has burned
+    # 2h36m (2026-07-20) and 15m (2026-08-06 runner-acquisition hang) of the
+    # Actions budget. 10 min is ~35x normal runtime — plenty of headroom.
+    timeout-minutes: 10
 
     steps:
       - uses: actions/checkout@v4
