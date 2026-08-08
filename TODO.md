@@ -1,20 +1,267 @@
+## VERIFIED (2026-07-17 — Lighthouse mobile, live www.big7construction.com)
+
+- Home **95-96** perf / 96 a11y / 100 bp · Commercial **98**/100/100 · Residential **98**/100/100 — the ≥95 quality bar passes on all three (first home run read 71 from cold-cache noise; two repeat runs confirmed 95-96).
+- SEO category couldn't be scored locally (Lighthouse-on-Node-21 `URL.parse` bug, tooling not site) — meta/JSON-LD untouched since last green.
+- ~~Small parked wart: CLS 0.09-0.13 on `.hero-overlay` (font-swap reflow resizes hero)~~ **FIXED 2026-07-17 eve (`8eadc23`)** — see SHIPPED below.
+
 # Big7Construction — TODO
 
-**Last updated:** 2026-07-16 (Fable — lane navigability shipped + Dockerfile boot-crash fixed; W2 "three lanes navigable" gate CLOSED)
+## REVIEW BRANCH 2026-08-05 — professionalization pass
+
+Base: HEAD `382e29e` == `origin/main` (tree was clean at session start).
+Mike authorized a publication branch on 2026-08-05. The code, configuration,
+tests, and docs below travel together; merging remains the production gate.
+
+1. **Phone single-sourced** — new `site.config.json` (canonical digits +
+   `placeholder: true` flag, swap procedure in its header) + new
+   `tests/test_phone.py` / `make test-phone` (suite #24, wired into
+   `make test`, so CI picks it up). Locks all 48 occurrences across
+   index / both lanes / case study / accessibility / big7.js: tel: hrefs,
+   display text, JSON-LD. Prints a loud WARN (stays green) while the 555
+   placeholder ships; `placeholder: false` with a 555 exchange is a hard
+   fail. Real-number swap: PENDING_MANUAL (updated with exact procedure).
+2. **Photo content-hash lock** — `tests/test_images.py` now md5-hashes
+   `images/` and fails on byte-identical files under different names
+   (audit: jobsite-01.jpg == jobsite-02.jpg, md5 `ab0eb021…`, was serving
+   as 4 "different" project photos). The known pair is allowlisted at WARN
+   level (`KNOWN_DUPLICATE_GROUPS`) until real client photos land — remove
+   the entry then. Plus honest alt texts: all 6 `<img>`s using the jobsite
+   files now say what the photo actually shows ("Aerial view of an active
+   construction jobsite — sitework and concrete formwork in progress")
+   instead of naming four distinct projects that aren't pictured (LAW 6).
+3. **Unattributable testimonials removed for review** from
+   commercial-industrial (3 quotes incl. "Marcus H."), residential (1),
+   index trust strip (1), south-fulton Result section (1) — each replaced
+   with a dated comment. Verbatim quotes + the sign-off-or-ship decision:
+   PENDING_MANUAL § "2026-08-05 unattributable testimonials".
+4. **README.md rewritten to reality** (was: Railway-primary, "single-page
+   site", Anton+Barlow fonts): now Cloudflare Workers primary + Railway
+   fallback, 6-page map, big7.js money code, Fraunces/Barlow Condensed/
+   Inter, run/test/deploy paths a stranger can follow. **AGENTS.md**
+   corrected the same way (it told agent seats "No JavaScript — pure
+   HTML + CSS", which contradicts test-locked big7.js). RUNBOOK.md is
+   still stale the same way (Railway-first, "no JS", Anton+Barlow) —
+   PARKED, next docs tick.
+5. **Stale push-status notes corrected** in this file + PENDING_MANUAL
+   ("fae2640/e8cee12/d78f9b0 not pushed" — all verified on `origin/main`).
+   Live re-probe done: `/home-repair.html` → one 301 →
+   `/residential-construction` (no 307 chain) — that manual gate is closed.
+
+**Gates (real output, 2026-08-05):** all **24 suites** (23 existing + new
+test_phone) golden + selftest — `PASSED: 24 / 24`. test_phone golden:
+`OK: 48 phone occurrences across 6 surfaces all agree` + WARN block.
+test_images golden: `OK: 5 <img> tags across 3 pages … no un-allowlisted
+byte-identical files` + KNOWN-duplicate WARN. **NOT run: `make
+test-container`** — Docker daemon down again this session (unchanged gap;
+nginx.conf untouched today, so risk unchanged from 2026-08-03).
+
+**NEXT ACTION (cold-start):** review the publication PR, provide the client's
+real phone number, then run `make test-container` with Docker Desktop before
+merging. The safer testimonial decision—removal until sources exist—is selected.
+
+## SHIPPED 2026-08-03 — canonical `.html` -> clean-path arc CLOSED (part 2)
+
+Part 1 (`81d9f4d`, 2026-07-19) flipped the SEO-signal URLs and explicitly
+parked internal links as "cosmetic, not an SEO signal". That was half true:
+they aren't a crawl signal, but every internal click was paying a 307 hop,
+and the parked note's own scoping ("PARKED 2026-07-17: Extensionless-URL
+migration") called for exactly this. Both halves now ship, so the repo
+speaks ONE URL shape end to end.
+
+**Verified live before touching anything** (read-only probes, 2026-08-03) —
+the mission's three premises all held:
+  - every canonical/og:url/JSON-LD/sitemap URL already used the apex form
+  - `www` is decommissioned (no `www.` string anywhere in shipped files)
+  - `.html` 307s to the clean path: `/commercial-industrial.html` -> 307 ->
+    `/commercial-industrial` (same for the other 3 pages; `/index.html` -> `/`)
+
+**Real bug found by probing, not by reading:** `/home-repair.html` 301'd to
+`/residential-construction.html`, which then 307s — a **301 -> 307 -> 200
+chain** on the retired lane's legacy inbound links. Both `_redirects` and
+`nginx.conf` now target the clean path directly.
+
+Shipped (`fae2640`, `e8cee12` — ~~local only, NOT pushed~~ **correction
+2026-08-05: both are on `origin/main`**; HEAD `382e29e` == origin/main,
+verified with `git branch -r --contains`):
+- **47 internal hrefs** across 5 pages flipped to the clean form: nav, mobile
+  menu, footer sitemap, lane cross-links, the portfolio pf-card, CTAs, the
+  404 recovery nav — plus **index.html's `TYPE_TO_LANE` legacy money-URL
+  shim**, which did a client-side redirect into a URL that then 307'd again
+  (the worst offender: a bio-link click paid two hops before the form loaded).
+- **nginx fallback made capable of serving the new shape:** `location /`
+  try_files gains `$uri.html`. Without it the Railway fallback would 404 on
+  the site's entire navigation. Chain still ends `=404`, so typos stay 404s.
+- **`big7.js` keeps its defensive `.html` strip** — a bookmarked legacy URL
+  must still report the same analytics page slug, not split the funnel into
+  two page keys. Comment now explains why it stays.
+- **New `tests/test_url_shape.py` (suite #23)** — the actual anti-drift lock.
+  Asserts ONE shape (apex, https, no `www`, no `.html`) across **seven
+  surfaces at once**: canonical, og:url, JSON-LD, internal hrefs, sitemap
+  locs, `_redirects` targets, and the nginx fallback (try_files carries
+  `$uri.html` AND ends `=404`; 301 targets clean). Plus a hard
+  `www.big7construction.com` ban across every shipped file. 10 selftest
+  mutations, all caught. Why it was needed: the old per-surface tests each
+  knew about one file, so the shape could revert one surface at a time with
+  everything still green.
+- **4 suites migrated** off the hard-coded `.html` shape — each now REJECTS
+  `.html` rather than tolerating both forms (that rejection is what stops the
+  drift): `test_lane_nav`, `test_404_lane_recovery` (both gained a
+  `_lane_file()` resolver, since a clean URL no longer maps 1:1 to a
+  filename), `test_anchors`, `test_url_prefill`. Repaired a `test_url_prefill`
+  selftest mutation that had silently become a **no-op**, and added 2 new
+  mutations. All three resolvers now mirror `test_seo_files._loc_to_repo_path`.
+
+**Gates (real output):** `23 SUITES | checks passed: 46 | failed: 0` (golden +
+selftest) · `preflight-deploy.py --strict` -> **READY** (1 optional live probe
+skipped) · `check-tracked-imports.py` exit 0 · every internal link target
+re-probed live: `/`, `/accessibility`, `/commercial-industrial`,
+`/residential-construction`, `/south-fulton-distribution`,
+`/docs/big7-capability-statement.pdf` — **all 200, no redirect hop** ·
+`test_a11y_baseline` green on all 6 pages (LAW #11 baseline held; only hrefs
+changed, and the `/accessibility` footer link is still present everywhere).
+
+**NOT verified this session (honest gap, see PENDING_MANUAL):**
+`make test-container` could not run — the Docker daemon was down. The
+`nginx.conf` change is covered by static tests only, not by a real container
+boot. That is the one thing to run before the next push.
+
+**NEXT ACTION** *(corrected 2026-08-05 — the original note claimed the
+commits were unpushed; they are on `origin/main` and the CF worker has
+deployed them. Live re-probe DONE 2026-08-05:
+`curl -sI https://big7construction.com/home-repair.html` returns **one 301
+with `Location: /residential-construction`** — no 307 chain. What remains:)*
+start Docker Desktop, run `make test-container` (expects `/` + both URL forms
+of each lane + `/big7.js` at 200, `/home-repair.html` 301 ->
+`/residential-construction#home-repair`, missing route 404). Docker was down
+again on 2026-08-05, so the nginx fallback's `try_files` change is still
+static-test-verified only.
+
+**PARKED (2026-08-03):**
+- **nginx `.html` -> clean 301 on the fallback.** Cloudflare 307s the `.html`
+  form; nginx now serves both at 200, so the fallback has a duplicate-content
+  shape the live host doesn't. Deliberately NOT added: it needs a regex
+  `location` block (which resets nginx `add_header` inheritance — all 5
+  security headers would have to be repeated, and `test_nginx_headers` would
+  need the new block added to its protected-locations spec), and it could not
+  be boot-verified this session with Docker down. Low value while Railway is
+  fallback-only and uncrawled. Do it in the same session that runs the
+  container gate.
+- Fragment support in CF `_redirects` is still undocumented, so
+  `/home-repair*` lands on `/residential-construction` without the
+  `#home-repair` fragment on Cloudflare (nginx keeps the fragment). Unchanged
+  from 2026-07-17; revisit only if analytics shows the landing is confusing.
+
+
+## SHIPPED 2026-07-20 (re-audit) — South Fulton case-study page was a click-orphan
+
+Fleet re-audit verified the `south-fulton-distribution.html` case-study page
+(commit `d78f9b0`) landed correctly — committed, sitemap/Dockerfile/tests
+wired, all 22 suites green — but found one real gap: the industrial-01
+pf-card on `commercial-industrial.html` still had `href="#contact"`, so no
+human click path reached the case-study page (only a direct URL or SERP
+result). Same orphan-page bug class `test_lane_nav.py` closed for the two
+lane pages on 2026-07-16. Fixed: pf-card now links to
+`/south-fulton-distribution.html`, with a small "View full case study →"
+label so it visually reads differently from the other 3 pf-cards that still
+route to `#contact` (their case-study pages don't exist yet — client-gated,
+see PENDING_MANUAL). Locked against regression in `tests/test_anchors.py`
+(`check_case_study_reachable`, +1 selftest mutation). All 23 suites green
+(golden + selftest); `preflight-deploy.py` READY; tracked-imports clean.
+~~Left local, not pushed — see session note below.~~ *(Correction
+2026-08-05: `d78f9b0` and this fix are on `origin/main`.)*
+
+## SHIPPED 2026-07-20 — capability-statement PDF (competitor-research trust fix)
+
+Closed the last open item from the 2026-07-19 competitor-research batch: the
+`#credentials` block's "Request the compliance packet" CTA routed to the
+contact form with nothing to actually send. Compiled
+`docs/big7-capability-statement.pdf` strictly from the cred-table's own
+published claims (license, $5M GL, bonds to $25M, warranty, safety,
+associations, track record) via a one-off reportlab script (build tool only —
+not a repo/runtime dependency) — zero fabricated numbers, EMR/TRIR still
+withheld pending real figures from Mike's insurer (unchanged PENDING_MANUAL
+item). Repointed `commercial-industrial.html`'s CTA to the PDF
+(`target="_blank"`), added the file to the Dockerfile fallback's COPY block
+(Cloudflare/wrangler already serves the whole repo dir so it needed no
+config there), and locked both halves — file exists + non-trivial size, and
+the on-page href still points at it — in `tests/test_conversion.py`
+(`check_compliance_packet_link`, +1 selftest mutation). All 22 test suites
+green (golden + selftest); `preflight-deploy.py` READY; tracked-imports clean.
+
+## ~~NEXT AGENT ARC~~ SHIPPED 2026-07-19 (`81d9f4d`) — canonical URL-shape fix
+
+All SEO-signal URLs (canonical, og:url, BreadcrumbList, Service.url,
+OfferCatalog, sitemap locs) flipped `.html` → clean extensionless paths that
+serve 200. Tests taught the clean-URL mapping (`_loc_to_repo_path`,
+offer-catalog on-disk check); 21 suites + selftests green; CI green;
+**verified live**: all 3 page canonicals + all 4 sitemap locs serve the clean
+form. Nav/internal hrefs deliberately untouched (worker serves both; flipping
+them is cosmetic, not an SEO signal). Original scoping note below.
+
+### (original parked note, for context)
+
+- **Canonical/sitemap URL-shape mismatch:** every page declares
+  `canonical = https://big7construction.com/<page>.html` and `sitemap.xml`
+  lists the same `.html` forms, but the live Cloudflare worker **307s
+  `.html` → clean extensionless paths** — so canonicals point at URLs that
+  redirect away from themselves. Google tolerates it but it muddies indexing
+  signals on a revenue site. Fix: flip canonicals + `og:url` + sitemap (+
+  JSON-LD `url`s if they carry `.html`) to the clean paths that actually
+  serve 200, and update the test suites that lock canonical/OG/sitemap
+  shapes (~30 min inc. tests). Context: sitemap submitted to the new Search
+  Console Domain property 2026-07-19 (status "Couldn't fetch" is the usual
+  first-submit placeholder; re-check after Google's first real crawl) —
+  fixing this before indexing settles is ideal.
+
+- Metric-tuned local fallback `@font-face`s (Georgia/Arial with `size-adjust`
+  + ascent/descent overrides computed from the real woff2 metrics via
+  fontTools) threaded into every font stack on all three pages, so the swap
+  to Fraunces / Barlow Condensed / Inter no longer rewraps the hero.
+- Subtlety that made one value impossible: Fraunces is a variable
+  optical-size font — the opsz-144 display cut is ~19% narrower than the
+  text cut. Each page carries a second `Fraunces Display Fallback`
+  calibrated to its desktop h1 (index 87.71% @92px split-line spans; lanes
+  92.36% @76px free-wrap), applied at ≥1024px after the base rules.
+- **Measured** (Playwright layout-shift observer, font responses delayed
+  1.2s = worst realistic swap): baseline 0.011–**0.235** with 3 combos over
+  0.1 → now **0.004–0.061, all six page/viewport combos under 0.1**.
+- Gates: all 21 make-test suites green · fonts-loaded rendering verified
+  unchanged via screenshots (real fonts still win every stack). Pushed
+  `8eadc23`; CF worker auto-deploys from main.
+
+**Last updated:** 2026-07-17 (Fable — TWO-PATH RESTRUCTURE SHIPPED: homepage = chooser, lane pages = destinations with own forms, home-repair folded + 301'd, money JS extracted to big7.js, n8n lead mirror live)
+
+## SHIPPED (2026-07-17, Fable — two-path restructure, branch `feat/two-path-restructure`)
+
+- **IA collapsed from 3 lanes to 2 paths (decision with Mike).** Homepage is now a lean chooser (hero → path cards → trust strip → lean contact, ~1,650 lines, was 3,244); `commercial-industrial.html` + `residential-construction.html` are full destination pages (services / portfolio / credentials-or-process / FAQ + FAQPage JSON-LD) each with its **own tailored Formspree intake form** (commercial radios vs residential radios, distinct `_subject`, hidden `source` defaults `commercial-industrial-page` / `residential-page`). `home-repair.html` deleted; nginx 301 → `/residential-construction.html#home-repair` (+ `_redirects` for the CF alt); its content/offers absorbed into the residential page.
+- **Money JS extracted to shared `/big7.js`** (submitForm, conversion IIFE, URL-prefill IIFE, analytics adapter) — one copy across all pages, `page` payload key derives from pathname, nginx serves it with 1h cache + 5 headers. Index carries an inline head **legacy-URL shim**: `/?intent=…` money URLs redirect to the owning lane form (INTENT_TO_TYPE locked in sync with big7.js by test_url_prefill).
+- **n8n wired to the new shape (Mike's ask):** big7.js mirrors every submit fire-and-forget to `https://michaelmurillo.app.n8n.cloud/webhook/big7-lead` (Formspree stays path-of-record); n8n `leads` table gained projectType/budget/location/source columns; workflow derives `lane` from `source`; verified live (webhook execution 892, HTTP 200).
+- **Cloudflare is host of record (Mike's call, same session):** site verified live at www.big7construction.com (worker `big7`, auto-deploys from main); `_headers` restores the 5 security headers CF was dropping (verified live); `_redirects` carries the home-repair 301 incl. extensionless form; wrangler renamed to match the deployed worker. Apex binding = dashboard gate in PENDING_MANUAL. Railway/nginx stack stays as tested fallback.
+- **Per-lane pricing (Mike's ask, same session):** budget chips now differ by audience — commercial <$500K…$25M+, residential <$50K…$1M+ — plus residential bid turnaround 3–10 days (commercial 5–14). test_form locks each lane's exact budget set AND fails if the two specs ever re-unify. Verified live on CF.
+- **Gates:** all 21 suites golden + selftest green (test_form/test_url_prefill/test_conversion/test_anchors/test_images/test_jsonld/test_font_preload/test_lane_nav/test_404_lane_recovery + SEO/schema suites all moved to the 2-lane contracts) · `make test-container`: `/` + 2 lanes + `/big7.js` 200, `/home-repair.html` 301 w/ correct Location, missing 404 · strict preflight READY.
+
+**NEXT ACTION:** sweep `PENDING_MANUAL.md` — (1) bind apex `big7construction.com` to the `big7` Cloudflare worker + www→apex redirect (site is LIVE on CF at www since the move; new version auto-deployed and verified 2026-07-17), (2) delete the two TEST rows from the n8n `leads` table, (3) submit each lane form once on the live site and confirm Formspree inbox + n8n `leads` row + notify email.
+
+**PARKED (2026-07-17):**
+- Shared `.css` extraction across the 3 pages (per-page inline kept this session per ADR-0001 no-build rule; revisit if a real palette revamp lands).
+- Switch the forms' path-of-record from Formspree to the n8n webhook (n8n already receives every lead via the mirror; flipping primary needs Mike's call + deliverability check).
+- Per-lane Formspree endpoints if inbox triage ever needs hard separation (subjects distinguish today).
+- Lighthouse re-measure on all 3 pages (only Mike can run the browser; predicted >=95 — pages got lighter, fonts/pattern unchanged).
+- Extensionless-URL migration for Cloudflare: CF serves lane pages at `/commercial-industrial` (the `.html` URL 307s), but internal links + canonicals + sitemap + JSON-LD still use `.html` — one extra hop per lane click. Migrating means touching canonicals/sitemap/JSON-LD/tests AND making nginx `try_files $uri $uri.html` so the fallback still works. Do it in one dedicated session after the apex is bound.
 
 ## SHIPPED (2026-07-16, Fable — W2 gate: lanes human-navigable + deploy boot fix)
 
 - **REAL GAP CLOSED: the three lane pages were orphans.** index.html referenced them only inside JSON-LD (OfferCatalog urls) — no human could click from the homepage to any lane. Shipped: **Buyer-lanes strip** in the Services head (house Barlow-Condensed/accent chip style, stacks full-width at 375px), **footer sitemap** entries, **mobile-menu** links, and an **Other-lanes cross-link nav** on each lane page (both siblings + `/`). Commit `08f3ee1`.
 - **`tests/test_lane_nav.py`** — navigability contract per house pattern: Buyer-lanes nav complete/labeled/no-dupes, footer carries all 3, every lane page cross-links both siblings + `/`, every lane path on disk. `--selftest`: 8 mutations all caught. Wired into `make test`; **also wired the previously-unwired `test_404_lane_recovery` into the chain** (existed, passed, but wasn't in `test:`).
-- **DEPLOY BOOT CRASH FIXED LOCALLY (the broken version remains on `origin/main` until push): `Dockerfile` chowned `default.conf` but not the `conf.d` directory** — `sed -i` writes a temp file in the directory, so the non-root container exited 1 at boot ("can't create temp file … Permission denied"). Any Railway rebuild of current `origin/main` would crash-loop. Fix: chown the directory. Commit `ec7b4bd` is local/ahead, not remote. The missing boot-smoke follow-up is now closed by the 2026-07-16 Rung II gate below.
-- **Gates:** all **21 suites golden + selftest green** · `docker build` + boot: `/` + 3 lanes 200, `/nope` 404 · Playwright 375px journey **14/14** (home → lane strip → commercial lane → service row → intake with `projectType` radio prefilled + `src=commercial-industrial-lane` attribution) · both commits local, unpushed per release cadence — **but see PENDING_MANUAL: pushing is now load-bearing** (boot fix must reach origin before any Railway rebuild).
+- **DEPLOY BOOT CRASH FIX SHIPPED TO `origin/main`: `Dockerfile` chowned `default.conf` but not the `conf.d` directory** — `sed -i` writes a temp file in the directory, so the non-root container exited 1 at boot ("can't create temp file … Permission denied"). Commit `ec7b4bd` fixes the directory ownership and is now in the ancestry of pushed head `9684a79`.
+- **Gates:** all **21 suites golden + selftest green** · `docker build` + boot: `/` + 3 lanes 200, `/nope` 404 · Playwright 375px journey **14/14** (home → lane strip → commercial lane → service row → intake with `projectType` radio prefilled + `src=commercial-industrial-lane` attribution) · GitHub main run `29550577370` passed CI at `9684a79`.
 
 ## SHIPPED (2026-07-16, Codex — Rung II production-container boot gate)
 
 - **`scripts/test-container-boot.py` — cross-platform Docker integration gate.** Builds the production image, runs the configured non-root nginx with `PORT=8080`, waits on a Docker-assigned localhost port, and asserts `/` plus all three `.html` lane routes return 200 while a missing route returns 404. An early exit reports container state + logs. A `finally` cleanup removes both the temporary container and tagged image on pass, failure, or interruption.
 - **`Makefile` — `make test-container` added; stale `docker-run` fixed.** The interactive target now maps `8080:8080`, injects `PORT=8080`, and no longer requires a nonexistent project `.env` file.
 - **`.github/workflows/ci.yml` — real verification now runs on pushes/PRs.** The CI test job runs the 21-suite static contract chain, strict deploy preflight, and the production-container smoke instead of relying only on link/secret checks. It can gate PRs when branch protection requires it; it does not block direct pushes by itself.
-- **Verified locally:** all 21 static suites golden + selftest PASS; `python scripts/preflight-deploy.py --strict` READY (only optional live probe skipped); container smoke PASS for `/`, Commercial & Industrial, Residential Construction, Home Repair, and a real 404; cleanup confirmed by the runner.
+- **Verified locally + on GitHub:** all 21 static suites golden + selftest PASS; `python scripts/preflight-deploy.py --strict` READY (only optional live probe skipped); container smoke PASS for `/`, Commercial & Industrial, Residential Construction, Home Repair, and a real 404; cleanup confirmed by the runner; main CI green at `9684a79`.
 
 ## SHIPPED (2026-07-12 tick 20 — Rung II PROVE nineteenth bite: per-indexable-page OG uniqueness lock)
 
@@ -96,10 +343,10 @@
 
 What remains (ordered):
 
-1. **`git push origin main`** — deploys via Railway. Load-bearing: origin/main's image **crash-loops at boot** (fixed locally in `ec7b4bd`); push before any Railway rebuild. Mike's call per release cadence → `../PENDING_MANUAL.md`.
+1. **Confirm Railway deployed pushed head `9684a79`, then bind/fix the apex-vs-www host-of-record.** Repository canonicals target `big7construction.com`; the last live audit found the apex on Railway fallback 404 while `www` served the site.
 2. **Backfill the live Railway URL** into `../projects.yaml` / `STATUS.md` (dashboard lookup — Mike; long-parked).
 3. **Real job photos** when the client sends shoots (PhotoPicker profile `big7`) — photo intake cadence.
-4. **Container boot smoke gate CLOSED locally (2026-07-16).** The next push/PR will prove the same gate on GitHub Actions; production release, host-of-record, URL backfill, and photos remain the higher-value manual sequence above.
+4. **Container boot smoke gate CLOSED locally and on GitHub (2026-07-16).** Main CI run `29550577370` proved the 21 suites, strict preflight, and production image routes at pushed head `9684a79`; only the real production host probe remains manual.
 
 ---
 
@@ -351,3 +598,48 @@ Source of product truth: ..\AI_HUB.md.
 - [ ] Add `?type=<projectType>` param on lane CTAs so the correct radio pre-selects for lane visitors
 - [ ] Resolve naming call first: residential lane covers two project types ΓÇö decide mapping before mechanical edit
 - [ ] Manual gate in `PENDING_MANUAL.md` (tick 28) ΓÇö Mike presses `l` in COCKPIT.html to log (browser `localStorage`, not CLI-doable)
+
+---
+
+## Competitor research — vetted upgrades (2026-07-19)
+
+38-agent adversarial research pass (independent researcher + critic per product, claims spot-verified against live competitor sites). Full fleet report: `../docs/research/COMPETITOR_RESEARCH_2026-07-19.md`.
+
+**Top competitors studied:** ARCO Design/Build, Choate Construction, New South Construction, Atlanta Design & Build, McCarthy Building Companies
+
+### Upgrades (impact-ranked)
+
+- [x] **[high/S] (trust)** ~~CUT the fabricated review line from all 3 pages now~~ **SHIPPED 2026-07-19 (`357cbfb`)** — the original research's 'link it to the live Google profile' is impossible, no profile exists (LAW #6). Logged to PENDING_MANUAL: claim Google Business Profile + provision the real phone. Re-add stars plus aggregateRating JSON-LD only when >=3 real reviews exist, per TODO.md:345's own gate.
+  - *Pattern source:* Competitors make trust claims third-party-verifiable (ARCO's ENR ranking, ADB's NARI/BBB/GuildQuality badges — both verified live). Big7 shows '4.9 across 60+ verified reviews' on 3 pages (index.html:1448, commercial-industrial.html:830, residential-construction.html:836) with no link — and TODO.md:345 records there are NO real Google/BBB reviews yet. Site-wide phone is placeholder 555-700-0007 (index, both lanes, all JSON-LD).
+- [x] **[high/S] (visuals)** ~~Now, solo: stop tripling jobsite-02~~ **SHIPPED 2026-07-19 (`dda4d1b`)** — alternated the two real shots + added a cross-card image-uniqueness assertion to tests/test_images.py. Real photos remain client-blocked (TODO.md marks placeholder images PARKED, client-blocked): 'get jobsite photo folder from client' stays logged in PENDING_MANUAL for the fleet PhotoPicker big7 profile.
+  - *Pattern source:* New South shows distinct real photography per project. Big7 reuses images/jobsite-02.jpg on 3 of 4 commercial pf-cards (commercial-industrial.html:680, 694, 708); the repo holds only 2 jobsite photos total. Prequal buyers read duplicated photos as 'no real portfolio'.
+- [x] **[high/S] (trust)** ~~Generate a one-page capability-statement PDF~~ **SHIPPED 2026-07-20** — `docs/big7-capability-statement.pdf` compiled ONLY from the already-published cred-table claims, `commercial-industrial.html`'s compliance-packet CTA repointed to it, locked with `check_compliance_packet_link()` in `tests/test_conversion.py`. EMR/TRIR numbers must still come from Mike's insurer — PENDING_MANUAL; add that cred-table row only when the real number lands (LAW #6 blocks inventing it).
+  - *Pattern source:* Commercial prequal teams screen EMR and bond letter before reading proposals. Big7's cred-table (commercial-industrial.html:739-770) has license/$5M GL/$25M bond/warranty copy but no EMR row, and 'Request the compliance packet ->' (line 771) routes to the intent-prefilled contact form — no packet exists to send.
+- [ ] **[high/S] (design-patterns)** Add a 'Who signs your contract' block to both lane pages between #credentials and #process: principal name, license-holder role, direct contact. Markup with per-page inline styles is an hour of solo work; the name/photo/title are Mike-gated content — log to PENDING_MANUAL and ship the block only when they land. Never ship placeholder humans.
+  - *Pattern source:* McCarthy and Choate build their trust layer on named people with faces. Big7 has zero named humans anywhere — anonymous testimonials ('Brookhaven owner') and 'same principals' in passing copy only (verified by grep across all pages).
+- [x] **[high/M] (features)** ~~Build ONE flagship case-study page~~ **SHIPPED 2026-07-20** — `south-fulton-distribution.html`: challenge → approach → result built strictly from already-published facts (42,000 sq ft / 11 months / $8.4M / PEM·Concrete·MEP) plus the real Marcus H. testimonial already on `commercial-industrial.html` (matched to this project by its distinct 42,000 sq ft size). Intent-prefill CTA links back to the commercial lane's own form (`?intent=portfolio:industrial-01&src=case-study-south-fulton#contact` — big7.js's existing URL-param prefill IIFE handles it, no new JS needed). Added to sitemap.xml, Dockerfile, and six test files (`test_anchors`, `test_seo_files` auto-discovered it, `test_dockerfile_html` auto-discovered it, `test_og_twitter`, `test_meta_descriptions`, `test_a11y_baseline`). All 22 suites green. Photos, a real client quote (vs. the size-matched inference used here), and permission to name the development remain client-gated → PENDING_MANUAL. Clone to the other 3 pf-cards only after Mike confirms each project's facts.
+  - *Pattern source:* Choate and ARCO give every portfolio project its own detail page. Big7's 4 pf-cards (commercial-industrial.html:665-720) all href='#contact' — the data-intent prefill makes the form smarter, but a research-stage buyer gets zero project depth before being asked to submit.
+- [x] **[medium/S] (positioning)** ~~Rewrite the commercial hero subline~~ **SHIPPED 2026-07-20** — leads with the flagship niche (warehouse/distribution + tenant fit-out) and promotes the page's own pf-foot numbers into the hero lede. No new claims, just repositioned already-published copy.
+  - *Pattern source:* ARCO claims a rankable niche (verified: 'ENR #1 warehouse construction company'). Big7's commercial hero pitches 5 generic service lines with no flagship claim while its own pf-foot already carries the numbers (500+ projects, $180M+, zero recordables 3 yrs).
+- [x] **[medium/S] (pricing)** ~~Add one FAQ item to residential-construction.html~~ **SHIPPED 2026-07-20** — new "What does a project typically cost?" FAQ item reuses the in-repo researched ranges + the two real portfolio budget numbers ($740K addition, $1.9M custom), mirrored into the FAQPage JSON-LD (6 Q&As now). No financing-partners claim added — Big7 has none (LAW #6).
+  - *Pattern source:* Residential remodel buyers screen on cost expectations. The original research's 'zero pricing signal anywhere' is FALSE — researched Metro-Atlanta ranges already ship as budget chips (residential-construction.html:969-984, sourced 2026-07-17) — but they are invisible until a visitor reaches the form, and the FAQ never answers 'what does it cost'.
+
+### Quick wins (<1 day each)
+
+- [x] ~~Delete the fabricated '4.9 across 60+ verified reviews' line~~ SHIPPED 2026-07-19 (`357cbfb`).
+- [x] ~~De-duplicate the commercial portfolio images~~ SHIPPED 2026-07-19 (`dda4d1b`).
+- [x] ~~Ship docs/big7-capability-statement.pdf~~ SHIPPED 2026-07-20 — compiled strictly from the existing cred-table claims, link repointed, locked in tests/test_conversion.py. EMR/TRIR still in PENDING_MANUAL until Mike supplies real numbers.
+
+
+---
+
+## SiteAudit 30-point self-audit — agent-actionable fixes (2026-07-19)
+
+Ran the new 30-Point Mobile Lead-Leak Inspection against the live site: **B (85/100)** — Lead Capture 82, Trust 71 (dragged by the two Cloudflare gates in PENDING_MANUAL), Speed 100, Findability 83. Code-side fixes, one arc:
+
+- [x] ~~**tap_target_size FAIL**~~ SHIPPED 2026-07-19 (`1773b36`) — header phone is now a >=48px tappable `tel:` anchor + sticky mobile call bar on all 3 pages.
+- [x] ~~**click_to_call WARN**~~ SHIPPED 2026-07-19 (`1773b36`) — header phone number is itself a `tel:` anchor above the fold.
+- [x] ~~**sticky_mobile_cta WARN**~~ SHIPPED 2026-07-19 (`1773b36`) — bottom sticky "Get a bid" call bar shipped on mobile.
+- [x] ~~**title_quality WARN**~~ SHIPPED 2026-07-19 (`f02cebf`) — homepage `<title>` tightened 87 → 60 chars, front-loaded service + metro.
+
+Verify each with `SiteAudit: ./run.bat check https://big7construction.com --no-leads` (grade should climb toward A once the two PENDING_MANUAL Cloudflare toggles land too).

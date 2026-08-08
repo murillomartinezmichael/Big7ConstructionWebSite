@@ -1,0 +1,13 @@
+# Cloudflare Workers static-assets redirects (wrangler.jsonc assets dir = ./;
+# host of record since 2026-07-17). nginx (the Railway fallback) carries the
+# same redirect in nginx.conf WITH the #home-repair fragment; fragment support
+# is undocumented for CF-style _redirects files, so it is intentionally
+# omitted here. Both the .html and the extensionless form are listed because
+# CF's html_handling serves lane pages at extensionless URLs (.html 307s).
+#
+# BOTH targets are the CLEAN extensionless path. Targeting
+# `/residential-construction.html` made the old URL chain 301 -> 307 -> 200
+# (verified live 2026-08-03) — a wasted hop that dilutes the redirect signal
+# and slows every legacy inbound link. Locked by tests/test_url_shape.py.
+/home-repair.html /residential-construction 301
+/home-repair /residential-construction 301

@@ -22,7 +22,8 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 
 TARGETS = (
     "index.html", "404.html", "accessibility.html",
-    "home-repair.html", "commercial-industrial.html", "residential-construction.html",
+    "commercial-industrial.html", "residential-construction.html",
+    "south-fulton-distribution.html",
 )
 
 HTML_LANG_RE = re.compile(r"""<html\b[^>]*\blang\s*=\s*(["'])(?P<lang>[^"']+)\1""", re.IGNORECASE)

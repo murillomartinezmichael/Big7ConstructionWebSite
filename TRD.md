@@ -27,7 +27,7 @@ Current static nginx site remains the right runtime. The cleanup needed is infor
 Recommended path:
 
 1. Keep one domain and one deploy.
-2. Add three static lane pages: `/commercial-industrial/`, `/residential-construction/`, `/home-repair/`.
+2. DONE (2026-07-17, revised): two static lane destination pages — `/commercial-industrial.html`, `/residential-construction.html` (Home Repair absorbed as `#home-repair`; old URL 301s).
 3. Keep one quote form and one analytics adapter. Add hidden `projectType`/`data-intent` values per lane.
 4. Extend sitemap only with real pages.
 5. If maintaining duplicated HTML becomes painful, migrate to Astro static components.

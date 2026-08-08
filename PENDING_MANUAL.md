@@ -3,6 +3,288 @@
 Tick-level items only Mike can complete. Sweep at will; each ends in a
 checkbox so it clears with a stroke.
 
+> 🤖 **2026-07-19:** every "Log to Cockpit Work Log" item below is pre-staged
+> inside `../COCKPIT.html` — open it and click the one-time **"Import all"**
+> banner above the Work Log (27 entries fleet-wide, verified via headless
+> Playwright). Then check these boxes in one stroke.
+
+## 2026-08-05 unattributable testimonials — OPEN: Mike's decision required
+
+- [ ] **Decision (OPEN — needs Mike): keep the testimonials removed, or restore
+  a sourced version.** The professionalization audit flagged the quotes on
+  `commercial-industrial.html` as unattributable; the same exposure exists on
+  three more surfaces. All four are now removed on `main` and **live in
+  production**, each replaced by a dated HTML comment pointing here. Layout is
+  intact and all 24 suites are green locally.
+  - **Status of the removal:** shipped and live. This checkbox is *not* asking
+    whether to un-ship it today — it is asking Mike to ratify the permanent
+    policy for a paying client's testimonials.
+  - **Why this is still open:** an earlier revision of this file recorded the
+    decision as made, inferring Mike's consent from a generic "commit and push
+    the ready fleet work" instruction. That inference was not his to make. A
+    push instruction is not client-content approval, so the decision is
+    reopened here and recorded as pending.
+  - **The three options:** (a) leave removed permanently; (b) restore a quote
+    once the client confirms it in writing — requires written client permission
+    plus a DECISIONS.md receipt; (c) replace with a differently-sourced proof
+    element. The verbatim quotes below are preserved so any of the three
+    remains possible.
+  - **Surfaces + verbatim removed content:**
+    - `commercial-industrial.html` (§ Testimonials, 3 quotes):
+      1. "Big 7 held the schedule down to the day and finished the punch
+         list two weeks early. Every RFI answered inside 24 hours. That
+         never happens." — *Marcus H., Director of Development · Private
+         industrial client · 42,000 sq ft distribution facility*
+      2. "They ran the buildout after-hours so the neighboring tenants
+         never saw a lift. Rare discipline for a GC." — *Private
+         hospitality client · Ownership*
+      3. "Coordinated the TI around a live tenant floor without a single
+         work-order complaint. That is what we pay a real GC for." —
+         *Private commercial tenant · Asset Mgr*
+    - `residential-construction.html` (§ Testimonials, 1 quote):
+      "They ran the residential side with the same PM software and safety
+      stack as the commercial jobs. It shows in the finish." — *Brookhaven
+      owner, Homeowner · 6,200 sq ft custom residence*
+    - `index.html` (trust strip): quote 1 above, same attribution.
+    - `south-fulton-distribution.html` (§ Result): quote 1 above, same
+      attribution. (The 2026-07-20 item below already flagged this one as
+      "accurate but inferential" — this supersedes it until a documented
+      source exists.)
+  - **Resumes:** the 2026-07-20 "real client quote for South Fulton" item below
+    remains the upgrade path if the client re-confirms in writing.
+
+## 2026-08-03 canonical `.html` -> clean-path arc (part 2) — manual gates
+
+- [ ] **Run the container smoke with Docker running:** `python scripts/test-container-boot.py`
+  - **Why blocked on Mike:** the Docker daemon was down this session
+    (`npipe:////./pipe/dockerDesktopLinuxEngine` not found), so the one gate
+    that actually boots nginx could not run. This session changed
+    `nginx.conf` (`try_files $uri $uri.html $uri/ =404;` + the `/home-repair.html`
+    301 target), and `scripts/test-container-boot.py` was updated to assert
+    BOTH URL forms serve 200 on the fallback plus the clean redirect target.
+    Those expectations are **verified by static test only, not by a real
+    container boot.**
+  - **Resumes:** start Docker Desktop, run `python scripts/test-container-boot.py`
+    (`make` is not on PATH on this machine). Green = the
+    Railway fallback genuinely serves the clean paths every internal link now
+    points at. Red = the try_files change needs a look before the next push.
+
+- [x] ~~**After the next push, re-probe the live host once the CF worker
+  redeploys.**~~ **DONE 2026-08-05 (agent, read-only probe)** — the commits
+  were already on `origin/main` and the worker had redeployed:
+  `curl -sI https://big7construction.com/home-repair.html` returns **one
+  `301` with `Location: /residential-construction`** — no 307 chain.
+  (The stale "not pushed" status notes in TODO.md were corrected the same
+  session.)
+
+- [ ] **Log this session to Cockpit Work Log** (COCKPIT.html — press `l`)
+  - **Card:** Big7Construction
+  - **What shipped:** Closed part 2 of the canonical URL arc. Part 1
+    (`81d9f4d`) had flipped canonical/og:url/JSON-LD/sitemap to clean
+    extensionless paths but deliberately left internal links on `.html`, so
+    every homepage->lane click paid a 307 hop. Flipped 47 internal hrefs
+    across 5 pages + index.html's legacy money-URL shim; found and fixed a
+    real `301 -> 307 -> 200` chain on `/home-repair.html`; added
+    `$uri.html` to the nginx fallback so it can serve the clean paths. Locked
+    the whole shape in a new `tests/test_url_shape.py` (7 surfaces, 10
+    selftest mutations) and migrated the 4 suites that hard-coded `.html`.
+    23 suites / 46 checks green; preflight READY; every internal link target
+    re-probed live at 200 with no redirect hop. Left local (not pushed)
+    *(since pushed — on `origin/main`, verified 2026-08-05)*.
+  - **Move card to:** In Progress (Big7 is a rolling site; no "Done" state).
+  - **Why blocked on Mike:** COCKPIT.html work log lives in browser
+    `localStorage` — cannot be written from CLI. 30 seconds in the browser.
+  - **Resumes:** Cockpit shows the entry; next Big7 tick has a clean timeline.
+
+## 2026-07-20 fleet re-audit — case-study orphan-page fix
+
+- [ ] **Log this session to Cockpit Work Log** (COCKPIT.html — press `l`)
+  - **Card:** Big7Construction
+  - **What shipped:** Re-audit verified `south-fulton-distribution.html`
+    (commit `d78f9b0`) landed clean — committed, tests green, sitemap/
+    Dockerfile wired — but found the industrial-01 pf-card on
+    `commercial-industrial.html` still had `href="#contact"`, so the
+    case-study page had zero human click path (direct-URL/SERP only).
+    Repointed the pf-card to `/south-fulton-distribution.html` + added a
+    "View full case study →" label; locked with a new
+    `check_case_study_reachable` assertion in `tests/test_anchors.py`
+    (+1 selftest mutation). All 23 suites green; preflight READY;
+    tracked-imports clean. Left local (not pushed) — see TODO.md
+    *(since pushed — on `origin/main`, verified 2026-08-05)*.
+  - **Move card to:** In Progress (Big7 is a rolling site; no "Done" state).
+  - **Why blocked on Mike:** COCKPIT.html work log lives in browser
+    `localStorage` — cannot be written from CLI. 30 seconds in the browser.
+  - **Resumes:** Cockpit shows the entry; next Big7 tick can proceed with a
+    clean log timeline.
+
+## 2026-07-20 flagship case-study page — next-tier gates
+
+- [ ] **Confirm real project facts for the other 3 pf-cards before cloning
+  the case-study page.** `south-fulton-distribution.html` shipped for the
+  South Fulton Distribution Facility (Industrial № 01) using only
+  already-published data. TODO.md's plan is to clone the same
+  challenge/approach/result template to the other 3 commercial-industrial
+  pf-cards (Tenant Improvement № 02, Commercial № 04, Structural Repair
+  № 06) — but each needs Mike to confirm the facts are still accurate
+  (client relationship status, whether the project can be named) before an
+  agent fabricates a narrative around them.
+  - **Why blocked on him:** client relationship / naming-rights judgment
+    call, not a data lookup.
+  - **Resumes:** agent clones the page template for the confirmed project(s).
+- [ ] **Get a real client quote for the South Fulton project (optional
+  upgrade).** The shipped page's testimonial is the existing Marcus H.
+  quote, matched to this project by its distinct 42,000 sq ft size (both
+  appear once each in the repo) — accurate but inferential. A quote
+  Mike can confirm is literally about *this* project (with permission to
+  publish) would remove the inference.
+  - **Why blocked on him:** client contact.
+  - **Resumes:** swap the testimonial attribution to be explicit rather
+    than inferred.
+
+## 2026-07-20 capability statement + hero/FAQ copy + case-study page
+
+- [ ] **Log this session to Cockpit Work Log** (COCKPIT.html — press `l`)
+  - **Card:** Big7Construction
+  - **What shipped:** `docs/big7-capability-statement.pdf` compiled from the
+    published cred-table; compliance-packet CTA now downloads the real
+    file instead of routing to the contact form. Commercial hero rewritten
+    to lead with the warehouse/distribution + tenant fit-out niche and the
+    page's own pf-foot numbers. New residential FAQ item answers "what
+    does this cost" with the existing budget ranges + two real portfolio
+    numbers, mirrored into the FAQPage JSON-LD. Flagship case-study page
+    (`south-fulton-distribution.html`) shipped — challenge/approach/result
+    built from already-published facts + the matching real testimonial,
+    wired into sitemap/Dockerfile/6 test files. All 22 test suites green
+    across both commits (`0e1749b`, `d78f9b0`).
+  - **Next up:** only Mike-gated items remain from the 2026-07-19
+    competitor-research batch: a "Who signs your contract" trust block
+    (needs a real principal name/photo) and cloning the case-study
+    template to the other 3 pf-cards (needs Mike to confirm those
+    projects' facts — see the entry above this one).
+  - **Move card to:** In Progress (Big7 is a rolling site; no "Done" state).
+  - **Why blocked on Mike:** COCKPIT.html work log lives in browser
+    `localStorage` — cannot be written from CLI. 30 seconds in the browser.
+  - **Resumes:** Cockpit shows the entry; next Big7 tick can proceed with a
+    clean log timeline.
+
+## 2026-07-19 competitor-research trust fixes — real-world prerequisites
+
+- [ ] **Claim the Google Business Profile for Big 7 Construction.**
+  - **What to do:** google.com/business → claim/create the listing for the
+    business (needs the real address + phone + postcard/phone verification).
+  - **Why blocked on him:** Google account ownership + business verification
+    are Mike/client-only.
+  - **Resumes:** review stars + `aggregateRating` JSON-LD can return to the
+    site once >=3 real reviews exist on the live profile (the fabricated
+    "4.9 across 60+ verified reviews" line was cut from all 3 pages
+    2026-07-19 per LAW #6 — do not re-add without real reviews to link).
+- [ ] **Get the jobsite photo folder from the client.**
+  - **What to do:** ask the Big 7 client for their raw project-photo folder
+    (any size — the fleet PhotoPicker `big7` profile culls it:
+    `photopicker <folder> big7`).
+  - **Why blocked on him:** client conversation; only 2 real jobsite shots
+    exist in `images/` today.
+  - **Resumes:** the 2 imageless commercial pf-cards (№ 04 Buckhead, № 06
+    Norcross) get their own photos; `tests/test_images.py` per-page
+    src-uniqueness lock + floors (2/lane) can rise back to one photo per
+    card; the flagship case-study page gains real imagery.
+- [ ] **Provision the real business phone number (replaces 555-700-0007).**
+  *(Procedure updated 2026-08-05 — the number is now single-sourced in
+  `site.config.json` and locked by `tests/test_phone.py`, which fails on any
+  surface that disagrees and prints a loud WARN on every `make test` run
+  while the placeholder ships.)*
+  - **What to do:** get the client's real line (or stand up the tracking
+    number). Then the exact swap:
+    1. Edit `site.config.json`: set `phone.digits` to the 10 digits, set
+       `phone.placeholder` to `false` (the test hard-fails if the flag is
+       flipped while a 555 exchange remains — it can't be gamed).
+    2. Run `python tests/test_phone.py` — it lists **every file still
+       carrying the old number** (48 occurrences across index / both lanes /
+       case study / accessibility / big7.js as of 2026-08-05). Swap each
+       (or tell an agent: "real number is XXX-XXX-XXXX, run the phone swap"
+       — one mechanical pass).
+    3. Re-run until green, then full `make test` (test_form/test_jsonld/
+       test_click_to_call also lock tel↔JSON-LD agreement).
+  - **Why blocked on him:** phone provisioning is a client/business decision.
+  - **Resumes:** click-to-call + sticky call bar dial a real line; the WARN
+    block disappears from `make test`; the `contactOption: "TollFree"`
+    question in TODO can be settled.
+
+## 2026-07-19 SiteAudit 30-point findings — two Cloudflare toggles
+
+- [ ] **Turn on "Always Use HTTPS"** (Cloudflare dashboard → big7construction.com
+  zone → SSL/TLS → Edge Certificates). Verified live 2026-07-19:
+  `http://big7construction.com/` serves the full page over plain HTTP with a
+  200 — no redirect. Chrome shows "Not secure" next to the name for anyone who
+  types the bare domain. One toggle.
+  - **Resumes:** the site's own SiteAudit grade (currently B 85/100) — this is
+    one of its 3 remaining fails.
+- [ ] **Decide: keep or disable Cloudflare's AI-crawler block.** Cloudflare's
+  managed robots.txt on the zone is blocking GPTBot, ClaudeBot, CCBot,
+  Google-Extended, etc. (verified live). For a local contractor, being invisible
+  to AI assistants means not being in the running when someone asks ChatGPT/
+  Claude for "a good commercial GC in Atlanta" — the research pass says this is
+  the 2026 finding no competing local agency is even checking. If you want AI
+  visibility: Cloudflare → the zone → Security/Bots (or robots.txt management)
+  → disable the AI-crawler block. Your call — it's a legitimate content-rights
+  tradeoff, but for lead-gen the recommendation is disable.
+  - **Resumes:** clears the third SiteAudit fail; agent re-runs the audit to
+    confirm both.
+
+## 2026-07-17 Cloudflare host of record
+
+- [x] **Bind the apex domain to the `big7` worker (Cloudflare dashboard)** — DONE
+  2026-07-17. Blocked initially on a stale `big7construction.com CNAME →
+  mpopovgg.up.railway.app` zone record; deleted it, then the apex custom
+  domain bound clean. Mike then removed `www.big7construction.com` entirely
+  (his call) instead of adding the planned 301 redirect — simpler, and the
+  repo's canonicals already point at the apex form, so no redirect is needed.
+  Verified live: `/` 200 real content, `/commercial-industrial.html` 307
+  (extensionless), `/big7.js` 200, `/home-repair.html` 301.
+  - [x] **Next:** ~~Search Console — resubmit `sitemap.xml`~~ **DONE 2026-07-19** —
+    Mike created the Domain property (DNS TXT verification via Cloudflare
+    authorize flow) and submitted `https://big7construction.com/sitemap.xml`
+    (the relative form triggered "Invalid sitemap address"; full URL worked).
+    Sitemap pre-verified serving 200 `application/xml` with 4 apex URLs. `www`
+    was never in Search Console (fresh property) — no removal request needed.
+    Follow-up found during verification: canonical/sitemap URLs use the `.html`
+    form but the live host 307s `.html` → clean paths (canonicals point at
+    URLs that redirect away from themselves) — parked as next agent arc in
+    `TODO.md`.
+
+## 2026-07-17 two-path restructure
+
+- [ ] **Log this session to Cockpit Work Log** (COCKPIT.html — press `l`)
+  - **Card:** Big7Construction
+  - **What shipped:** Two-path restructure merged to main (CI green,
+    `f69c0b6`). Homepage → lean chooser (path cards + trust strip, no form);
+    commercial + residential became full destination pages each with its own
+    tailored Formspree form; home-repair.html folded into
+    residential#home-repair with a 301; money JS extracted to shared big7.js
+    with a legacy-URL shim; every lead now mirrors to the n8n big7-lead
+    webhook (verified live) with lane derived from the new source slugs. All
+    21 suites migrated to the 2-lane contracts and green + container smoke +
+    strict preflight.
+  - **Next up:** live form spot-check on www.big7construction.com (Cloudflare
+    auto-deploys main), then bind the apex (see NEXT ACTION in TODO.md).
+  - **Why blocked on him:** Cockpit Work Log is a browser localStorage write.
+  - **Resumes:** Nothing blocked — logging only.
+
+- [x] ~~**Delete the two TEST rows from the n8n `leads` data table**~~
+  **DONE 2026-07-19 (agent)** — no delete-row MCP surface existed, so a temp
+  one-shot n8n workflow (Data Table deleteRows, `name like '%safe to delete%'`)
+  did it: dry-run first confirmed exactly rows 1+2 (the Big7 TESTs) + row 3
+  (the M³ marker lead from the same night's webhook verification) and nothing
+  else, then the real delete removed all 3. Temp workflow archived after use.
+- [ ] **Verify the two-path test intakes reached the Formspree inbox**
+  - **What to do:** After the site deploys, submit each lane form once with
+    a marker message and confirm both arrive with the right `_subject`
+    ("New commercial bid…" / "New residential bid…") and `source`
+    (commercial-industrial-page / residential-page). The n8n mirror copy
+    should appear in the `leads` table + notify email at the same time.
+  - **Why blocked on him:** Formspree inbox is Mike-only.
+  - **Resumes:** Confirms LAW #6/7 verification of the moved money surface.
+
 ## 2026-07-13 tick 20e (SHIPPED — locally)
 
 - [ ] **Log this tick to Cockpit Work Log** (COCKPIT.html — press `l`)

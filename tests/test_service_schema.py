@@ -47,9 +47,8 @@ SERVICE_TITLE_RE = re.compile(
 
 # (file, expected Service name, expected canonical URL)
 TARGETS: tuple[tuple[str, str, str], ...] = (
-    ("home-repair.html", "Home Repair & Improvements", f"{CANONICAL_ORIGIN}/home-repair.html"),
-    ("commercial-industrial.html", "Commercial & Industrial", f"{CANONICAL_ORIGIN}/commercial-industrial.html"),
-    ("residential-construction.html", "Residential Construction", f"{CANONICAL_ORIGIN}/residential-construction.html"),
+    ("commercial-industrial.html", "Commercial & Industrial", f"{CANONICAL_ORIGIN}/commercial-industrial"),
+    ("residential-construction.html", "Residential Construction", f"{CANONICAL_ORIGIN}/residential-construction"),
 )
 
 SCRIPT_RE = re.compile(

@@ -58,6 +58,11 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 INDEX = REPO_ROOT / "index.html"
+# Shared money-path JS (extracted from index.html 2026-07-17). All track()
+# call sites live here now — the contract is checked against the
+# concatenation of index.html + big7.js so "exactly one call site" stays
+# honest if a copy ever sneaks back into a page.
+BIG7_JS = REPO_ROOT / "big7.js"
 
 # `track('event_name', { ... })` — payload literal ends at the matching `}`.
 # Capture the raw payload substring so we can walk key names off it. We deliberately
@@ -420,11 +425,12 @@ def _selftest(_live_html: str) -> int:
 
 
 def main(argv: list[str]) -> int:
-    if not INDEX.exists():
-        print(f"FAIL: {INDEX} not found", file=sys.stderr)
-        return 1
+    for path in (INDEX, BIG7_JS):
+        if not path.exists():
+            print(f"FAIL: {path} not found", file=sys.stderr)
+            return 1
 
-    html = INDEX.read_text(encoding="utf-8")
+    html = INDEX.read_text(encoding="utf-8") + "\n" + BIG7_JS.read_text(encoding="utf-8")
 
     if "--selftest" in argv:
         return _selftest(html)

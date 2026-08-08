@@ -39,11 +39,11 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 CANONICAL_ORIGIN = "https://big7construction.com"
 
 # (lane page filename, expected Service.name on that page)
-# Order matches the visible IA: commercial → residential → home-repair.
+# Order matches the visible IA (2026-07-17 two-path restructure):
+# commercial → residential (home repair folded into residential).
 LANES: tuple[tuple[str, str], ...] = (
     ("commercial-industrial.html", "Commercial & Industrial"),
     ("residential-construction.html", "Residential Construction"),
-    ("home-repair.html", "Home Repair & Improvements"),
 )
 
 LOCAL_BUSINESS_TYPES = {
@@ -112,7 +112,7 @@ def assert_catalog(parent: dict, expected_lane_urls: list[str]) -> list[str]:
     if len(items) != len(LANES):
         errors.append(
             f"hasOfferCatalog.itemListElement must have exactly {len(LANES)} nested "
-            f"OfferCatalogs (three-lane IA), got {len(items)}"
+            f"OfferCatalogs (two-path IA), got {len(items)}"
         )
 
     seen_urls: list[str] = []
@@ -139,7 +139,13 @@ def assert_catalog(parent: dict, expected_lane_urls: list[str]) -> list[str]:
                     f"{CANONICAL_ORIGIN}/, got {url!r}"
                 )
             path_part = url[len(CANONICAL_ORIGIN) + 1:] if url.startswith(CANONICAL_ORIGIN + "/") else ""
-            if path_part and not (REPO_ROOT / path_part).is_file():
+            # Clean-URL form (2026-07-19): lane URLs are extensionless
+            # (`/commercial-industrial` serves commercial-industrial.html);
+            # accept either the literal file or the `.html` sibling.
+            if path_part and not (
+                (REPO_ROOT / path_part).is_file()
+                or (REPO_ROOT / f"{path_part}.html").is_file()
+            ):
                 errors.append(
                     f"{prefix}.url points at {path_part!r} which is not an on-disk lane file"
                 )
@@ -274,21 +280,6 @@ def _baseline() -> dict:
                         }
                     ],
                 },
-                {
-                    "@type": "OfferCatalog",
-                    "name": "Home Repair & Improvements",
-                    "url": f"{CANONICAL_ORIGIN}/home-repair.html",
-                    "itemListElement": [
-                        {
-                            "@type": "Offer",
-                            "itemOffered": {
-                                "@type": "Service",
-                                "name": "Every Trade, In-House",
-                                "description": "Plumbing, electrical, roofing, HVAC, foundation, and interiors under one crew, one warranty.",
-                            },
-                        }
-                    ],
-                },
             ],
         },
     }
@@ -317,7 +308,7 @@ def selftest() -> int:
             lambda b: b["hasOfferCatalog"].__setitem__("@type", "ItemList"),
         ),
         (
-            "only two divisions (drop home-repair)",
+            "wrong division count (one dropped)",
             lambda b: b["hasOfferCatalog"]["itemListElement"].pop(),
         ),
         (

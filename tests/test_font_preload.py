@@ -253,7 +253,15 @@ def main() -> int:
         return selftest()
 
     errors: list[str] = []
-    for p in (INDEX, NOT_FOUND):
+    # Lane pages adopted the index async-font pattern in the 2026-07-17
+    # two-path restructure — all four surfaces must stay byte-identical.
+    targets = (
+        INDEX,
+        NOT_FOUND,
+        REPO_ROOT / "commercial-industrial.html",
+        REPO_ROOT / "residential-construction.html",
+    )
+    for p in targets:
         if not p.exists():
             errors.append(f"{p} not found")
             continue
@@ -264,7 +272,7 @@ def main() -> int:
             print(f"FAIL: {e}", file=sys.stderr)
         return 1
 
-    print(f"OK: font preload/stylesheet/noscript hrefs agree on both index.html + 404.html")
+    print(f"OK: font preload/stylesheet/noscript hrefs agree on all {len(targets)} pages")
     return 0
 
 

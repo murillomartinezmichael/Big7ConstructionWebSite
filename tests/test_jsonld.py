@@ -549,17 +549,45 @@ def main() -> int:
         )
         return 1
 
+    # Lane pages own the FAQs since the 2026-07-17 two-path restructure —
+    # each must carry a FAQPage block agreeing with its visible <summary>
+    # rows (same drift lock that used to protect the homepage accordion).
+    lane_faq_counts: dict[str, int] = {}
+    for lane in ("commercial-industrial.html", "residential-construction.html"):
+        lane_path = REPO_ROOT / lane
+        if not lane_path.exists():
+            errors.append(f"{lane}: not found")
+            continue
+        lane_html = lane_path.read_text(encoding="utf-8")
+        lane_count = len(FAQ_DETAILS_RE.findall(lane_html))
+        lane_summaries = extract_faq_summaries(lane_html)
+        lane_faq_blocks = [
+            b for b in extract_blocks(lane_html)
+            if "FAQPage" in (set(t) if isinstance((t := b.get("@type")), list) else {t})
+        ]
+        if lane_count == 0:
+            errors.append(f"{lane}: no on-page <details class=\"faq-item\"> rows found")
+        if not lane_faq_blocks:
+            errors.append(f"{lane}: no FAQPage JSON-LD block found")
+            continue
+        if len(lane_faq_blocks) > 1:
+            errors.append(f"{lane}: {len(lane_faq_blocks)} FAQPage blocks — expected exactly 1")
+        errors.extend(
+            f"{lane}: {e}"
+            for e in assert_faq_page(lane_faq_blocks[0], lane_count, lane_summaries)
+        )
+        lane_faq_counts[lane] = lane_count
+
     if errors:
         for e in errors:
             print(f"FAIL: {e}", file=sys.stderr)
         return 1
 
     print(
-        f"OK: {len(blocks)} JSON-LD block(s) parsed, LocalBusiness valid"
-        + (
-            f", FAQPage valid ({on_page_faq_count} Q's; name<->summary text agrees in order)"
-            if faq_seen else ""
-        )
+        f"OK: {len(blocks)} index JSON-LD block(s) parsed, LocalBusiness valid"
+        + (", index FAQPage valid" if faq_seen else ", no index FAQPage (chooser page)")
+        + "; lane FAQPages valid: "
+        + ", ".join(f"{k} ({v} Q's)" for k, v in lane_faq_counts.items())
     )
     return 0
 

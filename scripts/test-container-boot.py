@@ -26,12 +26,43 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 CONTAINER_PORT = 8080
 ROUTES = (
     ("/", 200),
+    # Clean extensionless paths — the shape every internal link, canonical,
+    # sitemap loc and JSON-LD url uses (2026-08-03 migration). These only
+    # resolve because nginx.conf's `location /` try_files carries `$uri.html`;
+    # without it the fallback 404s on the site's entire navigation.
+    ("/commercial-industrial", 200),
+    ("/residential-construction", 200),
+    ("/south-fulton-distribution", 200),
+    ("/accessibility", 200),
+    # Legacy `.html` form still serves on the fallback (Cloudflare 307s it to
+    # the clean path; nginx has no such rewrite). Kept green so an old
+    # bookmark or inbound link never hard-fails on the fallback host.
     ("/commercial-industrial.html", 200),
     ("/residential-construction.html", 200),
-    ("/home-repair.html", 200),
+    ("/big7.js", 200),
     ("/__big7_container_smoke_missing__", 404),
 )
+# Retired routes that must permanently redirect (2026-07-17 two-path
+# restructure): (path, expected status, expected Location header).
+# Target is the CLEAN path (2026-08-03): the `.html` target chained
+# 301 -> 307 -> 200 on the live host.
+REDIRECTS = (
+    ("/home-repair.html", 301, "/residential-construction#home-repair"),
+)
 HTTP = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+
+
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    """Refuse to follow redirects so a 301 surfaces as an HTTPError we can
+    assert on (the default opener would silently follow it to a 200)."""
+
+    def redirect_request(self, *args, **kwargs):  # noqa: D102 - contract above
+        return None
+
+
+HTTP_NO_REDIRECT = urllib.request.build_opener(
+    urllib.request.ProxyHandler({}), _NoRedirect
+)
 
 
 class SmokeFailure(RuntimeError):
@@ -155,6 +186,28 @@ def _assert_routes(base_url: str) -> None:
         if path == "/" and b"Big 7 Construction" not in body:
             raise SmokeFailure("GET / returned 200 but the Big 7 brand signature was absent")
         print(f"  OK  GET {path} -> {actual}")
+
+    for path, expected, location in REDIRECTS:
+        request = urllib.request.Request(
+            f"{base_url}{path}",
+            headers={"User-Agent": "big7-container-smoke/1.0"},
+        )
+        try:
+            with HTTP_NO_REDIRECT.open(request, timeout=3) as response:
+                actual, got_location = response.status, response.headers.get("Location", "")
+        except urllib.error.HTTPError as exc:
+            actual, got_location = exc.code, exc.headers.get("Location", "")
+        except (OSError, TimeoutError, urllib.error.URLError) as exc:
+            raise SmokeFailure(f"GET {path} failed: {type(exc).__name__}: {exc}") from exc
+        if actual != expected:
+            raise SmokeFailure(f"GET {path} returned HTTP {actual}, expected {expected}")
+        # nginx absolutizes the Location header against the request Host, so
+        # compare by suffix rather than equality.
+        if not got_location.endswith(location):
+            raise SmokeFailure(
+                f"GET {path} redirected to {got_location!r}, expected suffix {location!r}"
+            )
+        print(f"  OK  GET {path} -> {actual} Location: {got_location}")
 
 
 def _logs(container_name: str) -> str:

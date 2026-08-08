@@ -73,3 +73,13 @@ Reversible + small choices only. Load-bearing choices live in `docs/adr/`.
 **How to escalate if wrong:** if the palette gets a real revamp (new primary token, restructured ramp), the STANDARDS §5 "5-minute stranger clone" test still passes — but the 404 page will visually drift until it's touched. Grep both files (`grep -E "\\-\\-paper|\\-\\-ink|\\-\\-accent" index.html 404.html`) before any palette change to catch this.
 
 ---
+
+## 2026-07-17 — Two-path IA: fold Home Repair into Residential; forms move to lane pages; homepage becomes a chooser
+
+**Decision (with Mike):** collapse the 3-lane IA to 2 buyer paths on one domain (SEO consensus: separate pages, never separate sites). Home Repair became `#home-repair` inside the residential page (old URL 301s, offers merged into the residential OfferCatalog). Each lane page owns a tailored intake form; the homepage keeps NO form — `#contact` routes to the two lane forms. Money JS extracted to shared `big7.js` (no build step) so two forms can't drift as inline copies; legacy `/?intent=` URLs redirect via an inline index shim. Leads mirror to the n8n `big7-lead` webhook fire-and-forget; Formspree remains path-of-record (LAW #7 — don't silently switch a verified money path).
+
+**Why:** the homepage tried to serve both audiences in every section and separated nothing; audience-specific pages rank and convert better; one form per audience kills the irrelevant-radio problem; 3 surfaces of money code needed one shared implementation.
+
+**How to escalate if wrong:** the 301 + shim keep every legacy URL alive, so reverting is additive (rebuild a lane as its own page again). If home-repair volume justifies its own page later, restore `home-repair.html`, re-add the sitemap entry, and drop the nginx 301 — tests will walk the change.
+
+---

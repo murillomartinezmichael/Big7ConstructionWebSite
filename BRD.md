@@ -15,7 +15,7 @@ Do not split Big7 into three separate sites yet, and do not introduce microservi
 2. **Residential Construction** - homeowners planning larger builds, additions, remodels, structural work.
 3. **Home Repair & Improvements** - smaller homeowner work that is still profitable: repair, replace, punch-list, exterior/interior fixes.
 
-Recommended next shape: one parent homepage plus real static landing pages for each lane (`/commercial-industrial/`, `/residential-construction/`, `/home-repair/`). Shared brand, shared phone, shared quote form, shared analytics. Split into separate domains/sites only if the company has separate brands, teams, phone numbers, ad budgets, or SEO strategy for each lane.
+Shipped shape (2026-07-17): one parent chooser homepage plus two static destination pages (`/commercial-industrial.html`, `/residential-construction.html` — the latter absorbs Home Repair as `#home-repair`; the old URL 301s). Shared brand, shared phone, shared analytics; each lane page carries its own tailored quote form. Split into separate domains/sites only if the company has separate brands, teams, phone numbers, ad budgets, or SEO strategy for each lane.
 
 Tech rule: stay static until the content volume forces a change. If Big7 grows past one page + a few lane pages, upgrade to Astro static pages with content collections. Do not build microservices unless Big7 needs auth, client portals, payments, scheduling, or lead-management workflows.
 

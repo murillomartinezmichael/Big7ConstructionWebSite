@@ -23,6 +23,10 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 INDEX = REPO_ROOT / "index.html"
+# Shared money-path JS (extracted from index.html 2026-07-17). The position
+# derivation + cta_click payload live here now; the CTA anchors stay in the
+# page HTML — the contract is checked against the concatenation of both files.
+BIG7_JS = REPO_ROOT / "big7.js"
 
 REQUEST_BID_ANCHOR_RE = re.compile(
     r'<a\b(?P<attrs>[^>]*)>\s*(?P<text>Request a bid(?:\s*(?:&rarr;|→))?)\s*</a>',
@@ -152,10 +156,11 @@ def _selftest(html: str) -> int:
 
 
 def main(argv: list[str]) -> int:
-    if not INDEX.exists():
-        print(f"FAIL: {INDEX} not found", file=sys.stderr)
-        return 1
-    html = INDEX.read_text(encoding="utf-8")
+    for path in (INDEX, BIG7_JS):
+        if not path.exists():
+            print(f"FAIL: {path} not found", file=sys.stderr)
+            return 1
+    html = INDEX.read_text(encoding="utf-8") + "\n" + BIG7_JS.read_text(encoding="utf-8")
     if "--selftest" in argv:
         return _selftest(html)
     errors, req, accent = check(html)
