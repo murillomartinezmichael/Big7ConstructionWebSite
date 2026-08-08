@@ -1,0 +1,645 @@
+## VERIFIED (2026-07-17 — Lighthouse mobile, live www.big7construction.com)
+
+- Home **95-96** perf / 96 a11y / 100 bp · Commercial **98**/100/100 · Residential **98**/100/100 — the ≥95 quality bar passes on all three (first home run read 71 from cold-cache noise; two repeat runs confirmed 95-96).
+- SEO category couldn't be scored locally (Lighthouse-on-Node-21 `URL.parse` bug, tooling not site) — meta/JSON-LD untouched since last green.
+- ~~Small parked wart: CLS 0.09-0.13 on `.hero-overlay` (font-swap reflow resizes hero)~~ **FIXED 2026-07-17 eve (`8eadc23`)** — see SHIPPED below.
+
+# Big7Construction — TODO
+
+## REVIEW BRANCH 2026-08-05 — professionalization pass
+
+Base: HEAD `382e29e` == `origin/main` (tree was clean at session start).
+Mike authorized a publication branch on 2026-08-05. The code, configuration,
+tests, and docs below travel together; merging remains the production gate.
+
+1. **Phone single-sourced** — new `site.config.json` (canonical digits +
+   `placeholder: true` flag, swap procedure in its header) + new
+   `tests/test_phone.py` / `make test-phone` (suite #24, wired into
+   `make test`, so CI picks it up). Locks all 48 occurrences across
+   index / both lanes / case study / accessibility / big7.js: tel: hrefs,
+   display text, JSON-LD. Prints a loud WARN (stays green) while the 555
+   placeholder ships; `placeholder: false` with a 555 exchange is a hard
+   fail. Real-number swap: PENDING_MANUAL (updated with exact procedure).
+2. **Photo content-hash lock** — `tests/test_images.py` now md5-hashes
+   `images/` and fails on byte-identical files under different names
+   (audit: jobsite-01.jpg == jobsite-02.jpg, md5 `ab0eb021…`, was serving
+   as 4 "different" project photos). The known pair is allowlisted at WARN
+   level (`KNOWN_DUPLICATE_GROUPS`) until real client photos land — remove
+   the entry then. Plus honest alt texts: all 6 `<img>`s using the jobsite
+   files now say what the photo actually shows ("Aerial view of an active
+   construction jobsite — sitework and concrete formwork in progress")
+   instead of naming four distinct projects that aren't pictured (LAW 6).
+3. **Unattributable testimonials removed for review** from
+   commercial-industrial (3 quotes incl. "Marcus H."), residential (1),
+   index trust strip (1), south-fulton Result section (1) — each replaced
+   with a dated comment. Verbatim quotes + the sign-off-or-ship decision:
+   PENDING_MANUAL § "2026-08-05 unattributable testimonials".
+4. **README.md rewritten to reality** (was: Railway-primary, "single-page
+   site", Anton+Barlow fonts): now Cloudflare Workers primary + Railway
+   fallback, 6-page map, big7.js money code, Fraunces/Barlow Condensed/
+   Inter, run/test/deploy paths a stranger can follow. **AGENTS.md**
+   corrected the same way (it told agent seats "No JavaScript — pure
+   HTML + CSS", which contradicts test-locked big7.js). RUNBOOK.md is
+   still stale the same way (Railway-first, "no JS", Anton+Barlow) —
+   PARKED, next docs tick.
+5. **Stale push-status notes corrected** in this file + PENDING_MANUAL
+   ("fae2640/e8cee12/d78f9b0 not pushed" — all verified on `origin/main`).
+   Live re-probe done: `/home-repair.html` → one 301 →
+   `/residential-construction` (no 307 chain) — that manual gate is closed.
+
+**Gates (real output, 2026-08-05):** all **24 suites** (23 existing + new
+test_phone) golden + selftest — `PASSED: 24 / 24`. test_phone golden:
+`OK: 48 phone occurrences across 6 surfaces all agree` + WARN block.
+test_images golden: `OK: 5 <img> tags across 3 pages … no un-allowlisted
+byte-identical files` + KNOWN-duplicate WARN. **NOT run: `make
+test-container`** — Docker daemon down again this session (unchanged gap;
+nginx.conf untouched today, so risk unchanged from 2026-08-03).
+
+**NEXT ACTION (cold-start):** review the publication PR, provide the client's
+real phone number, then run `make test-container` with Docker Desktop before
+merging. The safer testimonial decision—removal until sources exist—is selected.
+
+## SHIPPED 2026-08-03 — canonical `.html` -> clean-path arc CLOSED (part 2)
+
+Part 1 (`81d9f4d`, 2026-07-19) flipped the SEO-signal URLs and explicitly
+parked internal links as "cosmetic, not an SEO signal". That was half true:
+they aren't a crawl signal, but every internal click was paying a 307 hop,
+and the parked note's own scoping ("PARKED 2026-07-17: Extensionless-URL
+migration") called for exactly this. Both halves now ship, so the repo
+speaks ONE URL shape end to end.
+
+**Verified live before touching anything** (read-only probes, 2026-08-03) —
+the mission's three premises all held:
+  - every canonical/og:url/JSON-LD/sitemap URL already used the apex form
+  - `www` is decommissioned (no `www.` string anywhere in shipped files)
+  - `.html` 307s to the clean path: `/commercial-industrial.html` -> 307 ->
+    `/commercial-industrial` (same for the other 3 pages; `/index.html` -> `/`)
+
+**Real bug found by probing, not by reading:** `/home-repair.html` 301'd to
+`/residential-construction.html`, which then 307s — a **301 -> 307 -> 200
+chain** on the retired lane's legacy inbound links. Both `_redirects` and
+`nginx.conf` now target the clean path directly.
+
+Shipped (`fae2640`, `e8cee12` — ~~local only, NOT pushed~~ **correction
+2026-08-05: both are on `origin/main`**; HEAD `382e29e` == origin/main,
+verified with `git branch -r --contains`):
+- **47 internal hrefs** across 5 pages flipped to the clean form: nav, mobile
+  menu, footer sitemap, lane cross-links, the portfolio pf-card, CTAs, the
+  404 recovery nav — plus **index.html's `TYPE_TO_LANE` legacy money-URL
+  shim**, which did a client-side redirect into a URL that then 307'd again
+  (the worst offender: a bio-link click paid two hops before the form loaded).
+- **nginx fallback made capable of serving the new shape:** `location /`
+  try_files gains `$uri.html`. Without it the Railway fallback would 404 on
+  the site's entire navigation. Chain still ends `=404`, so typos stay 404s.
+- **`big7.js` keeps its defensive `.html` strip** — a bookmarked legacy URL
+  must still report the same analytics page slug, not split the funnel into
+  two page keys. Comment now explains why it stays.
+- **New `tests/test_url_shape.py` (suite #23)** — the actual anti-drift lock.
+  Asserts ONE shape (apex, https, no `www`, no `.html`) across **seven
+  surfaces at once**: canonical, og:url, JSON-LD, internal hrefs, sitemap
+  locs, `_redirects` targets, and the nginx fallback (try_files carries
+  `$uri.html` AND ends `=404`; 301 targets clean). Plus a hard
+  `www.big7construction.com` ban across every shipped file. 10 selftest
+  mutations, all caught. Why it was needed: the old per-surface tests each
+  knew about one file, so the shape could revert one surface at a time with
+  everything still green.
+- **4 suites migrated** off the hard-coded `.html` shape — each now REJECTS
+  `.html` rather than tolerating both forms (that rejection is what stops the
+  drift): `test_lane_nav`, `test_404_lane_recovery` (both gained a
+  `_lane_file()` resolver, since a clean URL no longer maps 1:1 to a
+  filename), `test_anchors`, `test_url_prefill`. Repaired a `test_url_prefill`
+  selftest mutation that had silently become a **no-op**, and added 2 new
+  mutations. All three resolvers now mirror `test_seo_files._loc_to_repo_path`.
+
+**Gates (real output):** `23 SUITES | checks passed: 46 | failed: 0` (golden +
+selftest) · `preflight-deploy.py --strict` -> **READY** (1 optional live probe
+skipped) · `check-tracked-imports.py` exit 0 · every internal link target
+re-probed live: `/`, `/accessibility`, `/commercial-industrial`,
+`/residential-construction`, `/south-fulton-distribution`,
+`/docs/big7-capability-statement.pdf` — **all 200, no redirect hop** ·
+`test_a11y_baseline` green on all 6 pages (LAW #11 baseline held; only hrefs
+changed, and the `/accessibility` footer link is still present everywhere).
+
+**NOT verified this session (honest gap, see PENDING_MANUAL):**
+`make test-container` could not run — the Docker daemon was down. The
+`nginx.conf` change is covered by static tests only, not by a real container
+boot. That is the one thing to run before the next push.
+
+**NEXT ACTION** *(corrected 2026-08-05 — the original note claimed the
+commits were unpushed; they are on `origin/main` and the CF worker has
+deployed them. Live re-probe DONE 2026-08-05:
+`curl -sI https://big7construction.com/home-repair.html` returns **one 301
+with `Location: /residential-construction`** — no 307 chain. What remains:)*
+start Docker Desktop, run `make test-container` (expects `/` + both URL forms
+of each lane + `/big7.js` at 200, `/home-repair.html` 301 ->
+`/residential-construction#home-repair`, missing route 404). Docker was down
+again on 2026-08-05, so the nginx fallback's `try_files` change is still
+static-test-verified only.
+
+**PARKED (2026-08-03):**
+- **nginx `.html` -> clean 301 on the fallback.** Cloudflare 307s the `.html`
+  form; nginx now serves both at 200, so the fallback has a duplicate-content
+  shape the live host doesn't. Deliberately NOT added: it needs a regex
+  `location` block (which resets nginx `add_header` inheritance — all 5
+  security headers would have to be repeated, and `test_nginx_headers` would
+  need the new block added to its protected-locations spec), and it could not
+  be boot-verified this session with Docker down. Low value while Railway is
+  fallback-only and uncrawled. Do it in the same session that runs the
+  container gate.
+- Fragment support in CF `_redirects` is still undocumented, so
+  `/home-repair*` lands on `/residential-construction` without the
+  `#home-repair` fragment on Cloudflare (nginx keeps the fragment). Unchanged
+  from 2026-07-17; revisit only if analytics shows the landing is confusing.
+
+
+## SHIPPED 2026-07-20 (re-audit) — South Fulton case-study page was a click-orphan
+
+Fleet re-audit verified the `south-fulton-distribution.html` case-study page
+(commit `d78f9b0`) landed correctly — committed, sitemap/Dockerfile/tests
+wired, all 22 suites green — but found one real gap: the industrial-01
+pf-card on `commercial-industrial.html` still had `href="#contact"`, so no
+human click path reached the case-study page (only a direct URL or SERP
+result). Same orphan-page bug class `test_lane_nav.py` closed for the two
+lane pages on 2026-07-16. Fixed: pf-card now links to
+`/south-fulton-distribution.html`, with a small "View full case study →"
+label so it visually reads differently from the other 3 pf-cards that still
+route to `#contact` (their case-study pages don't exist yet — client-gated,
+see PENDING_MANUAL). Locked against regression in `tests/test_anchors.py`
+(`check_case_study_reachable`, +1 selftest mutation). All 23 suites green
+(golden + selftest); `preflight-deploy.py` READY; tracked-imports clean.
+~~Left local, not pushed — see session note below.~~ *(Correction
+2026-08-05: `d78f9b0` and this fix are on `origin/main`.)*
+
+## SHIPPED 2026-07-20 — capability-statement PDF (competitor-research trust fix)
+
+Closed the last open item from the 2026-07-19 competitor-research batch: the
+`#credentials` block's "Request the compliance packet" CTA routed to the
+contact form with nothing to actually send. Compiled
+`docs/big7-capability-statement.pdf` strictly from the cred-table's own
+published claims (license, $5M GL, bonds to $25M, warranty, safety,
+associations, track record) via a one-off reportlab script (build tool only —
+not a repo/runtime dependency) — zero fabricated numbers, EMR/TRIR still
+withheld pending real figures from Mike's insurer (unchanged PENDING_MANUAL
+item). Repointed `commercial-industrial.html`'s CTA to the PDF
+(`target="_blank"`), added the file to the Dockerfile fallback's COPY block
+(Cloudflare/wrangler already serves the whole repo dir so it needed no
+config there), and locked both halves — file exists + non-trivial size, and
+the on-page href still points at it — in `tests/test_conversion.py`
+(`check_compliance_packet_link`, +1 selftest mutation). All 22 test suites
+green (golden + selftest); `preflight-deploy.py` READY; tracked-imports clean.
+
+## ~~NEXT AGENT ARC~~ SHIPPED 2026-07-19 (`81d9f4d`) — canonical URL-shape fix
+
+All SEO-signal URLs (canonical, og:url, BreadcrumbList, Service.url,
+OfferCatalog, sitemap locs) flipped `.html` → clean extensionless paths that
+serve 200. Tests taught the clean-URL mapping (`_loc_to_repo_path`,
+offer-catalog on-disk check); 21 suites + selftests green; CI green;
+**verified live**: all 3 page canonicals + all 4 sitemap locs serve the clean
+form. Nav/internal hrefs deliberately untouched (worker serves both; flipping
+them is cosmetic, not an SEO signal). Original scoping note below.
+
+### (original parked note, for context)
+
+- **Canonical/sitemap URL-shape mismatch:** every page declares
+  `canonical = https://big7construction.com/<page>.html` and `sitemap.xml`
+  lists the same `.html` forms, but the live Cloudflare worker **307s
+  `.html` → clean extensionless paths** — so canonicals point at URLs that
+  redirect away from themselves. Google tolerates it but it muddies indexing
+  signals on a revenue site. Fix: flip canonicals + `og:url` + sitemap (+
+  JSON-LD `url`s if they carry `.html`) to the clean paths that actually
+  serve 200, and update the test suites that lock canonical/OG/sitemap
+  shapes (~30 min inc. tests). Context: sitemap submitted to the new Search
+  Console Domain property 2026-07-19 (status "Couldn't fetch" is the usual
+  first-submit placeholder; re-check after Google's first real crawl) —
+  fixing this before indexing settles is ideal.
+
+- Metric-tuned local fallback `@font-face`s (Georgia/Arial with `size-adjust`
+  + ascent/descent overrides computed from the real woff2 metrics via
+  fontTools) threaded into every font stack on all three pages, so the swap
+  to Fraunces / Barlow Condensed / Inter no longer rewraps the hero.
+- Subtlety that made one value impossible: Fraunces is a variable
+  optical-size font — the opsz-144 display cut is ~19% narrower than the
+  text cut. Each page carries a second `Fraunces Display Fallback`
+  calibrated to its desktop h1 (index 87.71% @92px split-line spans; lanes
+  92.36% @76px free-wrap), applied at ≥1024px after the base rules.
+- **Measured** (Playwright layout-shift observer, font responses delayed
+  1.2s = worst realistic swap): baseline 0.011–**0.235** with 3 combos over
+  0.1 → now **0.004–0.061, all six page/viewport combos under 0.1**.
+- Gates: all 21 make-test suites green · fonts-loaded rendering verified
+  unchanged via screenshots (real fonts still win every stack). Pushed
+  `8eadc23`; CF worker auto-deploys from main.
+
+**Last updated:** 2026-07-17 (Fable — TWO-PATH RESTRUCTURE SHIPPED: homepage = chooser, lane pages = destinations with own forms, home-repair folded + 301'd, money JS extracted to big7.js, n8n lead mirror live)
+
+## SHIPPED (2026-07-17, Fable — two-path restructure, branch `feat/two-path-restructure`)
+
+- **IA collapsed from 3 lanes to 2 paths (decision with Mike).** Homepage is now a lean chooser (hero → path cards → trust strip → lean contact, ~1,650 lines, was 3,244); `commercial-industrial.html` + `residential-construction.html` are full destination pages (services / portfolio / credentials-or-process / FAQ + FAQPage JSON-LD) each with its **own tailored Formspree intake form** (commercial radios vs residential radios, distinct `_subject`, hidden `source` defaults `commercial-industrial-page` / `residential-page`). `home-repair.html` deleted; nginx 301 → `/residential-construction.html#home-repair` (+ `_redirects` for the CF alt); its content/offers absorbed into the residential page.
+- **Money JS extracted to shared `/big7.js`** (submitForm, conversion IIFE, URL-prefill IIFE, analytics adapter) — one copy across all pages, `page` payload key derives from pathname, nginx serves it with 1h cache + 5 headers. Index carries an inline head **legacy-URL shim**: `/?intent=…` money URLs redirect to the owning lane form (INTENT_TO_TYPE locked in sync with big7.js by test_url_prefill).
+- **n8n wired to the new shape (Mike's ask):** big7.js mirrors every submit fire-and-forget to `https://michaelmurillo.app.n8n.cloud/webhook/big7-lead` (Formspree stays path-of-record); n8n `leads` table gained projectType/budget/location/source columns; workflow derives `lane` from `source`; verified live (webhook execution 892, HTTP 200).
+- **Cloudflare is host of record (Mike's call, same session):** site verified live at www.big7construction.com (worker `big7`, auto-deploys from main); `_headers` restores the 5 security headers CF was dropping (verified live); `_redirects` carries the home-repair 301 incl. extensionless form; wrangler renamed to match the deployed worker. Apex binding = dashboard gate in PENDING_MANUAL. Railway/nginx stack stays as tested fallback.
+- **Per-lane pricing (Mike's ask, same session):** budget chips now differ by audience — commercial <$500K…$25M+, residential <$50K…$1M+ — plus residential bid turnaround 3–10 days (commercial 5–14). test_form locks each lane's exact budget set AND fails if the two specs ever re-unify. Verified live on CF.
+- **Gates:** all 21 suites golden + selftest green (test_form/test_url_prefill/test_conversion/test_anchors/test_images/test_jsonld/test_font_preload/test_lane_nav/test_404_lane_recovery + SEO/schema suites all moved to the 2-lane contracts) · `make test-container`: `/` + 2 lanes + `/big7.js` 200, `/home-repair.html` 301 w/ correct Location, missing 404 · strict preflight READY.
+
+**NEXT ACTION:** sweep `PENDING_MANUAL.md` — (1) bind apex `big7construction.com` to the `big7` Cloudflare worker + www→apex redirect (site is LIVE on CF at www since the move; new version auto-deployed and verified 2026-07-17), (2) delete the two TEST rows from the n8n `leads` table, (3) submit each lane form once on the live site and confirm Formspree inbox + n8n `leads` row + notify email.
+
+**PARKED (2026-07-17):**
+- Shared `.css` extraction across the 3 pages (per-page inline kept this session per ADR-0001 no-build rule; revisit if a real palette revamp lands).
+- Switch the forms' path-of-record from Formspree to the n8n webhook (n8n already receives every lead via the mirror; flipping primary needs Mike's call + deliverability check).
+- Per-lane Formspree endpoints if inbox triage ever needs hard separation (subjects distinguish today).
+- Lighthouse re-measure on all 3 pages (only Mike can run the browser; predicted >=95 — pages got lighter, fonts/pattern unchanged).
+- Extensionless-URL migration for Cloudflare: CF serves lane pages at `/commercial-industrial` (the `.html` URL 307s), but internal links + canonicals + sitemap + JSON-LD still use `.html` — one extra hop per lane click. Migrating means touching canonicals/sitemap/JSON-LD/tests AND making nginx `try_files $uri $uri.html` so the fallback still works. Do it in one dedicated session after the apex is bound.
+
+## SHIPPED (2026-07-16, Fable — W2 gate: lanes human-navigable + deploy boot fix)
+
+- **REAL GAP CLOSED: the three lane pages were orphans.** index.html referenced them only inside JSON-LD (OfferCatalog urls) — no human could click from the homepage to any lane. Shipped: **Buyer-lanes strip** in the Services head (house Barlow-Condensed/accent chip style, stacks full-width at 375px), **footer sitemap** entries, **mobile-menu** links, and an **Other-lanes cross-link nav** on each lane page (both siblings + `/`). Commit `08f3ee1`.
+- **`tests/test_lane_nav.py`** — navigability contract per house pattern: Buyer-lanes nav complete/labeled/no-dupes, footer carries all 3, every lane page cross-links both siblings + `/`, every lane path on disk. `--selftest`: 8 mutations all caught. Wired into `make test`; **also wired the previously-unwired `test_404_lane_recovery` into the chain** (existed, passed, but wasn't in `test:`).
+- **DEPLOY BOOT CRASH FIX SHIPPED TO `origin/main`: `Dockerfile` chowned `default.conf` but not the `conf.d` directory** — `sed -i` writes a temp file in the directory, so the non-root container exited 1 at boot ("can't create temp file … Permission denied"). Commit `ec7b4bd` fixes the directory ownership and is now in the ancestry of pushed head `9684a79`.
+- **Gates:** all **21 suites golden + selftest green** · `docker build` + boot: `/` + 3 lanes 200, `/nope` 404 · Playwright 375px journey **14/14** (home → lane strip → commercial lane → service row → intake with `projectType` radio prefilled + `src=commercial-industrial-lane` attribution) · GitHub main run `29550577370` passed CI at `9684a79`.
+
+## SHIPPED (2026-07-16, Codex — Rung II production-container boot gate)
+
+- **`scripts/test-container-boot.py` — cross-platform Docker integration gate.** Builds the production image, runs the configured non-root nginx with `PORT=8080`, waits on a Docker-assigned localhost port, and asserts `/` plus all three `.html` lane routes return 200 while a missing route returns 404. An early exit reports container state + logs. A `finally` cleanup removes both the temporary container and tagged image on pass, failure, or interruption.
+- **`Makefile` — `make test-container` added; stale `docker-run` fixed.** The interactive target now maps `8080:8080`, injects `PORT=8080`, and no longer requires a nonexistent project `.env` file.
+- **`.github/workflows/ci.yml` — real verification now runs on pushes/PRs.** The CI test job runs the 21-suite static contract chain, strict deploy preflight, and the production-container smoke instead of relying only on link/secret checks. It can gate PRs when branch protection requires it; it does not block direct pushes by itself.
+- **Verified locally + on GitHub:** all 21 static suites golden + selftest PASS; `python scripts/preflight-deploy.py --strict` READY (only optional live probe skipped); container smoke PASS for `/`, Commercial & Industrial, Residential Construction, Home Repair, and a real 404; cleanup confirmed by the runner; main CI green at `9684a79`.
+
+## SHIPPED (2026-07-12 tick 20 — Rung II PROVE nineteenth bite: per-indexable-page OG uniqueness lock)
+
+- **`tests/test_og_twitter.py` — new `assert_indexable_uniqueness()` pass wired into `main()`.** Presence + branded-card + canonical/og:url tests all pass on well-formed individual pages, so a new lane page copy-pasted from an existing one that forgets to update `og:url` / `og:title` / `og:description` would preview on every social share as whichever page was copied — every per-page check still greens. Only cross-page comparison catches it. New pass collects tags for the 5 indexable pages (TARGETS_WITH_CANONICAL, skips 404 whose og:url intentionally == homepage), groups by value on each of the three fields, and fails on any value shared by two or more pages. `--selftest` gains 3 mutations (dup og:url, dup og:title, dup og:description across two synthetic pages) — all 3 caught first run alongside the existing 17 mutations (20 total).
+
+- **`Makefile` — `test-og` docstring updated to name the new uniqueness lock so `make help` reflects reality.** No new suite added — extends the existing `test-og` recipe. Full 19-suite golden chain still PASS end-to-end.
+
+## SHIPPED (2026-07-12 tick 19 — Rung II PROVE eighteenth bite: `<meta name="description">` contract lock)
+
+- **`tests/test_meta_descriptions.py` + `make test-meta-descriptions` — stdlib meta-description contract, wired into `make test` alongside the sixteen prior suites (now 17 total).** Closes a real SEO gap none of the sixteen prior suites cover: `test_og_twitter.py` locks `og:description` (used by Facebook / iMessage / Slack when a page is shared), but the plain `<meta name="description">` — the string Google and Bing use in SERP snippets when no OG description is consumed — was completely unchecked. Consequences of the gap: a page that ships without one surrenders SERP snippet control to whatever fragment the crawler picks off the page body; two pages sharing the same description dilute crawl budget on local-service queries (Google treats near-duplicates as competitors and demotes both); a description byte-identical to `<title>` wastes one of the three SERP lines that drive click-through. New test walks all 6 root `*.html` files (index, 404, accessibility, home-repair, commercial-industrial, residential-construction) via an explicit `TARGETS` tuple (not a glob — a scratch/experimental HTML file dropped at repo root during a refactor must not silently join the contract). Handles BOTH attribute orders (`name="description" content="…"` and reversed) via two regexes. Asserts: (1) exactly one description meta per page; (2) `html.unescape`'d content length ∈ `[40, 220]` — bounds set to accept currently shipped copy (index.html decoded = ~210 chars, commercial-industrial.html = 207) rather than mandate a rewrite; copy-tightening toward Google's ~160-char desktop SERP cap is a separate copy-audit tick, not a mid-tick test gate; (3) description is not byte-identical (case-insensitive, whitespace-normalized) to the page's `<title>`; (4) all 6 descriptions unique across pages (crawl-budget guard). `_norm()` decodes HTML entities and collapses whitespace so `&amp;` is counted as 1 char, matching how the string renders in a SERP snippet.
+
+- **`--selftest` mode — 6 known-broken mutations + uniqueness lock + false-positive guard, all caught first run.** Baseline is a minimal well-formed page with a valid description and title. Mutations: (a) description meta entirely missing → "missing <meta"; (b) empty content string → "too short"; (c) description below MIN_LEN floor (20 chars) → "too short"; (d) description above MAX_LEN ceiling → "too long"; (e) two `<meta name="description">` tags on the same page (accidental duplication during refactor) → "must be exactly 1"; (f) description string byte-identical to `<title>` → "byte-identical to <title>". Uniqueness lock: two pages carrying the same description string flag as `duplicate description on 'a.html' and 'b.html'`. False-positive guard: two pages carrying DIFFERENT descriptions must NOT flag (regression probe against over-eager uniqueness check). All 6 baseline + uniqueness + false-positive checks green first run.
+
+- **`Makefile` — `test-meta-descriptions` added to `.PHONY` and the `test:` target chain (now 17 suites end-to-end).** Recipe runs both the golden check (against the 6 real root HTMLs) AND the selftest (against synthetic mutations). Full 17-suite `make test` chain: `test-jsonld → test-seo-files → test-conversion → test-primary-ctas → test-url-prefill → test-og → test-assets → test-anchors → test-nginx → test-form → test-font-preload → test-images → test-breadcrumbs → test-service-schema → test-offer-catalog → test-dockerfile → test-meta-descriptions` — all PASS end-to-end (each suite reports its own golden + selftest output).
+
+## SHIPPED (2026-07-11 tick 27 — Rung VI UPGRADE seventeenth bite: `contactPoint` structured contact channels)
+
+- **`index.html` — new `contactPoint` array on the `GeneralContractor` JSON-LD block, two entries (customer service + sales) each carrying `@type: ContactPoint`, matching top-level `telephone` + `email`, `areaServed: "US-GA"`, and `availableLanguage: ["English"]`.** Google's LocalBusiness structured-data guidance lists `contactPoint` as a recommended field (in addition to top-level `telephone`); it's what Google Assistant, SGE, and the Knowledge Panel use to surface distinct contact channels ("Call sales" vs "Call customer service") rather than one flat number. Prior block had flat `telephone` + `email` only — technically valid but leaves the structured-contact rich surface unclaimed. `contactType` values (`customer service`, `sales`) drawn from Google's canonical set — arbitrary strings like "grillmaster" fail the extended validator. Zero fabricated data: same phone, same email, same areaServed footprint (Georgia) as the existing address + `openingHoursSpecification`; the deleted first-draft `contactOption: "TollFree"` on the customer-service entry was pulled because 555-700-0007 is a reserved placeholder, not a real toll-free prefix (LAW #6, "never fake it").
+
+- **`tests/test_jsonld.py` — `REQUIRED_TOP` extended to include `contactPoint`; new `_assert_contact_points(block)` validator + 13 selftest mutations.** Locks: (1) `contactPoint` is a non-empty list of dicts; (2) each entry's `@type == "ContactPoint"`; (3) `contactType` non-empty string AND in Google's recommended set (`{customer service, sales, technical support, billing support, bill payment, emergency, reservations}`) — catches arbitrary/off-spec labels that quietly fail Google's parser; (4) no duplicate `contactType` values across entries (guards copy-paste drift — two "customer service" entries would collapse in the Knowledge Panel); (5) `telephone` shape (`+?[\d\-\s\(\)]+`) AND last-10-digits agree with the top-level `telephone` — same drift class the tick-16 `test_form.py` `tel:`↔JSON-LD lock closes at a different surface; (6) `availableLanguage` non-empty string or non-empty list of non-empty strings; (7) if `email` is present, must contain `@` with a dotted domain. `_valid_block()` baseline extended with a matching `contactPoint` array (2 entries). Selftest mutations: contactPoint missing, empty list, wrong type (string), missing @type, wrong @type (Person), contactType off-spec ("grillmaster"), contactType missing, telephone drift (555-123-4567 vs top-level 555-700-0007), telephone garbage ("call-us"), availableLanguage missing, availableLanguage empty, email malformed, contactType duplicated across entries — all 13 caught first run. Full run: `LB baseline PASS + 23/23 LB mutations caught; FAQ baseline PASS + 7/7 FAQ mutations caught`. All 15 `make test` suites end-to-end green (`test-jsonld → test-seo-files → test-conversion → test-primary-ctas → test-url-prefill → test-og → test-assets → test-anchors → test-nginx → test-form → test-font-preload → test-images → test-breadcrumbs → test-service-schema → test-dockerfile`).
+
+## SHIPPED (2026-07-11 tick 26 — Rung II PROVE fourteenth bite: sitemap coverage lock)
+
+- **`sitemap.xml` — new `<url>` entry for `accessibility.html` at priority 0.3, changefreq `yearly`, lastmod 2026-07-11.** Real gap discovered while auditing top-level pages against sitemap coverage: `accessibility.html` ships since tick 06ccb84 with `<meta name="robots" content="index,follow">`, a canonical URL, a full OG + Twitter card block, and a Dockerfile COPY line (patched into the container tick 17) — but was never listed in the sitemap, so Google's crawler had no discovery signal for it beyond internal linking from the footer/nav on other pages. Statement pages get low priority (0.3, below home-repair 0.8) and `yearly` changefreq (accessibility statements should be stable) so the sitemap correctly signals to crawlers that this is a low-freshness supporting page. `404.html` remains deliberately excluded per sitemap.org guidance (`noindex` + nginx `error_page ... internal;` — locked by the new `noindex false-positive guard` in the selftest below).
+
+- **`tests/test_seo_files.py` — extended contract + first-ever `--selftest` for this suite (matches the tick-10/12/13/14/15/16/18/24/25 mutation-lock pattern).** New assertions layered on top of the existing three (sitemap valid XML, robots has User-agent + Sitemap:, canonical origin agrees across the three surfaces): (4) every `<loc>` URL, stripped of the canonical origin, must resolve to a real on-disk file at repo root (root path `/` maps to `index.html`); (5) every top-level `*.html` file at repo root that is indexable (`<meta name="robots" content="index,...">` AND has `<link rel="canonical">`) MUST have a matching `<loc>` in the sitemap — this is the exact class of drift this tick closed for `accessibility.html`, and locks it against silent recurrence when the next lane page is added (an indexable page shipped without a sitemap update now fails `make test` immediately); (6) no duplicate `<loc>` entries. `_indexable_html_files()` walks repo root, reads each `*.html`, checks the robots meta content for the `noindex` token — pages with `noindex` (like `404.html`) are correctly excluded from the coverage check, guarded by an explicit false-positive selftest that adds a scratch `hidden.html` marked noindex and confirms it does NOT trigger a coverage failure. `_loc_to_repo_path()` handles the root-URL special case (empty path → `index.html`) that a naive `path.lstrip("/")` would map to an empty string.
+
+- **`--selftest` mode — 8 known-broken mutations + baseline PASS + noindex false-positive guard, all caught first run.** Baseline builds a minimal-but-realistic repo under `tempfile.TemporaryDirectory()`: sitemap with 3 URLs (root + home-repair + accessibility), robots with matching Sitemap:, three indexable HTML files with canonical + robots meta, plus a `404.html` marked noindex to prove the coverage-check exclusion works. Mutations: (a) accessibility.html removed from sitemap → catches the exact tick-26 gap ("missing an entry for indexable page 'accessibility.html'"); (b) sitemap `<loc>` points at a ghost file → "does not exist on disk"; (c) duplicate `<loc>` → "duplicate <loc>"; (d) canonical origin drift on index.html → "does not match index.html canonical origin"; (e) robots missing Sitemap: line; (f) robots missing User-agent line; (g) sitemap `<loc>` uses http not https; (h) sitemap XML malformed. All 8 caught with the right error substring (rubber-stamp guard). First-draft bug: initial `_loc_to_repo_path` for `/` returned `repo_root / ""` which resolves to the directory itself — fix was an explicit `/` / empty-path branch returning `repo_root / "index.html"`.
+
+- **`Makefile` — `test-seo-files` recipe now runs both the golden check AND the selftest (matches every other suite in the chain).** Docstring updated to name the four things the test locks: sitemap parse, robots parse, canonical origin agreement, every-loc-on-disk, every-indexable-listed. Full 15-suite `make test` chain (jsonld, seo-files, conversion, primary-ctas, url-prefill, og, assets, anchors, nginx, form, font-preload, images, breadcrumbs, service-schema, dockerfile) — end-to-end green with the new sitemap entry in place. Sitemap URL count now 5 (was 4 before this tick).
+
+## SHIPPED (2026-07-11 tick 25 — Rung VI UPGRADE sixteenth bite: per-lane `Service` structured-data)
+
+- **`home-repair.html` / `commercial-industrial.html` / `residential-construction.html` — new `Service` JSON-LD block on each lane page, inserted right after the existing BreadcrumbList block.** Each Service points back at Big 7 Construction as the `provider` (LocalBusiness subtype `GeneralContractor`, matching the homepage block), carries a `serviceType` label ("Home Repair and Renovation" / "Commercial and Industrial General Contracting" / "Residential General Contracting"), an authentic description sourced from the page's own `<meta name="description">` copy, canonical `url`, and the six-item `areaServed` list (Atlanta + five suburbs + Georgia). Existing homepage `GeneralContractor` block on `/` unchanged — the lane blocks nest a compact provider stub so a lane URL crawled in isolation still identifies the parent business without duplicating the full OfferCatalog. Rationale: lane-specific queries ("home repair atlanta", "commercial gc atlanta", "custom home builder atlanta") now have their own rich-result candidate instead of leaning on the parent page's GeneralContractor block alone.
+
+- **`tests/test_service_schema.py` — new stdlib-only contract test.** Golden run walks the three lane files, finds the first `@type: Service` `<script type="application/ld+json">` block, and asserts: `@context`, `@type`, `name`, `url` match the target file exactly (name/URL drift catches typos + wrong-file copy/paste); `serviceType` is a non-empty string; `description` is ≥40 chars (silent empty descriptions are just as bad as missing); `provider.@type` is one of `{LocalBusiness, GeneralContractor, HomeAndConstructionBusiness, Contractor}`; `provider.name` == "Big 7 Construction"; `provider.url` == canonical origin `/`; `provider.telephone` matches E.164-ish shape; `provider.address` is `PostalAddress` with locality/region/country all populated; `areaServed` is a non-empty list of `{City, State, AdministrativeArea, Place}` items each carrying a name. `--selftest` mutates a valid baseline 17 ways (bad @context, wrong type, name drift, wrong-origin url, missing serviceType, too-short description, missing provider, wrong provider type/name/url/telephone, missing/wrong address, missing/empty areaServed, wrong area-item type, missing area-item name) — all 17 caught first run. First run PASS on all three lane files.
+
+- **Test-suite delta.** Total 13 test files in `tests/` now (added test_service_schema.py to the 12 that were green last tick). Adjacent suites re-run to guard against regression from the JSON-LD insertions: `test_breadcrumbs.py` (BreadcrumbList still valid on the same three files), `test_jsonld.py` (index.html LocalBusiness + FAQPage still valid — the SCRIPT_RE now matches multiple blocks per page but the lane-page Service blocks aren't in scope for that suite since it only walks `index.html`), `test_og_twitter.py` (six top-level pages still carry valid OG + Twitter), `test_conversion.py` (13 intents / 13 mappings / 6 radios — contract still holds). Everything green.
+
+## SHIPPED (2026-07-11 tick 23 — Rung VI UPGRADE fifteenth bite: third lane page `/residential-construction.html`)
+
+- **`residential-construction.html` — third and final top-level lane page; the three-lane IA the 2026-07-09 AI Hub sync + `BRD.md § "Site Architecture Direction"` committed the project to is now complete.** Same head shell as `home-repair.html` + `commercial-industrial.html` (async Google Fonts, `lang="en"`, skip-link, `<main>` landmark, `prefers-reduced-motion`, `:focus-visible`) so LAW 11 accessibility baseline holds without duplicating a shared build tool. Full OG + Twitter card block pointing at branded `og-card.png` — locked by the extended `tests/test_og_twitter.py` `TARGETS` tuple. Canonical `https://big7construction.com/residential-construction.html`. Copy targets homeowners planning larger builds — custom homes, additions, structural remodels touching foundation/roof — and explicitly redirects punch-list-scale work back to `/home-repair.html` (protects estimator time and keeps the two residential lanes distinct rather than colliding). Three service rows deep-link to `/?intent=service:{custom-home,structural-repair,trades-only}&src=residential-construction-lane#contact` — every intent slug already exists in `INTENT_TO_TYPE` (locked by `tests/test_conversion.py`), so the URL-param prefill IIFE seeds the correct radio + textarea hint on landing with zero contract expansion.
+
+- **`sitemap.xml` — `<url>` entry for `residential-construction.html` at priority 0.85 (between commercial 0.9 and home-repair 0.8, reflecting BRD lane ordering: commercial+enterprise is top-tier, then residential larger builds, then home-repair smaller work).** `lastmod` 2026-07-11.
+
+- **`Dockerfile` — COPY `residential-construction.html` into `/usr/share/nginx/html/`.** Column alignment on the three lane-page COPY lines kept as a block. Same class of fix the tick-17 `accessibility.html` gap surfaced — a lane page in the repo but not in the container ships nothing.
+
+- **`tests/test_og_twitter.py` — extend `TARGETS` to include `residential-construction.html`.** Docstring updated to name all six top-level pages now covered. First run PASS: `residential-construction.html` carries a valid OG + Twitter tag set, `og:image` + `twitter:image` both point at the branded 1200x630 `og-card.png` (guards reversion). `--selftest` still catches 12/12 mutations. Full 12-suite test chain (`jsonld` + selftest, `seo-files`, `conversion` + selftest, `primary-ctas` + selftest, `url-prefill` + selftest, `og` + selftest, `assets` + selftest, `anchors` + selftest, `nginx` + selftest, `form` + selftest, `font-preload` + selftest, `images` + selftest) — end-to-end green.
+
+## SHIPPED (2026-07-11 tick 22 — Rung VI UPGRADE fourteenth bite: second lane page `/commercial-industrial.html`)
+
+- **`commercial-industrial.html` — new top-level page for the Commercial & Industrial buyer lane.** Second of the three lane pages the AI Hub sync + `BRD.md § "Site Architecture Direction"` committed the project to (home-repair shipped tick 17; residential-construction is the remaining third). Same head shell as `home-repair.html` (async Google Fonts, `lang="en"`, skip-link, `<main>` landmark, `prefers-reduced-motion`, `:focus-visible`) so LAW 11 accessibility baseline holds without duplicating a shared build tool. Full OG + Twitter card block pointing at the branded `og-card.png` — locked by the extended `tests/test_og_twitter.py` `TARGETS` tuple below. Canonical `https://big7construction.com/commercial-industrial.html`. Copy targets GC / facilities / enterprise buyer language per the AI Hub verdict: bond capacity, one accountable PM, weekly owner-schedule call, submittals + RFIs + close-out package delivered rather than chased. Five service rows deep-link to `/?intent=service:{commercial-new,industrial-warehouse,tenant-improvement,enterprise-framing,trades-only}&src=commercial-industrial-lane#contact` — every intent slug matches an existing `INTENT_TO_TYPE` entry (locked by `tests/test_conversion.py`), so the URL-param prefill IIFE seeds the correct radio + textarea hint on landing.
+
+- **`sitemap.xml` — `<url>` entry for `commercial-industrial.html` at priority 0.9 (higher than home-repair 0.8 because commercial is the top-tier buyer lane per BRD).** `lastmod` 2026-07-11.
+
+- **`Dockerfile` — COPY `commercial-industrial.html` into `/usr/share/nginx/html/`.** Column alignment on the five HTML COPY lines cleaned up so the file reads as a block. Same class of fix the tick-17 `accessibility.html` gap surfaced — a lane page in the repo but not in the container ships nothing.
+
+- **`tests/test_og_twitter.py` — extend `TARGETS` to include `commercial-industrial.html`.** Docstring updated to name all five top-level pages now covered. First run PASS: `commercial-industrial.html` carries a valid OG + Twitter tag set, `og:image` + `twitter:image` both point at the branded 1200x630 `og-card.png` (guards reversion). `--selftest` still catches 12/12 mutations. Full 12-suite test chain (`jsonld` + selftest, `seo-files`, `conversion` + selftest, `primary-ctas` + selftest, `url-prefill` + selftest, `og` + selftest, `assets` + selftest, `anchors` + selftest, `nginx` + selftest, `form` + selftest, `font-preload` + selftest, `images` + selftest) — end-to-end green.
+
+## SHIPPED (2026-07-11 tick 17 mid-session — Rung VI UPGRADE thirteenth bite: first lane page `/home-repair.html`)
+
+- **`home-repair.html` — new top-level page for the Home Repair & Improvements buyer lane.** First step of the three-lane IA the 2026-07-09 AI Hub sync + `BRD.md § "Site Architecture Direction"` committed the project to: one parent brand, one phone, one intake form, real static landing pages for each buyer lane. Same head shell as `accessibility.html` (Google Fonts async pattern, `lang="en"`, skip-link, `<main>` landmark, `prefers-reduced-motion` support, `:focus-visible` — LAW 11 accessibility baseline in full). Full OG + Twitter card block pointing at branded `og-card.png` (immediately locked by `tests/test_og_twitter.py` extension). Canonical `https://big7construction.com/home-repair.html`. Copy explicitly names OUT-of-scope work (single-day handyman jobs) so low-value inbound is filtered upstream — protects estimator time before it burns. Three service rows deep-link to `/?intent=service:{structural-repair,custom-home,tenant-improvement}&src=home-repair-lane#contact` — the URL-param prefill IIFE shipped tick 21 (locked by `tests/test_url_prefill.py`) reads those params through `SAFE_PARAM`, checks the matching `projectType` radio, and seeds the textarea with `— Interested in: <label>`. Zero duplicate form, zero new dep, zero build step — single source of truth for intake stays on `index.html`.
+
+- **`sitemap.xml` — add `<url>` entry for `home-repair.html` at priority 0.8 (homepage stays 1.0). `lastmod` bumped to 2026-07-11 on both entries.** Comment header rewritten to drop the stale "single-page marketing site" note that no longer describes reality. Canonical origin still agrees across `sitemap.xml <loc>` / `robots.txt Sitemap:` / `index.html <link rel=canonical>` — `test_seo_files.py` still green.
+
+- **`Dockerfile` — COPY `home-repair.html` AND `accessibility.html` into `/usr/share/nginx/html/`.** Discovered in-flight while writing the home-repair COPY line: `accessibility.html` has existed since commit `06ccb84` ("feat(a11y): WCAG 2.1 AA baseline + accessibility statement page") but its COPY line was never added — the accessibility statement page was in the repo but NOT in the deployed container. LAW 11 mandates the accessibility statement page as the fleet baseline; that mandate was silently unfulfilled on production. Fix landed alongside `home-repair.html` so both go out on the next Railway build. This is exactly the class of gap the `test_nginx_headers.py` container-vs-file split leaves open — the deploy step itself is not tested. Ticket to add a Dockerfile-vs-repo drift lock is deferred (Rung II PROVE candidate for the next session).
+
+- **`tests/test_og_twitter.py` — extend `TARGETS` to `(INDEX, NOT_FOUND, ACCESSIBILITY, HOME_REPAIR)`.** Docstring updated to name the four top-level pages now covered. First run PASS: `home-repair.html` carries valid OG + Twitter tags; `og:image` + `twitter:image` point at the branded 1200x630 `og-card.png` (guards reversion to the 206px `jobsite-01.jpg` placeholder that pre-tick-4 shipped). `--selftest` still catches 12/12 mutations. Full 12-suite test chain (`jsonld` + selftest, `seo-files`, `conversion` + selftest, `primary-ctas` + selftest, `url-prefill` + selftest, `og` + selftest, `assets` + selftest, `anchors` + selftest, `nginx` + selftest, `form` + selftest, `font-preload` + selftest, `images` + selftest) — end-to-end green.
+
+## SHIPPED (2026-07-11 tick 21 — Rung VI UPGRADE twelfth bite: URL-param intake prefill)
+
+- **`index.html` — URL-param prefill IIFE nested inside the conversion IIFE.** Bio-link money path opened: `https://big7construction.com/?intent=service:tenant-improvement&src=tiktok-bio` now lands the visitor on an intake form that already has the correct `projectType` radio checked AND `— Interested in: Tenant Improvement` seeded in the textarea. Also accepts `?type=<projectType>` (direct radio value — 6 choices) and `?src=<slug>` / `?utm_source=<slug>` for attribution. New `landing_prefill` event pushed to `dataLayer` (adapter forwards to gtag/plausible if loaded). Nested INSIDE the click IIFE for closure access to `INTENT_TO_TYPE` / `PREFILL_MARK` / `labelFor` / `track` — a slug rename (locked by `test_conversion.py`) auto-propagates with zero duplication. Every URL param passes `SAFE_PARAM = /^[a-z0-9:_\-]{1,64}$/i` before hitting `querySelector` — DOM injection blocked. Wrapped in `try/catch` so malformed URLs cannot break the page.
+
+- **`tests/test_url_prefill.py` + `make test-url-prefill` — stdlib contract, wired into `make test`.** Locks: (1) `URLSearchParams` parse; (2) 13 required substrings including `SAFE_PARAM.test(` — whitelist APPLIED, not just declared; (3) SAFE_PARAM regex literal anchored `^…$` with no `.*`/`.+` wildcard; (4) no `querySelector(...params.get(...))` — grep-level DOM-injection guard; (5) `try {` opens BEFORE the URL parse. `--selftest` mutates 6 ways (URLSearchParams stripped, event renamed, utm_source dropped, whitelist call replaced with literal `true`, IIFE marker removed, INTENT_TO_TYPE lookup killed) — all 6 caught. First-draft bug: initial mutation `SAFE_PARAM` → `UNSAFE_PARAM` was a no-op (rename, not kill); tightened to `SAFE_PARAM.test(v)` → `true` which actually bypasses the whitelist. Full 12-suite `make test` all PASS.
+
+## NEXT ACTION
+
+**Three-lane IA is DONE end-to-end (2026-07-16):** lane pages + JSON-LD + sitemap + Dockerfile + navigability (Buyer-lanes strip / footer / mobile menu / sibling cross-links) + 21-suite lock. One brand, one phone, one form, one analytics stream — no site split, no microservices (doctrine unchanged).
+
+What remains (ordered):
+
+1. **Confirm Railway deployed pushed head `9684a79`, then bind/fix the apex-vs-www host-of-record.** Repository canonicals target `big7construction.com`; the last live audit found the apex on Railway fallback 404 while `www` served the site.
+2. **Backfill the live Railway URL** into `../projects.yaml` / `STATUS.md` (dashboard lookup — Mike; long-parked).
+3. **Real job photos** when the client sends shoots (PhotoPicker profile `big7`) — photo intake cadence.
+4. **Container boot smoke gate CLOSED locally and on GitHub (2026-07-16).** Main CI run `29550577370` proved the 21 suites, strict preflight, and production image routes at pushed head `9684a79`; only the real production host probe remains manual.
+
+---
+
+ (2026-07-07 tick 20 — Rung VI UPGRADE + Rung II PROVE twelfth bite: FAQPage rich-result schema + drift lock)
+
+- **`index.html` — second `<script type="application/ld+json">` block with `@type: "FAQPage"`, mirroring all eight §07 accordion answers verbatim.** Site already had a solid `GeneralContractor` LocalBusiness block, complete OG + Twitter tags, and rich on-page FAQ HTML (`<details class="faq-item">` × 8) — but no FAQPage schema, so Google could not surface the answers as a rich result on branded / "atlanta general contractor" queries. Rich FAQ results dominate SERP real estate for local-service intent and click through at 2–4× the plain listing rate; adding the schema is the highest-leverage single edit still on the table for this page. Answer text is stripped-to-plain (no inline `<strong>`) so the JSON parses in any validator and no `</script>` sequence risks breaking the outer parser. Block placed in `<head>` next to the LocalBusiness block for consistency with existing structured-data grouping. Zero new imagery, zero new copy, zero fabricated content — every Q/A pair is what the visible accordion already says.
+
+- **`tests/test_jsonld.py` — extended with a FAQPage validator and an on-page↔schema drift lock.** New `assert_faq_page(block, on_page_count)` checks: (1) `@context = https://schema.org`; (2) `@type = FAQPage`; (3) `mainEntity` is a non-empty list; (4) each entry is `@type: Question` with a non-empty `name`; (5) each entry has an `acceptedAnswer` of `@type: Answer` with non-empty `text`; (6) `len(mainEntity)` equals the count of `<details class="faq-item">` blocks in rendered HTML (guards the class of drift where a future edit adds a ninth accordion but forgets the ninth Question — the schema silently omits it, the rich result becomes truncated, and no other test catches it). `main()` counts on-page items via `FAQ_DETAILS_RE` and FAILs if the count is > 0 but no FAQPage block was found (guards accidental block deletion). `--selftest` adds a minimal-valid FAQPage baseline plus 7 known-broken mutations: wrong outer `@type`, missing `mainEntity`, empty `mainEntity`, question missing `name`, answer missing `text`, answer wrong `@type`, and the 2-vs-3 count-drift case — all 7 caught. Existing 10 LocalBusiness mutations still all pass. Full 11-suite `make test` chain (anchors, assets, conversion, font preload, form, images, jsonld, nginx headers, og/twitter, primary CTAs, seo files) — end-to-end green.
+
+## SHIPPED (2026-07-07 tick 19 — Rung II PROVE eleventh bite: `<img>` a11y + LCP + perf-hint contract)
+
+- **`tests/test_images.py` + `make test-images` — stdlib `<img>` contract, wired into `make test` alongside the ten prior suites.** Closes three tick-16-brief-adjacent surfaces that no other test locks: (a) WCAG 1.1.1 Level A alt-text (a11y score baseline + Google-Image-Search discoverability — an alt strip on a portfolio card is currently invisible to `make test`); (b) hero LCP hint agreement (a `<link rel="preload" as="image" href="...">` at `index.html:43` warms the byte cache used by the `<img fetchpriority="high" src="...">` at `index.html:1815`; if either href drifts in a future refactor, preload warms an unused slot and LCP silently pays the full round-trip); (c) perf-hint pair on below-fold cards (`loading="lazy"` defers fetch, `decoding="async"` defers decode; separating them re-blocks the main thread on scroll — the pair was added together in tick 5 but neither is locked). New test regex-parses every `<img>` on `index.html`, attribute-picks with an `_attr()` helper that handles both single- and double-quoted values, and asserts a 7-point contract: (1) every `<img>` has a non-empty `alt`; (2) every `src` starts with `images/` (no accidental external CDN — silent CORS + LCP class); (3) every `src` resolves to a real on-disk file under `images/` (same `git rm` regression class `test_assets.py` closed for OG/JSON-LD URLs but never extended to in-page `<img>`s); (4) exactly one `<img fetchpriority="high">` exists (zero = browser guesses, multiple = browser arbitrates); (5) `<link rel="preload" as="image">` href byte-matches the `fetchpriority=high` `<img src>`; (6) every `<img loading="lazy">` also carries `decoding="async"`; (7) `<img>` count above `MIN_IMGS=6` floor (guards wholesale portfolio-grid delete). `--selftest` mutates a synthetic baseline (1 hero fp=high + 5 lazy portfolio cards + matching preload + tempdir-backed `images/` with valid JPEG magic bytes) 11 known-broken ways: alt stripped, empty alt, external CDN src, src outside `images/`, missing on-disk file, `fetchpriority=high` stripped, duplicate `fetchpriority=high`, preload href drift, lazy without async decoding, `<img>` count below floor, preload `<link>` removed entirely — all 11 caught with the *right* error substring (rubber-stamp guard). Python 3.11+ stdlib only (`re`, `pathlib`, `sys`, `tempfile`). `Makefile` gains `.PHONY test-images` + `test: … test-font-preload test-images` chain — full 11-suite `make test` chain now PASS end-to-end. Rationale: STANDARDS §3 requires tests on money paths — the hero LCP element drives Core Web Vitals scoring which drives Google's ranking, alt-text drives the a11y sub-score and image-search discoverability, and the perf-hint pair keeps mobile scroll frames smooth. Ticks 6/7/10/11/12/13/14/15/16/17/18 all closed URL-string / attribute-value surfaces; this closes the underlying `<img>` element surface those tests all assume without proving.
+
+## SHIPPED (2026-07-07 tick 18 — Rung II PROVE tenth bite: primary-CTA attribution loop)
+
+- **`index.html` — every primary "Request a bid" / conversion CTA now carries `data-intent`.** Audit against `docs/CONVERSION_STANDARDS.md` § 4 surfaced the last remaining conversion gap: `service:*` and `portfolio:*` CTAs (locked by `test_conversion.py`) fire `cta_click` cleanly, but the *global* buttons — nav accent CTA, mobile-menu CTA, hero CTA, closer accent CTA, "Start a scoping call", "Request the full portfolio", "Request compliance packet", "Start at Station 01", "Talk to a client on the record", "Ask it in the bid form" — all hit `#contact` without `data-intent`, so a click from the hero was indistinguishable from a click from the closer in analytics and no funnel view could measure which region converts. Fix: 10 CTAs annotated — `bid:nav` / `bid:mobile-menu` / `bid:hero` / `bid:closer` for the four repeated primary buttons, `bid:portfolio-request` / `bid:compliance-packet` / `bid:process-station` / `bid:faq` for the section-foot rails, `book:scoping-call` / `book:client-reference` for the two booking-intent actions (`book:` per CONVERSION_STANDARDS § 2 reserved namespace). Position slug is unique per CTA so funnel splits by region don't collapse. The click IIFE (index.html:2926) extended: `const position = intent.split(':')[1] || 'unspecified';` derived and included in the `cta_click` payload — CONVERSION_STANDARDS.md § 4 requires `intent, page, position` on every `cta_click`; prior code emitted only `intent, page, label`. `labelFor()` returns empty for these generic CTAs (no `.service-title/.pf-title/.type-name` child and no aria-label), so the textarea prefill guard `if (ta && label)` short-circuits — no textarea pollution, clean attribution only.
+
+- **`tests/test_primary_ctas.py` + `make test-primary-ctas` — stdlib contract for the primary-CTA attribution loop, wired into `make test` alongside the eight prior suites.** Locks 4 assertions: (1) every anchor whose text is "Request a bid" / "Request a bid →" carries `data-intent="bid:*"` (the four global primary buttons are the highest-volume attribution surface — a copy in the nav or hero that ships without the attribute silently drops attribution); (2) every `<a class="btn btn-accent" href="#contact">` carries `data-intent` (catches new copy variants — "Start this build", etc. — that adopt the same visual button style but forget the intent attribute); (3) the click IIFE derives `position` from `intent.split(':')[1]` and includes `position: position` in the `cta_click` payload; (4) position slugs are unique among the primary "Request a bid" set (two CTAs collapsed onto the same slug would break funnel analysis). `--selftest` mutates the baseline 5 known-broken ways: data-intent stripped from a Request-a-bid anchor, primary CTA rebadged with non-bid namespace, position derivation removed from IIFE, position field removed from payload, two CTAs collapsed onto same slug — all 5 caught with the right error substring. Python 3.11+ stdlib only (`re`, `pathlib`, `sys`). Full nine-suite `make test` chain now: `test-jsonld → test-seo-files → test-conversion → test-primary-ctas → test-og → test-assets → test-anchors → test-nginx → test-form → test-font-preload` — all PASS end-to-end.
+
+
+**Stack (locked by ADR-0001):** single-file `index.html` + embedded CSS + nginx:alpine on Railway. Now with a real `/404.html`, `/robots.txt`, and `/sitemap.xml`. No JS framework, no build step.
+**Ladder position:** RUNG 2 PROVE — eight automated smoke tests chain into `make test` (JSON-LD + image/logo lock + selftest + sitemap/robots + canonical-agreement + conversion IIFE contract + selftest + OG/Twitter card lock + selftest + on-disk asset existence + magic-byte + selftest + in-page anchor integrity + selftest + nginx security-headers + per-location cache contract + selftest + intake form structure + Formspree action + honeypot + tel↔JSON-LD phone + selftest). RUNG 1 HARDEN — reopened + re-closed this tick (real gap on `/404.html` fixed). RUNG 3 CLEAN — closed. RUNG 5 INSCRIBE — closed. RUNG 6 UPGRADE — half-shipped (analytics adapter waits on Michael's one-tag activation), JSON-LD imagery now uses the branded 1200×630 card. RUNG 4 QUICKEN — tick 5 added three safe no-visual-change micro-wins. Root-cause 206px placeholder images still client-blocked. Michael-side Lighthouse re-measure still pending.
+
+## SHIPPED (2026-07-07 tick 16 — Rung II PROVE ninth bite: intake form structural contract)
+
+- **`tests/test_form.py` + `make test-form` — stdlib intake form structural contract, wired into `make test` alongside the seven prior suites.** Closes the exact money-path gap `test_conversion.py` leaves open: tick 10's conversion test locks the CTA `data-intent` → `INTENT_TO_TYPE` → `projectType` radio wiring, but says nothing about the form *itself* — whether the Formspree action drifted to a dev URL (silent intake-drop), whether `required` was stripped from `phone` (visitor submits without a callable number, 30-40% never convert), whether the honeypot survived a refactor (Formspree quota burns on spam), or whether the `tel:` alt-call link and the JSON-LD `telephone` drifted apart (Google shows one number, the page dials another). New test slices the single `<form class="cform">` on `index.html`, parses every input's attributes with a regex that handles BOTH quoted values (`type="tel"`) AND bare boolean tokens (`required`, `disabled`) — a leading `<tagname` strip so the tag name itself isn't parsed as a boolean attribute — then asserts a 10-point contract: (1) exactly one `.cform` form on the page; (2) `action` matches `https://formspree.io/f/<id>` (endpoint drift catch); (3) `method="POST"`; (4) `onsubmit="submitForm(event)"` handler wired; (5) required contact inputs — `name` (text/autocomplete=name), `email` (email/autocomplete=email), `phone` (tel/autocomplete=tel) — each carry `required` + correct `type` + `autocomplete` (password managers + mobile keyboards rely on autocomplete); (6) projectType radios above floor of 4, at least one member carries `required` (browsers enforce required-of-group only if a member declares it); (7) honeypot `name="website"` inside a wrapper hidden by `display:none` OR `aria-hidden="true"`, with `tabindex="-1"` + `autocomplete="off"`; (8) hidden Formspree control fields `_subject` (non-empty value) + `_replyto`; (9) alt-call `<a href="tel:...">` present inside the form; (10) `tel:` last-10-digits == JSON-LD `telephone` last-10-digits (robust to `+1-` prefix + punctuation differences). `--selftest` mutates a synthetic-but-realistic baseline (Formspree action, three required contact fields, `MIN_RADIOS` radios with `required` on the first, honeypot in a `display:none` wrapper, hidden Formspree controls, alt-call tel link, JSON-LD block with matching telephone) 14 known-broken ways: Formspree action drifted to a dev URL, method downgraded to GET, `submitForm` handler stripped, `required` removed from phone, email type downgraded to text, name autocomplete stripped, radios collapsed below floor, radio `required` stripped from every member, honeypot removed entirely, honeypot wrapper unhidden, honeypot tabindex removed, hidden `_subject` control deleted, alt-call `tel:` link removed, phone drift between `tel:` and JSON-LD — all 14 caught with the *right* error substring (rubber-stamp guard). Python 3.11+ stdlib only (`json`, `re`, `pathlib`, `sys`). `Makefile` gains `.PHONY test-form` + `test: test-jsonld test-seo-files test-conversion test-og test-assets test-anchors test-nginx test-form` chain — full eight-suite run all PASS end-to-end. First-draft bug caught in the writing: initial `_attrs()` regex matched only `name="value"` pairs and reported false failures on the live form's boolean `required` attributes; fixed by rewriting to handle both attribute shapes. Rationale: STANDARDS §3 requires tests on money paths — this is the single money-path surface where every CTA on the page ends, and the tick-16 brief explicitly named "every Get a Quote button must go to a working form that captures name/phone/project-type" as the audit target. All three tick-16 brief options (JSON-LD, conversion audit, OG cards) already covered by prior suites; this closes the underlying form-structure surface those tests all assume without proving.
+
+## SHIPPED (2026-07-07 tick 15 — Rung II PROVE eighth bite + Rung I HARDEN reopened + closed)
+
+- **`tests/test_nginx_headers.py` + `make test-nginx` — stdlib nginx.conf contract test, wired into `make test` alongside the six prior suites.** Closes the exact gap `tests/README.md § "Not covered by automation today"` and `STATUS.md L15` both flagged as of tick 14: every existing suite asserts on files served BY nginx (JSON-LD, sitemap, meta tags, anchors, assets), but none of them assert on the server config itself — and the server config IS money code. A dropped `Strict-Transport-Security` header lets a MITM downgrade the first visit; a Cache-Control drift on `/index.html` back to the site-wide 1-year `immutable` default means CDNs pin stale HTML for a year after every redeploy; a `try_files` fallback reverted to `/index.html` (the historical regression the file's own inline comment at L36-40 warns about) silently returns 200 on typos + broken inbound links and kills SEO. New test regex-parses the outermost `server { ... }` block, walks every `location <matcher> { ... }` inside via a brace-depth scanner (with an `_strip_comments` pass that de-fangs the inline `# ... location = /index.html ...` comment on nginx.conf L18 — a naïve regex-only extractor consumes it as a real block header and misses the actual `/index.html` block after it), and asserts: (a) the server block carries all 5 defense-in-depth headers (HSTS + XCTO + XFO=DENY + Referrer-Policy=strict-origin-when-cross-origin + Permissions-Policy) PLUS `Vary: Accept-Encoding` PLUS a long-cache immutable default; (b) each of the 4 protected locations (`/index.html`, `/robots.txt`, `/sitemap.xml`, `/404.html`) repeats all 5 security headers inline — because nginx `add_header` inheritance resets the moment any nested `add_header` appears, and every one of these locations declares its own Cache-Control override; (c) per-location Cache-Control matches spec (`/index.html` = `max-age=0, must-revalidate`, the crawler+error surfaces = `max-age=3600`, never the site-wide `immutable` default); (d) `/404.html` block has `internal;` so public GETs 404 instead of serving the page; (e) `location /` `try_files` fallback ends in `=404`, not `/index.html`; (f) HSTS `max-age >= 15768000` (6-month preload-eligibility floor) and includes `includeSubDomains`. `--selftest` mutates a synthetic-but-realistic baseline 12 known-broken ways (HSTS dropped from server, HSTS dropped from `/index.html`, XFO relaxed to SAMEORIGIN, Referrer-Policy relaxed to unsafe-url, `/index.html` cache reverted to immutable, `try_files` fallback reverted to `/index.html`, HSTS max-age below floor, Vary missing, Permissions-Policy dropped from `/robots.txt`, `/robots.txt` block missing entirely, `/404.html` missing `internal;`, HSTS missing `includeSubDomains`) plus one comment-injection probe that catches a regression in the strip-comments pass — all 13 caught, baseline PASS. Python 3.11+ stdlib only (`re`, `pathlib`, `sys`). `Makefile` gains `.PHONY test-nginx` + `test: test-jsonld test-seo-files test-conversion test-og test-assets test-anchors test-nginx` chain — full seven-suite run all PASS end-to-end.
+
+- **`nginx.conf` — real Rung I HARDEN gap on `/404.html` block closed.** The new test's first pass against production nginx.conf FAILED on `/404.html`: the location declared `add_header Cache-Control "public, max-age=3600" always;` but did NOT repeat the 5 defense-in-depth security headers. Per nginx inheritance rules (documented in the file's own inline comment on L18-24 and L52-55), the moment any `add_header` appears inside a `location` block, ALL server-level `add_header` directives are DROPPED from that location's responses. Consequence: every 404 response from the live site was shipping without HSTS (so a subsequent link click on the error page could be MITM-downgraded to HTTP), without X-Frame-Options DENY (so the error page could be iframed inside an attacker page to spoof "Big7's site is broken, click here to try the real one"), without Referrer-Policy (leaking full referer URLs to any external link on the 404), and without X-Content-Type-Options / Permissions-Policy. This was a real defense-in-depth regression that Rung 1 HARDEN's status line has claimed closed since tick 2. Fix: repeat the 5 `add_header` directives inside `location = /404.html`, matching the exact pattern already used for `/index.html` / `/robots.txt` / `/sitemap.xml`; add an inline comment explaining WHY the repetition is necessary (nginx add_header inheritance reset) so a future edit doesn't strip it on the assumption it's duplication. Test drove the fix — first `make test-nginx` after writing the test failed with 5 explicit "location = /404.html: missing add_header <X>" errors; fix landed; test now green. Book VIII § 5 hunt-before-handshake: this is exactly the "test found a real flaw" outcome the pre-review pass is supposed to produce.
+
+## SHIPPED (2026-07-07 tick 14 — Rung II PROVE seventh bite: in-page anchor integrity lock)
+
+- **`tests/test_anchors.py` + `make test-anchors` — stdlib in-page anchor integrity contract, wired into `make test` alongside the five prior suites.** Every non-empty `href="#<name>"` on `index.html` must resolve to a real `id="<name>"` on the same page (HTML5 §6.9.4 — fragment identifiers are case-sensitive). Closes the last-remaining CTA money-path silent-regression class the other five suites all miss: `test_conversion.py` locks the CTA→radio→mapping cross-check but says nothing about whether the `href` on those same `<a data-intent="...">` elements points at an anchor that exists on the page. If a future refactor renames `<section id="contact">` → `<section id="quote">`, all 26 `href="#contact"` CTAs silently scroll nowhere and every existing test still passes. Regex parses (a) every `href="#..."` reference — case-sensitive, excludes `href="#"` alone as a legitimate JS-handler noop pattern; (b) every `id="..."` attribute on any element. Asserts: every href name is in the id set (orphan detection), `#main` (WCAG 2.4.1 skip-link) exists unconditionally, `#contact` (money anchor) exists unconditionally, `#contact` has ≥ `MIN_CONTACT_REFS=10` references so a slow refactor can't strip every "Request a bid" link one by one without the test firing. Today: 50 hrefs across 8 unique targets — all resolve; 26 `#contact` references (floor 10) — well above threshold; skip-link + money targets present. `--selftest` uses a synthetic-but-realistic baseline (matches the site's 8-section shape and above-threshold `#contact` CTA count), mutates 8 known-broken ways — orphan href to nonexistent target, critical `#contact` target renamed to `#quote`, `#hero` target deleted, `#portfolio` target deleted, `href="#Contact"` vs `id="contact"` case mismatch (HTML5 is case-sensitive), typo in href (`#servces`), `<main>` stripped of its `id` (WCAG regression), `#contact` CTAs mass-removed below `MIN_CONTACT_REFS` floor — all 8 caught with the RIGHT error substring, baseline PASS. Python 3.11+ stdlib only (`re`, `pathlib`, `sys`). `Makefile` gains `.PHONY test-anchors` + `test: test-jsonld test-seo-files test-conversion test-og test-assets test-anchors` chain — full six-suite run all PASS end-to-end. `tests/README.md` table row 6 added with the "someone renamed the section id and 20+ CTAs went nowhere" regression case explicitly named; footer bumped from "five" to "six" tests. Rationale: STANDARDS §3 requires tests on money paths — every `#contact` CTA is a bid request in flight, and a silent scroll-to-nowhere is a silent revenue leak. Also validates that the JS querySelector at `index.html:2827` (`a[href^="#"]`) is not accidentally matched by the anchor regex — the `\shref\s*=\s*` prefix requires `=`, not `^=`.
+
+## SHIPPED (2026-07-07 tick 13 — Rung II PROVE sixth bite: on-disk asset existence + magic-byte lock)
+
+- **`tests/test_assets.py` + `make test-assets` — stdlib on-disk asset existence + magic-byte contract, wired into `make test` alongside the four prior suites.** Closes the exact gap STATUS.md L15 flagged after tick 12: every prior test asserts the URL string of the referenced asset, but none opens the byte at the URL. A `git rm images/og-card.png` (or a rename typo in a future edit) would leave every URL-string test green while social share previews 404 and Google's rich-result crawler drops the logo. New test walks every image URL referenced in `index.html` — JSON-LD `image` (string or list), JSON-LD `logo.url` / `logo.contentUrl`, `og:image`, `twitter:image` — plus `og:image` + `twitter:image` on `404.html`. Strips the canonical origin (parsed from `<link rel="canonical">`) and resolves each URL to a local path under repo root, then asserts (a) file exists, (b) is non-empty, (c) magic-byte prefix matches the extension (PNG `\x89PNG\r\n\x1a\n`, JPEG `\xff\xd8\xff`). Catches "renamed .jpg to .png without re-encoding" and truncated-download regressions in addition to the primary `git rm` case. `--selftest` mutates 8 known-broken cases against a scratch temp-dir tree (missing file, wrong subdir, empty file, wrong-magic PNG, JPEG bytes renamed to `.png`, wrong-origin URL, http-not-https, relative URL) — all 8 caught, baseline PASS. Python 3.11+ stdlib only (`json`, `re`, `pathlib`, `urllib.parse`, `tempfile`). `Makefile` gains `.PHONY test-assets` + `test: test-jsonld test-seo-files test-conversion test-og test-assets` chain — full five-suite run (JSON-LD + selftest → SEO files → conversion + selftest → OG/Twitter + selftest → assets + selftest) all PASS end-to-end. `tests/README.md` table row 5 added with the `git rm` regression case explicitly named, footer bumped from "four" to "five" tests. Rationale: STANDARDS §3 requires tests on money paths — social share previews and JSON-LD logo/image are the money-signal surfaces, and a broken preview turns high-intent shares into blank-preview link rot. Ticks 6/7/10/11/12 all closed URL-string surfaces; this closes the underlying byte-level surface those tests assume without proving.
+
+## SHIPPED (2026-07-07 tick 12 — Rung II PROVE fifth bite: OG/Twitter card lock)
+
+- **`tests/test_og_twitter.py` + `make test-og` — stdlib meta-tag contract test on BOTH `index.html` and `404.html`.** Same doctrine as ticks 6/7/10/11: money-signal path (social preview quality drives share-CTR — a blank iMessage/Slack/Facebook preview is a silent-death regression), stdlib only (`re`, `pathlib`, `sys`), no pip install. Regex parses every `<meta>` tag with a matched-quote backreference so apostrophes inside double-quoted content strings don't break parsing (`"This isn't live."` scenario in `404.html`). Asserts required OG set (`og:type`/`title`/`description`/`url`/`image`) + Twitter set (`twitter:card`/`title`/`description`/`image`), locks `og:image` + `twitter:image` to `og-card.png` and rejects any drift back to the 206px `jobsite-01.jpg` placeholder (tick 4's branded-card fix was invisible without a guard against reversion), asserts `og:image:width == 1200` / `og:image:height == 630` / `og:image:type == image/png`, asserts `twitter:card == summary_large_image` (any other value crops the 1200×630 card). `--selftest` mutates a minimal-but-valid baseline 12 known-broken ways: og:title missing, og:image missing, twitter:card missing, twitter:image missing, og:url not https, og:image reverted to 206px placeholder, og:image is a random file (not the branded card), twitter:card downgraded to `summary`, og:image:width wrong, og:image:height wrong, og:image:type wrong, twitter:image reverted to placeholder. Baseline PASS + 12/12 mutations caught. `Makefile` gains `.PHONY test-og` + `test: test-jsonld test-seo-files test-conversion test-og` chain — full four-suite run (JSON-LD + selftest → SEO files → conversion + selftest → OG/Twitter + selftest) all PASS end-to-end. `tests/README.md` extended: table row 4 added with the placeholder-regression lock explicitly named, footer bumped from "three" to "four" tests. Rationale: STANDARDS §6 explicitly names "meta/OG tags real (paste URL into a chat app — does the preview look pro?)" as a deploy gate. Tick 4's branded card fix was the highest-effort SEO win in the log; leaving it unguarded means one careless copy-paste in a future edit reverts the placeholder and the guard never fires — same failure mode ticks 6/7/10/11 closed for their surfaces.
+
+## SHIPPED (2026-07-07 tick 11 — JSON-LD image/logo upgrade + selftest lock)
+
+- **JSON-LD `image` + `logo` swapped off the 206×206 placeholder onto the 1200×630 branded OG card.** `image` is now `["https://big7construction.com/images/og-card.png", "https://big7construction.com/images/jobsite-01.jpg"]` (Google prefers the first entry, jobsite photo kept as fallback signal). `logo` is now a `schema.org/ImageObject` with `@type`, `url`, `contentUrl`, `width: 1200`, `height: 630`. Rationale: the branded OG card shipped in tick 4 for social previews was never propagated into structured data, so Google's local-pack + Knowledge-Panel candidates were still using the 206×206 placeholder — below Google's 112px organization-logo floor and a weak rich-result surface. LAW 6 clean — both files exist in `images/` (verified in tick 4 with `PIL.Image.open`), no fabrication.
+- **`tests/test_jsonld.py` extended + `--selftest` mode + Makefile chain.** Added `image` and `logo` to `REQUIRED_TOP`. New assertions: `image` must be non-empty https URL string or list (every list entry `str` starting with `https://`); `logo` accepts raw https URL OR an `ImageObject` dict with `@type == "ImageObject"`, `url`/`contentUrl` https, `width` int ≥ 112, positive int `height`. `--selftest` mode constructs a minimal-but-valid baseline via `_valid_block()`, then mutates it 10 known-broken ways (image missing / empty / non-https / non-string; logo missing / string-not-https / dict-missing-@type / width-below-min / missing-height / wrong-type) and requires the assertion function to reject each. Baseline PASS + 10/10 mutations caught. `Makefile` `test-jsonld` target now runs both the golden check AND the selftest (matches tick-10 `test-conversion` pattern) so every `make test` proves the assertions still bite. Full stdlib chain (`test-jsonld` → `test-seo-files` → `test-conversion` incl. selftests) all PASS.
+
+## SHIPPED (2026-07-07 tick 10 — Rung II PROVE third bite)
+
+- **`tests/test_conversion.py` + `make test-conversion` — stdlib static test locking the CTA→radio contract on the conversion IIFE.** Same doctrine as ticks 6 + 7 (money-signal path, stdlib only, no `pip install`). Extracts the `const INTENT_TO_TYPE = { ... }` mapping from `index.html:~2876` with a regex, all `<input name="projectType" value="...">` radios, and every `data-intent="service:*"`/`data-intent="portfolio:*"` `<a>` in the HTML. Asserts a four-way cross-check: (1) every mapping value is a real projectType radio value; (2) every CTA intent has a mapping entry (else the click won't prefill the radio); (3) every mapping key is used by ≥1 CTA (dead mapping = CTA removed silently or slug drifted); (4) every radio value is a mapping target (orphan radio = dead code or a service the site quietly stopped selling). Plus substring presence for `track('cta_click'`, `track('intake_submit'`, `dataLayer`, `PREFILL_MARK`, `window.gtag`, `window.plausible` — the attribution loop end-to-end. Passes today: 13 mapping entries ↔ 13 CTA intents ↔ 6 projectType radios all cross-verified; adapter substrings present. Self-tested against 8 broken variants — renamed radio value, removed mapping entry, dead mapping (missing CTA), orphan radio, missing `track('cta_click'` call site, missing `INTENT_TO_TYPE` block, ghost mapping target, baseline — 8/8 caught, baseline PASS. First draft of check 5 initially missed a mutation because `cta_click` also appears in inline comments; tightened to require the specific call-site expression `track('cta_click'` so a comment reference alone can't mask a nuked call. `Makefile` gains `.PHONY` entry + `test: test-jsonld test-seo-files test-conversion` chain. `tests/README.md` rewritten with a three-row Automated table + a "Not covered by automation today" section flagging Playwright/nginx-container as the next lanes if the money path grows beyond stdlib's reach. Rationale: STANDARDS §3 requires tests on money paths — the CTA loop drives every intake, so a silent break is a silent revenue leak. STATUS.md line 15 as of tick 7 explicitly named this test as the next Rung 2 candidate; this closes that flag.
+
+## SHIPPED (2026-07-07 tick 7 — Rung II PROVE second bite)
+
+- **`tests/test_seo_files.py` + `make test-seo-files` — stdlib smoke test on `sitemap.xml` + `robots.txt` + canonical-agreement across all three surfaces.** Same doctrine as tick 6's JSON-LD test: money-signal path (Google crawl discovery + canonical URL correctness), stdlib only (`re`, `xml.etree.ElementTree`, `pathlib`, `urllib.parse`), no pip install. Asserts (a) `sitemap.xml` parses in the sitemap.org 0.9 namespace with ≥1 absolute-`https` `<url><loc>`, (b) `robots.txt` has both `User-agent:` and `Sitemap:` lines, (c) the robots `Sitemap:` URL equals origin-of-sitemap-`<loc>` + `/sitemap.xml`, AND both origins match `<link rel="canonical">` in `index.html`. The cross-file agreement check is the real value — it guards against the silent-drift failure mode where someone updates canonical on one surface (say the domain moves to `www.` or a subpath) but forgets the other two. Self-tested against 8 broken inputs (empty urlset, wrong XML namespace, relative `<loc>`, malformed XML, robots missing `Sitemap:`, robots missing `User-agent:`, cross-file canonical drift, missing canonical) — all 8 caught. Passes today: `python tests/test_seo_files.py` → `OK: sitemap.xml valid (https://big7construction.com/); robots.txt Sitemap: line points at https://big7construction.com/sitemap.xml; matches index.html canonical.` `Makefile` gains `.PHONY` entry + `test: test-jsonld test-seo-files` chain. `tests/README.md` rewritten with an "Automated (stdlib)" section that names both tests and explains why they exist (silent-money-signal regressions). Rationale: tick 6 covered structured data; sitemap/robots was already flagged as the next money-path test in STATUS.md L15 as of tick 6 — this closes that flag.
+
+## SHIPPED (2026-07-07 tick 6 — Rung II PROVE first bite)
+
+- **`tests/test_jsonld.py` + `make test-jsonld` — stdlib smoke test on the LocalBusiness JSON-LD block.** Extracts every `application/ld+json` script from `index.html`, JSON-parses, then asserts required fields for Google local-pack candidacy: `@context == "https://schema.org"`, `@type` includes a `LocalBusiness` subtype, `name`/`description`/`url`/`telephone`/`priceRange`/`openingHoursSpecification`, `address` with `PostalAddress` shape (`addressLocality`/`addressRegion`/`addressCountry`), `geo` with in-range `GeoCoordinates`, non-empty `areaServed`, `hasOfferCatalog` with children. Python 3.11+ stdlib only (`json`, `re`, `pathlib`) — no `pip install`, no network. Passes today (1 block, LocalBusiness schema valid). Self-tested against broken inputs: missing top-level fields → 12 caught, wrong `@context`/`@type` → 14 caught (rubber-stamp test = worse than no test). Wired into `Makefile` as `.PHONY test-jsonld`; `make test` now delegates to it. Rationale: STANDARDS §3 requires tests on money paths, and structured data is the money signal driving Google's local-pack surface for this business. Tick 6 brief offered "JSON-LD LocalBusiness schema block if missing" — the block was already complete after tick 2 (`geo`/`hasMap`), so this tick locks it against silent future regression instead of expanding a well-covered surface.
+
+## SHIPPED (2026-07-07 tick 5 — Rung IV QUICKEN micro-wins, e22f148)
+
+- **Three safe no-visual-change perf hints on `index.html`.** All root-cause-independent, all shippable without waiting on client photos:
+  - `decoding="async"` on all 7 `<img>` tags (1 hero portrait at line 1806 + 6 portfolio at lines 2061/2081/2101/2121/2141/2161). Signals off-main-thread decode; compounds with the existing `loading="lazy"` on the six below-fold cards (they're orthogonal — lazy defers the fetch, async defers the decode).
+  - `fetchpriority="high"` on the hero-photo `<img>` (index.html:1806). The preload at line 43 already declares high priority for the same URL; matching it on the actual `<img>` gives Chrome an unambiguous LCP-element hint and prevents priority downgrade at layout time.
+  - `<link rel="preconnect">` + `<link rel="dns-prefetch">` for `https://formspree.io` (the quote-form action target, index.html:2498). Trims TLS + DNS from the primary money-lever's submit critical path. Preconnect is dropped after ~10s if unused, so no cost when the form isn't submitted.
+- **Verified:** stdlib `html.parser` sweep confirms 7 imgs carry `decoding=async` and 2 formspree link hints are present. No image bytes changed, no CSS changed, no layout changed.
+- **Predicted delta:** Perf category likely +2 to +5 in Lighthouse mobile emulator (largest single driver is still the 206px placeholder issue — PARKED §1); real-world LCP shave will be observable on the client's phone but hard to prove in emulator throttling noise. Michael-side re-measure step in NEXT ACTION below.
+
+## SHIPPED (2026-07-07, fleet all-day ignition — Rungs III + V + VI triple strike, zero client blockers)
+
+- **Analytics adapter: `dataLayer` → `gtag`/`plausible` bridge (Rung VI UPGRADE — half-shipping the client-blocked NEXT ACTION).** The conversion IIFE from tick 3 has been pushing `cta_click` + `intake_submit` to `window.dataLayer` since 2026-07-06 — but with no consumer, the events were a passive log. Rather than wait on a client-side GA4 ID or a Mike-registered Plausible domain, this session shipped a consumer-agnostic adapter (22 lines vanilla JS, no dep, monkey-patches `dataLayer.push`) that forwards every future push to whichever tag is loaded — none, GA4, Plausible, or both together. Michael's zero-code activation is now a single `<script>` tag drop-in (both snippet variants documented inline right above the adapter). Adapter no-ops on gtag's own `arguments`-shaped pushes so there's no forwarding loop when both are live. Runs after the conversion IIFE; `try/catch` around the forward so a broken consumer script never breaks a CTA click. **Client-blocked half remaining** = Michael pastes the one tag line when he has a domain-registered Plausible property or a client-supplied GA4 Measurement ID.
+
+- **`/robots.txt` + `/sitemap.xml` shipped end-to-end** — closes the two crawler-file PARKED items with a single deploy.
+  - `robots.txt`: `User-agent: *` + `Allow: /` + `Sitemap: https://big7construction.com/sitemap.xml` (matches the site's existing canonical + `og:url`).
+  - `sitemap.xml`: single `<url>` at `https://big7construction.com/` — `404.html` deliberately excluded (it's `noindex` and served via nginx `error_page ... internal;`, not crawlable per sitemap.org guidance). Comment inline points at TODO PARKED "Service pages per offering (7) + per area (12)" as the moment to add more `<url>` entries — never hypothetical URLs.
+  - Parses as valid XML: `xml.etree.ElementTree.parse` reports the sitemap.org 0.9 namespace + 1 url element.
+  - `Dockerfile`: two new `COPY` lines land the files into `/usr/share/nginx/html/`.
+  - `nginx.conf`: explicit `location = /robots.txt` + `location = /sitemap.xml` blocks with `Cache-Control: public, max-age=3600` (server default of 1-year immutable is wrong for crawler-facing files; downstream CDNs must not pin them for a year) + the 5 defense-in-depth headers re-added inline (SECURITY_AUDIT.md § M3-M6, same reset pattern already used for `/index.html`).
+  - Smoke: `python -m http.server 8765` on the repo folder — both files return 200 with correct bytes.
+
+- **Dark-divider `.section-marker span.tabular` contrast fix — closes the last-known AA fail (Rung III CLEAN).**
+  Inherited color of `--ink-500` (#4C5258) on `--ink-950` (#08090B) sits at ~3.15 — fails WCAG AA for small text (4.5:1). New rule
+  `.divider.dark .section-marker span.tabular { color: var(--ink-200); }`
+  puts `#CBCFD3` on `#08090B` at ~11.5 — comfortably passes AA even for the "of 08" counter spans that still carry inline `opacity:0.8` (effective L still >7 with the brighter base). Rule is scoped to `.divider.dark` so the light-divider spans (§03–§07, on `--paper`) are intentionally untouched — they already pass. Predicted a11y ceiling: 96 → 98 (this was the last "known and named" contrast fail on the a11y audit).
+
+- **Deploy delta vs. tick 4 (Michael-side re-measure):**
+  a11y predicted 93 → 96 or 98 (dark-divider tabular was the last-known AA fail).
+  SEO predicted 100 → 100 in the emulator (Lighthouse doesn't grade robots/sitemap presence directly), but real-crawler impact = Google now knows what to fetch + what schedule.
+  Perf unchanged — still root-caused on the 206 px placeholder images (PARKED, client-blocked).
+
+## SHIPPED (2026-07-06 tick 4)
+
+- **Branded 1200×630 OG card + preview-clean meta on both top-level pages.** `images/og-card.png` (36KB) generated by `scripts/gen-og-card.py` — deterministic Pillow render, no client photo needed, byte-identical rerun on the same font stack. `index.html` `og:image` + `twitter:image` swapped from the 206×206 `jobsite-01.jpg` placeholder to the new card; `og:image:width` (1200), `og:image:height` (630), `og:image:type` (`image/png`) declared. `404.html` gained the full OG + Twitter card block (same image, page-specific title/description, `og:url` deliberately set to homepage so a shared stale link previews as the brand and routes visitors to a live page; `noindex` kept). Verified: `PIL.Image.open` reports PNG 1200×630, tag count 11 og-properties on each page. Fixes the practical "previews look bad" problem the prior tags couldn't solve on a 206px source.
+
+## SHIPPED (2026-07-06 tick 3)
+
+- **`c6edb41`** — **Conversion audit — CTA `data-intent` + form prefill + `cta_click`/`intake_submit` attribution.** CONVERSION_STANDARDS.md §§2/3/4 gap-fill. 7 service-list rows + 6 portfolio cards now carry `service:<slug>` / `portfolio:<slug>` intents. One IIFE below the existing form-submit handler: on any `[data-intent]` click it pushes `cta_click` to `window.dataLayer` (GA4-compatible, no analytics dep required today), selects the matching `projectType` radio if not already checked, and seeds the textarea with `— Interested in: <label>`. Form-submit fires `intake_submit` with `has_prefill` bool. Verified: 13 CTAs, 13 unique intents, every mapped `projectType` value exists as a real radio. Kills anti-pattern §8 "CTA scrolls to a form that's blank" — the top gap called out in this tick's brief.
+
+## SHIPPED (2026-07-06 tick 2)
+
+- **`b9450ce`** — **JSON-LD `geo` + `hasMap`.** Added `GeoCoordinates` (Atlanta 33.7490, -84.3880) and `hasMap` (Google Maps URL) to the existing `GeneralContractor` block. Enables Google local-pack candidacy signal that was missing. Validated by extracting the block and running `python -c "json.loads(...)"` — parses, `@context` + `@type` + `geo` + address + 2-division `hasOfferCatalog` all intact. Deliberately NOT added: `sameAs` (no real social handles on file — LAW 6) and `aggregateRating` (no real reviews — same). Both parked below.
+
+## SHIPPED (2026-07-05, block 2)
+
+- **Checkpoint 1** (`b06b4ba`) — **`.hero-stats <dl>` flattened.** Dropped 4 wrapper `<div class="hero-stat">`. All 4 `<dt>` are now direct children of `<dl>`, followed by all 4 `<dd>`. CSS grid `grid-auto-flow: row` preserves the 4-column visual layout. Renamed `.hero-stat *` CSS selectors to `.hero-stats *` — grep-verified zero orphans. Predicted a11y 93 → ~95 on next Lighthouse pass.
+- **Checkpoint 2** (`ec70763`) — **Color-contrast sweep + `Vary: Accept-Encoding`.** `.brand-sub` `--ink-400` → `--ink-500` (4.14 → 5.53 on paper). `.btn-accent` bg `--accent-500` → `--accent-600` (3.48 → ~5.05 on white text); hover moved from a bg swap to `filter: brightness(0.88)`. All 8 `.section-marker span.tabular` `opacity: 0.6` → `0.8` (marginal on light dividers; dark-divider case still fails AA — deferred). nginx gets `Vary: Accept-Encoding` for gzip correctness. **TODO PARKED §3 (cache headers) was a false positive** — nginx.conf already sets `public, max-age=31536000, immutable` at server scope + `max-age=0, must-revalidate` on `/index.html`. Prior Lighthouse cache-insight=50 was measured against `python -m http.server`, not nginx. Book I §3: repo beats word.
+- **Checkpoint 3** (`d921703`) — **Real `/404.html` + nginx no longer rewrites broken links.** STANDARDS §6 required a 404 page — never had one. `nginx.conf` `try_files` falls through to `=404` (was silently rewriting typos + broken inbound links to `/` with HTTP 200 — bad for SEO). `error_page 404 /404.html;` + `internal;` location. `Dockerfile` copies the file.
+- **Exit-rite state files** (`712edae` + this commit) — `STATUS.md` created with runtime + evolution ladder + Lighthouse timeline + Rung-7 ENVISION proposal. `DECISIONS.md` created with 4 reversible calls. `CONTENT.md` gained 3 filmable moments. `CHANGELOG.md` [Unreleased] catches all three block-2 commits.
+
+## NEXT ACTION (60-second cold start)
+
+**Mike-side, one tag line to activate the analytics funnel.** The conversion loop emits `cta_click` + `intake_submit` to `window.dataLayer`, and the 2026-07-07 adapter now mirrors every push to `window.gtag` or `window.plausible` if either is defined. Nothing else in the code needs to change. Drop-in either or both:
+
+- **Plausible (paste inside `<head>`, after the meta block):**
+  `<script defer data-domain="big7construction.com" src="https://plausible.io/js/script.js"></script>`
+  Requires a Plausible account with `big7construction.com` (or the eventual client domain) registered. Cost: $9/mo or free 30-day trial.
+
+- **GA4 (paste inside `<head>`, after the meta block):**
+  ```
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXX"></script>
+  <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-XXXXXXX');</script>
+  ```
+  Requires GA4 Measurement ID (`G-XXXXXXX`) — client-side or spin one up under M³. Free.
+
+Smoke-test after deploy: click any service row, then either open GA4 DebugView (looks for `cta_click` with `intent=service:<slug>`) or the Plausible dashboard's real-time view. Submit the form with fake info to also trigger `intake_submit` — Formspree still receives it, adapter mirrors it, and the funnel is complete.
+
+**Deferred (Michael-side, unchanged from tick 2):** re-run Lighthouse against a real deploy to verify block-2 a11y bump landed + 2026-07-07 dark-divider tabular fix pushed a11y to 96/98. Micro-steps unchanged — see git history at commit `7ef08e4` for the full script if resurrected.
+
+**Deferred (Michael-side, unchanged from tick 2):** re-run Lighthouse against a real deploy to verify block-2 a11y bump landed. Micro-steps unchanged — see git history at commit `7ef08e4` for the full script if resurrected.
+
+---
+
+## Cloudflare Pages deploy — OPTIONAL migration paste-block (2026-07-06)
+
+Big7 currently ships on Railway (nginx:alpine, works fine). Cloudflare Pages is a viable static-first alternative if you want free-tier hosting + built-in edge cache. **Not urgent** — money ladder rung 3 says "reheat when client sends new shoots." Kept here so a future migration is a paste, not a hunt.
+
+Because Big7 is pure static (no build step, no functions), the deploy is one command:
+
+```powershell
+cd C:/Users/Michael/Documents/GitHub/Big7Construction
+npx wrangler login                                                # once
+npx wrangler pages project create m3-big7construction --production-branch main   # once
+npx wrangler pages deploy . --project-name=m3-big7construction --branch=main
+```
+
+Wrangler auto-ignores `.git/`, `node_modules/`, `Dockerfile`, and any file listed in `.gitignore`. It'll upload `index.html` + `404.html` + `images/` + `nginx.conf` (harmless on CF Pages — ignored). Add a `.wrangler-ignore` if you want to strip the Docker/nginx files explicitly.
+
+**Custom domain:** dashboard → project → Custom domains → attach the client's domain → follow the CNAME instructions.
+
+**Smoke after deploy:** `curl -sI https://<preview>.pages.dev/` returns 200; `curl -sI https://<preview>.pages.dev/does-not-exist` returns 404 (proves `404.html` is wired).
+
+**When migration WOULD make sense:**
+- Railway costs start showing up (Big7 as a static site pays nothing on CF Pages)
+- Client asks for a specific CF-only feature (edge redirects, per-request access rules)
+- You're already there for CompanySite and want the whole M³ portfolio under one dashboard
+
+**When to stay on Railway:**
+- Client has never complained
+- Docker/nginx config is dialed in
+- Boring-tech law says don't churn what works
+
+## PARKED (do NOT start without a session goal)
+
+- **Real photos** — `images/jobsite-01.jpg` + `jobsite-02.jpg` are 206×206 px, upscaled 3-5× in CSS. Deepest quality issue. Blocked on client sending 6+ real jobsite photos ≥1600 px long edge. Perf 95 won't clear without this. **Note (tick 4): the OG/Twitter card no longer relies on these — social previews are now a proper 1200×630 branded PNG (`images/og-card.png`). The in-page hero + gallery + JSON-LD `image`/`logo` still do.**
+<!-- SHIPPED 2026-07-07: dark-divider tabular contrast fix landed as `.divider.dark .section-marker span.tabular { color: var(--ink-200); }` — ratio ~11.5 on the dark bg, well above AA. See SHIPPED block above. -->
+- **Unminified / unused CSS** (both Lighthouse audits at 50). Truly fixing means a build step, ADR-1 rejects it. Hand-audit for definitely-dead rules is possible (5-10 min).
+- **Service pages per offering (7) + per area (12)** for local SEO. Highest local-search lever remaining. 4-6 hrs shaped as separate `.html` files. Only justified once Google Business Profile is claimed. Note: `try_files ... =404` now correctly 404s non-existent service paths.
+- **Trust section with real content** (line 2134 credentials §). Blocked on client input.
+- **Quote form lead storage.** Formspree emails leads now. Cloudflare Workers KV row-store only when volume > 3/week.
+- **Placeholder phone `(555) 700-0007`** — nav (1688), CTA closer (2405), contact (2572, 2612, 2648), JSON-LD (44).
+- **Placeholder email `info@big7construction.com`** — verify domain + inbox.
+- **HTTP 200 verification of the live Railway URL.** URL not on file. `PENDING_MIKE.md § J` covers the dashboard lookup.
+<!-- SHIPPED 2026-07-07: robots.txt + sitemap.xml shipped end-to-end with Dockerfile + nginx cache/header overrides. When service or per-city pages ship (PARKED §4), extend sitemap.xml with real `<url>` entries. -->
+- **JSON-LD `sameAs` social links.** Skipped in 2026-07-06 tick — no confirmed handles. Once client hands over Facebook / Instagram / LinkedIn / Google Business Profile URLs, add them as a `"sameAs": [...]` array right after `hasMap` in the `<script type="application/ld+json">` block (~44–95 in index.html). ~2 min.
+- **JSON-LD `aggregateRating`.** Skipped — no real Google/BBB reviews yet. Once ≥3 real reviews exist, add `"aggregateRating": {"@type": "AggregateRating", "ratingValue": <n>, "reviewCount": <n>}`. Sourced from Google Business Profile once claimed. LAW 6 blocks fabricating this.
+- **Generic-CTA attribution** — hero "Request a bid →", nav CTA, footer CTAs, "Start a scoping call", "Start at Station 01" etc. all still route to `#contact` without `data-intent`. Adding requires extending the shared standards namespace list (`cta:hero-primary`, `cta:nav-primary`, `cta:footer`, `cta:scoping`) — cannot do without touching `../docs/CONVERSION_STANDARDS.md`, which is out-of-scope for this project's tick. Batch this into the next cross-repo standards pass. ~10 min at that point.
+- **Cross-repo standards extension** — propose adding `service:` and `portfolio:` to the reserved-namespaces table in `../docs/CONVERSION_STANDARDS.md § 2`. See `DECISIONS.md` "2026-07-06 · CONVERSION_STANDARDS.md fix" entry for the rationale. Needs a shared-docs session, not a Big7 session.
+
+## QUESTIONS FOR MIKE (session end)
+
+1. Redeploy Big7 to Railway to pick up 404.html + a11y fixes + conversion attribution? (yes / no)
+2. `.btn-accent` background switched from `--accent-500` (#E85D2C) to `--accent-600` (#B34419) for WCAG AA. Is the deeper orange still on-brand, or revert? (keep / revert)
+3. GA4 Measurement ID for Big7 — do you have one from the client, want me to create one under M³ for now, or ship Plausible instead? (client / m3 / plausible)
+
+## References
+
+- `docs/adr/0001-nginx-alpine-static-html.md` — stack lock
+- `index.html:1923-1997` — 7 service-list rows w/ `data-intent="service:<slug>"`
+- `index.html:2041-2160` — 6 portfolio cards w/ `data-intent="portfolio:<slug>"`
+- `index.html:2850-2914` — conversion IIFE: intent→prefill + dataLayer push (`cta_click`, `intake_submit`)
+- `index.html:1766-1775` — flattened `<dl>` hero-stats
+- `index.html:264-266` — `.btn-accent` new colors + filter-based hover
+- `nginx.conf:35-45` — try_files + error_page
+- `404.html` — real 404
+- `../docs/CONVERSION_STANDARDS.md` — the standard this tick audited against
+- `STATUS.md § Lighthouse timeline` — score history + next entry pending
+
+
+<!-- AI-HUB-SYNC:START -->
+## AI Hub Sync - 2026-07-09
+
+Source of product truth: ..\AI_HUB.md.
+
+**Lane:** large construction brand site
+
+**UI/design verdict:** One parent brand is right. The design should feel sturdy, premium, and operational, with clear buyer lanes rather than three separate brands. Separate sites would split trust and SEO too early.
+
+**Product improvement:** Add three lane pages on the same domain: Commercial & Industrial, Residential Construction, Home Repair & Improvements. Use real proof, job photos, FAQ schema, service areas, shared quote form, and lane-specific CTA intents.
+
+**Next action:**
+- [ ] Write and build the three-lane IA before any stack or microservice upgrade.
+
+**Combine/separate call:** Separate pages, not separate sites. No microservices unless auth, portal, payments, scheduling, or CRM workflows appear.
+
+**Verification gate:** make test; anchor/SEO/schema/form/CTA smoke; mobile Lighthouse when URL is known.
+<!-- AI-HUB-SYNC:END -->
+- [ ] RESUME (2026-07-11 12:53): auto-improve worker crashed. Last commit: 7af3993 feat(rung6)+test(rung2): second lane page commercial-industrial.html; OG contract locks 5 top-level pages (tick 22). See C:\Users\Michael\Documents\GitHub\Big7Construction\.autoimprove\crash-2026-07-11_12-53-32.json.
+- [ ] Ship third lane page `residential-construction.html` to close the three-lane IA the BRD committed to
+- [ ] Mirror the LAW 11 accessibility head shell + OG/Twitter card block used on `commercial-industrial.html`
+- [ ] Wire five service rows with `?intent=service:*&src=residential-construction-lane#contact` deep-links using existing `INTENT_TO_TYPE` slugs
+- [ ] Add `<url>` entry to `sitemap.xml` (match top-tier lane priority)
+- [ ] Add `Dockerfile` COPY line for the new page
+- [ ] Add `Service` schema JSON-LD to each of the three lane pages
+- [ ] Extend `BreadcrumbList` JSON-LD to `accessibility.html`
+- [ ] Pick next bite from `MONEY_LADDER.md` (ladder is deterministic ΓÇö do not freelance)
+- [ ] Push local commit `7c7c835` to remote when harness permits
+- [ ] Resolve session-guard vs WORKER brief goal mismatch (see Blockers)
+- [ ] RESUME (2026-07-11 13:25): auto-improve worker crashed. Last commit: 7c7c835 feat(rung6)+test(rung2): BreadcrumbList JSON-LD on the three lane pages (tick 24). See C:\Users\Michael\Documents\GitHub\Big7Construction\.autoimprove\crash-2026-07-11_13-25-02.json.
+- [ ] REVIEW BLOCKER (cycle-1-13-22-01): Session-guard says CompanySite/SiteGuide but cycle shipped Big7Construction schema; also fake +1-555 phone in provider JSON-LD and provider block duplicated across 3 lane pages instead of `@id` reference. -- see C:\Users\Michael\Documents\GitHub\scripts\auto-improve\logs\paired-2026-07-11_13-22\Big7Construction\cycle-1-13-22-01\CYCLE-REVIEW.md
+- [ ] REVIEW BLOCKER (cycle-2-13-26-57): Missing tests/test_service_schema.py referenced by Makefile + off-scope from session goal; drift-lock regex silently misses `--chown`, multi-source, and JSON-array COPY forms. -- see C:\Users\Michael\Documents\GitHub\scripts\auto-improve\logs\paired-2026-07-11_13-22\Big7Construction\cycle-2-13-26-57\CYCLE-REVIEW.md
+- [ ] Resolve `PENDING_MANUAL.md` Cockpit Work Log entry (browser `localStorage`-only, ~30 sec for Mike).
+- [ ] Address pre-existing markdown drift on BRD / CLAUDE / DECISIONS / README / TODO / TRD (left untouched ΓÇö belongs to whoever owns that in-flight work).
+- [ ] Flush push queue ΓÇö `b288398` held locally per no-push constraint.
+- [ ] Audit for other orphaned test files not wired into `make test` (pattern surfaced by `test-service-schema` gap).
+- [ ] Add self-referential single-item `BreadcrumbList` schema to homepage to unify SERP display across the site.
+- [ ] Add per-page `WebPage` schema across indexable pages (alternative one-tick move).
+- [ ] Mike: open `COCKPIT.html` and log tick 26 manually (card: Big7Construction; shipped: sitemap coverage lock + `accessibility.html` entry; files: `sitemap.xml` + `tests/test_seo_files.py` + `Makefile`) ΓÇö worker can't auto-press `l`.
+- [ ] REVIEW BLOCKER (cycle-3-13-32-58): cycle-3 continues Big7Construction scope drift vs. locked CompanySite/SiteGuide goal; also coverage check silently no-ops on missing canonical and misses subdirectory pages. -- see C:\Users\Michael\Documents\GitHub\scripts\auto-improve\logs\paired-2026-07-11_13-22\Big7Construction\cycle-3-13-32-58\CYCLE-REVIEW.md
+- [ ] RESUME (2026-07-11 13:41): auto-improve worker crashed. Last commit: 2ecbea1 feat(rung2)+feat(rung6): accessibility.html sitemap entry + sitemap coverage lock (tick 26). See C:\Users\Michael\Documents\GitHub\Big7Construction\.autoimprove\crash-2026-07-11_13-41-40.json.
+- [ ] Flush push queue ΓÇö `164771e` held locally per no-push constraint this tick.
+- [ ] Replace placeholder `555-700-0007` with real number, then reconsider `contactOption: "TollFree"` claim.
+- [ ] Consider additional canonical `contactType` values (technical support, billing) if warranted by real ops.
+- [ ] Expand `availableLanguage` beyond English if the business serves non-English speakers in US-GA.
+- [ ] Continue Rung II PROVE sweep ΓÇö next drift class to lock after tick-16 `tel:`ΓåöJSON-LD lock.
+- [ ] REVIEW BLOCKER (cycle-4-13-38-35): cycle-4 continues Big7Construction scope drift vs. locked CompanySite/SiteGuide goal; contactPoint[] entries also duplicate phone+email so customer-service/sales split is fake. -- see C:\Users\Michael\Documents\GitHub\scripts\auto-improve\logs\paired-2026-07-11_13-22\Big7Construction\cycle-4-13-38-35\CYCLE-REVIEW.md
+- [ ] Add `?type=<projectType>` param on lane CTAs so the correct radio pre-selects for lane visitors
+- [ ] Resolve naming call first: residential lane covers two project types ΓÇö decide mapping before mechanical edit
+- [ ] Manual gate in `PENDING_MANUAL.md` (tick 28) ΓÇö Mike presses `l` in COCKPIT.html to log (browser `localStorage`, not CLI-doable)
+
+---
+
+## Competitor research — vetted upgrades (2026-07-19)
+
+38-agent adversarial research pass (independent researcher + critic per product, claims spot-verified against live competitor sites). Full fleet report: `../docs/research/COMPETITOR_RESEARCH_2026-07-19.md`.
+
+**Top competitors studied:** ARCO Design/Build, Choate Construction, New South Construction, Atlanta Design & Build, McCarthy Building Companies
+
+### Upgrades (impact-ranked)
+
+- [x] **[high/S] (trust)** ~~CUT the fabricated review line from all 3 pages now~~ **SHIPPED 2026-07-19 (`357cbfb`)** — the original research's 'link it to the live Google profile' is impossible, no profile exists (LAW #6). Logged to PENDING_MANUAL: claim Google Business Profile + provision the real phone. Re-add stars plus aggregateRating JSON-LD only when >=3 real reviews exist, per TODO.md:345's own gate.
+  - *Pattern source:* Competitors make trust claims third-party-verifiable (ARCO's ENR ranking, ADB's NARI/BBB/GuildQuality badges — both verified live). Big7 shows '4.9 across 60+ verified reviews' on 3 pages (index.html:1448, commercial-industrial.html:830, residential-construction.html:836) with no link — and TODO.md:345 records there are NO real Google/BBB reviews yet. Site-wide phone is placeholder 555-700-0007 (index, both lanes, all JSON-LD).
+- [x] **[high/S] (visuals)** ~~Now, solo: stop tripling jobsite-02~~ **SHIPPED 2026-07-19 (`dda4d1b`)** — alternated the two real shots + added a cross-card image-uniqueness assertion to tests/test_images.py. Real photos remain client-blocked (TODO.md marks placeholder images PARKED, client-blocked): 'get jobsite photo folder from client' stays logged in PENDING_MANUAL for the fleet PhotoPicker big7 profile.
+  - *Pattern source:* New South shows distinct real photography per project. Big7 reuses images/jobsite-02.jpg on 3 of 4 commercial pf-cards (commercial-industrial.html:680, 694, 708); the repo holds only 2 jobsite photos total. Prequal buyers read duplicated photos as 'no real portfolio'.
+- [x] **[high/S] (trust)** ~~Generate a one-page capability-statement PDF~~ **SHIPPED 2026-07-20** — `docs/big7-capability-statement.pdf` compiled ONLY from the already-published cred-table claims, `commercial-industrial.html`'s compliance-packet CTA repointed to it, locked with `check_compliance_packet_link()` in `tests/test_conversion.py`. EMR/TRIR numbers must still come from Mike's insurer — PENDING_MANUAL; add that cred-table row only when the real number lands (LAW #6 blocks inventing it).
+  - *Pattern source:* Commercial prequal teams screen EMR and bond letter before reading proposals. Big7's cred-table (commercial-industrial.html:739-770) has license/$5M GL/$25M bond/warranty copy but no EMR row, and 'Request the compliance packet ->' (line 771) routes to the intent-prefilled contact form — no packet exists to send.
+- [ ] **[high/S] (design-patterns)** Add a 'Who signs your contract' block to both lane pages between #credentials and #process: principal name, license-holder role, direct contact. Markup with per-page inline styles is an hour of solo work; the name/photo/title are Mike-gated content — log to PENDING_MANUAL and ship the block only when they land. Never ship placeholder humans.
+  - *Pattern source:* McCarthy and Choate build their trust layer on named people with faces. Big7 has zero named humans anywhere — anonymous testimonials ('Brookhaven owner') and 'same principals' in passing copy only (verified by grep across all pages).
+- [x] **[high/M] (features)** ~~Build ONE flagship case-study page~~ **SHIPPED 2026-07-20** — `south-fulton-distribution.html`: challenge → approach → result built strictly from already-published facts (42,000 sq ft / 11 months / $8.4M / PEM·Concrete·MEP) plus the real Marcus H. testimonial already on `commercial-industrial.html` (matched to this project by its distinct 42,000 sq ft size). Intent-prefill CTA links back to the commercial lane's own form (`?intent=portfolio:industrial-01&src=case-study-south-fulton#contact` — big7.js's existing URL-param prefill IIFE handles it, no new JS needed). Added to sitemap.xml, Dockerfile, and six test files (`test_anchors`, `test_seo_files` auto-discovered it, `test_dockerfile_html` auto-discovered it, `test_og_twitter`, `test_meta_descriptions`, `test_a11y_baseline`). All 22 suites green. Photos, a real client quote (vs. the size-matched inference used here), and permission to name the development remain client-gated → PENDING_MANUAL. Clone to the other 3 pf-cards only after Mike confirms each project's facts.
+  - *Pattern source:* Choate and ARCO give every portfolio project its own detail page. Big7's 4 pf-cards (commercial-industrial.html:665-720) all href='#contact' — the data-intent prefill makes the form smarter, but a research-stage buyer gets zero project depth before being asked to submit.
+- [x] **[medium/S] (positioning)** ~~Rewrite the commercial hero subline~~ **SHIPPED 2026-07-20** — leads with the flagship niche (warehouse/distribution + tenant fit-out) and promotes the page's own pf-foot numbers into the hero lede. No new claims, just repositioned already-published copy.
+  - *Pattern source:* ARCO claims a rankable niche (verified: 'ENR #1 warehouse construction company'). Big7's commercial hero pitches 5 generic service lines with no flagship claim while its own pf-foot already carries the numbers (500+ projects, $180M+, zero recordables 3 yrs).
+- [x] **[medium/S] (pricing)** ~~Add one FAQ item to residential-construction.html~~ **SHIPPED 2026-07-20** — new "What does a project typically cost?" FAQ item reuses the in-repo researched ranges + the two real portfolio budget numbers ($740K addition, $1.9M custom), mirrored into the FAQPage JSON-LD (6 Q&As now). No financing-partners claim added — Big7 has none (LAW #6).
+  - *Pattern source:* Residential remodel buyers screen on cost expectations. The original research's 'zero pricing signal anywhere' is FALSE — researched Metro-Atlanta ranges already ship as budget chips (residential-construction.html:969-984, sourced 2026-07-17) — but they are invisible until a visitor reaches the form, and the FAQ never answers 'what does it cost'.
+
+### Quick wins (<1 day each)
+
+- [x] ~~Delete the fabricated '4.9 across 60+ verified reviews' line~~ SHIPPED 2026-07-19 (`357cbfb`).
+- [x] ~~De-duplicate the commercial portfolio images~~ SHIPPED 2026-07-19 (`dda4d1b`).
+- [x] ~~Ship docs/big7-capability-statement.pdf~~ SHIPPED 2026-07-20 — compiled strictly from the existing cred-table claims, link repointed, locked in tests/test_conversion.py. EMR/TRIR still in PENDING_MANUAL until Mike supplies real numbers.
+
+
+---
+
+## SiteAudit 30-point self-audit — agent-actionable fixes (2026-07-19)
+
+Ran the new 30-Point Mobile Lead-Leak Inspection against the live site: **B (85/100)** — Lead Capture 82, Trust 71 (dragged by the two Cloudflare gates in PENDING_MANUAL), Speed 100, Findability 83. Code-side fixes, one arc:
+
+- [x] ~~**tap_target_size FAIL**~~ SHIPPED 2026-07-19 (`1773b36`) — header phone is now a >=48px tappable `tel:` anchor + sticky mobile call bar on all 3 pages.
+- [x] ~~**click_to_call WARN**~~ SHIPPED 2026-07-19 (`1773b36`) — header phone number is itself a `tel:` anchor above the fold.
+- [x] ~~**sticky_mobile_cta WARN**~~ SHIPPED 2026-07-19 (`1773b36`) — bottom sticky "Get a bid" call bar shipped on mobile.
+- [x] ~~**title_quality WARN**~~ SHIPPED 2026-07-19 (`f02cebf`) — homepage `<title>` tightened 87 → 60 chars, front-loaded service + metro.
+
+Verify each with `SiteAudit: ./run.bat check https://big7construction.com --no-leads` (grade should climb toward A once the two PENDING_MANUAL Cloudflare toggles land too).

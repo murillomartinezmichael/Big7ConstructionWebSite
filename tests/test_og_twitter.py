@@ -1,0 +1,616 @@
+"""
+Open Graph + Twitter card meta-tag contract test.
+
+Why: OG + Twitter tags drive how the site previews in iMessage, Slack, Facebook,
+LinkedIn, and every text-message client — a silent regression turns high-intent
+shares into blank-preview link rot. STANDARDS §6 explicitly names "meta/OG tags
+real (paste URL into a chat app — does the preview look pro?)" as a deploy gate.
+
+Locks the tick-4 branded-card fix: asserts `og:image` and `twitter:image` point
+at the 1200x630 `images/og-card.png` and NOT the 206px `images/jobsite-01.jpg`
+placeholder (Slack/iMessage/Facebook crop the placeholder into a smear).
+Same guard doctrine as `test_jsonld.py`'s image/logo lock.
+
+Also locks (tick 19) the <link rel="canonical" href="..."> ↔ og:url agreement
+per page. If they disagree, Google indexes one URL while every social share
+previews under another — a classic silent SEO leak. Exception: 404.html carries
+NO canonical link (Google's "soft-404 canonicals confuse crawlers" guidance)
+while its og:url still points social clicks at the homepage.
+
+Also locks (tick 20) per-page uniqueness across the 5 indexable pages on
+og:url, og:title, and og:description. Rationale: a new lane page copy-pasted
+from an existing one that forgets to update these three strings ships as a
+silent conversion leak — every social share of the new lane URL previews as
+whichever page was copied. The presence + canonical-agreement tests above
+still pass in that state (each individual page is well-formed); only a
+cross-page uniqueness lock catches it. 404.html is deliberately excluded from
+the og:url uniqueness lock: it shares og:url with the homepage on purpose so
+a shared 404 link previews as the homepage.
+
+Also locks (tick 20b) the four brand-level social-preview tags every page
+already ships but nothing tested: og:site_name, og:locale, og:image:alt, and
+twitter:image:alt. These are the mirror-image of the uniqueness lock above —
+they MUST agree across all 6 pages, because they describe the *brand* and
+*the branded card image*, not the page. Silent drift here means:
+  - og:site_name mismatch → Facebook shows two "publishers" for one brand
+  - og:locale mismatch → Facebook mislabels the audience locale on shares
+  - og:image:alt / twitter:image:alt drift → screen readers on Facebook /
+    Twitter / iMessage read the wrong description of the branded card
+    (LAW #11 — accessibility is a must, always — extends to social previews)
+  - og:image:alt vs twitter:image:alt disagreement on the SAME page →
+    Twitter and Facebook read different descriptions of the same image
+None of these fire a visible test failure today; a silent HTML edit that
+drops one goes unnoticed until someone shares a link.
+
+Runs against every top-level HTML file: `index.html`, `404.html`,
+`accessibility.html`, `home-repair.html`, `commercial-industrial.html`,
+`residential-construction.html`. Adding a new top-level page? Append it to
+`TARGETS` and — unless it's a 404-style error page — to `TARGETS_WITH_CANONICAL`.
+
+Python 3.11+ stdlib only (`re`, `pathlib`). No pip install, no network.
+"""
+from __future__ import annotations
+
+import re
+import sys
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
+INDEX = REPO_ROOT / "index.html"
+NOT_FOUND = REPO_ROOT / "404.html"
+ACCESSIBILITY = REPO_ROOT / "accessibility.html"
+COMMERCIAL_INDUSTRIAL = REPO_ROOT / "commercial-industrial.html"
+RESIDENTIAL_CONSTRUCTION = REPO_ROOT / "residential-construction.html"
+SOUTH_FULTON = REPO_ROOT / "south-fulton-distribution.html"
+TARGETS = (INDEX, NOT_FOUND, ACCESSIBILITY, COMMERCIAL_INDUSTRIAL, RESIDENTIAL_CONSTRUCTION, SOUTH_FULTON)
+# Pages that MUST carry <link rel="canonical" href="..."> matching og:url.
+# 404.html is excluded on purpose — see NO_CANONICAL_PAGES below.
+TARGETS_WITH_CANONICAL = (INDEX, ACCESSIBILITY, COMMERCIAL_INDUSTRIAL, RESIDENTIAL_CONSTRUCTION, SOUTH_FULTON)
+# Pages that MUST NOT carry a canonical link at all. Google's guidance is that
+# soft-404s pointing at themselves confuse the crawler; pointing at the homepage
+# risks the 404 URL absorbing homepage rankings on strange edge cases. Simplest
+# safe answer: no canonical on the 404, but keep og:url → homepage so social
+# clicks still land somewhere real.
+NO_CANONICAL_PAGES = (NOT_FOUND,)
+
+# Match each <meta ...> tag broadly, then pull attributes in a second pass.
+# Attribute regexes use a matched-quote backreference so an apostrophe inside a
+# double-quoted content string (e.g. "This isn't live.") doesn't break parsing.
+META_TAG_RE = re.compile(r'<meta\b[^>]*/?>', re.IGNORECASE)
+ATTR_KEY_RE = re.compile(
+    r'\b(?:property|name)\s*=\s*(?P<q>["\'])(?P<val>[^"\']+)(?P=q)',
+    re.IGNORECASE,
+)
+ATTR_CONTENT_RE = re.compile(
+    r'\bcontent\s*=\s*(?P<q>["\'])(?P<val>.*?)(?P=q)',
+    re.IGNORECASE | re.DOTALL,
+)
+LINK_TAG_RE = re.compile(r'<link\b[^>]*/?>', re.IGNORECASE)
+LINK_REL_RE = re.compile(
+    r'\brel\s*=\s*(?P<q>["\'])(?P<val>[^"\']+)(?P=q)',
+    re.IGNORECASE,
+)
+LINK_HREF_RE = re.compile(
+    r'\bhref\s*=\s*(?P<q>["\'])(?P<val>[^"\']+)(?P=q)',
+    re.IGNORECASE,
+)
+
+REQUIRED_OG = {"og:type", "og:title", "og:description", "og:url", "og:image"}
+REQUIRED_TWITTER = {"twitter:card", "twitter:title", "twitter:description", "twitter:image"}
+
+# Brand-identity tags. Same rationale as REQUIRED_OG, but these must be IDENTICAL
+# across every page (see assert_brand_agreement). site_name/locale describe the
+# brand; the two image:alt strings describe the shared branded og-card.png.
+REQUIRED_BRAND_TAGS = ("og:site_name", "og:locale", "og:image:alt", "twitter:image:alt")
+EXPECTED_OG_LOCALE = "en_US"
+
+BRAND_CARD = "og-card.png"
+PLACEHOLDER = "jobsite-01.jpg"
+EXPECTED_OG_IMAGE_WIDTH = "1200"
+EXPECTED_OG_IMAGE_HEIGHT = "630"
+EXPECTED_OG_IMAGE_TYPE = "image/png"
+EXPECTED_TWITTER_CARD = "summary_large_image"
+
+
+def extract_meta(html: str) -> dict[str, str]:
+    tags: dict[str, str] = {}
+    for tag in META_TAG_RE.findall(html):
+        key_m = ATTR_KEY_RE.search(tag)
+        content_m = ATTR_CONTENT_RE.search(tag)
+        if key_m is None or content_m is None:
+            continue
+        tags[key_m.group("val").lower()] = content_m.group("val")
+    return tags
+
+
+def extract_canonicals(html: str) -> list[str]:
+    """Return every <link rel="canonical" href="..."> href on the page.
+
+    Returns a list (not a single value) so the test can catch the "two conflicting
+    canonicals were left on the page" case, which some CMS copy-paste bugs cause.
+    """
+    hrefs: list[str] = []
+    for tag in LINK_TAG_RE.findall(html):
+        rel_m = LINK_REL_RE.search(tag)
+        href_m = LINK_HREF_RE.search(tag)
+        if rel_m is None or href_m is None:
+            continue
+        # rel can be space-separated ("canonical alternate"); check tokens.
+        rel_tokens = rel_m.group("val").lower().split()
+        if "canonical" in rel_tokens:
+            hrefs.append(href_m.group("val"))
+    return hrefs
+
+
+def assert_og_twitter(tags: dict[str, str], label: str) -> list[str]:
+    errors: list[str] = []
+
+    missing_og = REQUIRED_OG - tags.keys()
+    if missing_og:
+        errors.append(f"{label}: missing OG tags: {sorted(missing_og)}")
+    missing_tw = REQUIRED_TWITTER - tags.keys()
+    if missing_tw:
+        errors.append(f"{label}: missing Twitter tags: {sorted(missing_tw)}")
+
+    og_url = tags.get("og:url", "")
+    if og_url and not og_url.startswith("https://"):
+        errors.append(f"{label}: og:url must be absolute https, got {og_url!r}")
+
+    og_image = tags.get("og:image", "")
+    if og_image:
+        if not og_image.startswith("https://"):
+            errors.append(f"{label}: og:image must be absolute https, got {og_image!r}")
+        if PLACEHOLDER in og_image:
+            errors.append(
+                f"{label}: og:image points at 206px placeholder {PLACEHOLDER!r} — "
+                f"tick 4 (2026-07-06) moved this off to the branded 1200x630 og-card.png. "
+                f"Preview crops turn the placeholder into a smear on Slack/iMessage/Facebook."
+            )
+        elif BRAND_CARD not in og_image:
+            errors.append(
+                f"{label}: og:image should reference {BRAND_CARD!r} (the branded 1200x630 "
+                f"card generated by scripts/gen-og-card.py), got {og_image!r}"
+            )
+
+    tw_card = tags.get("twitter:card", "")
+    if tw_card and tw_card != EXPECTED_TWITTER_CARD:
+        errors.append(
+            f"{label}: twitter:card must be {EXPECTED_TWITTER_CARD!r} to preview the "
+            f"1200x630 card without cropping, got {tw_card!r}"
+        )
+
+    tw_image = tags.get("twitter:image", "")
+    if tw_image:
+        if not tw_image.startswith("https://"):
+            errors.append(f"{label}: twitter:image must be absolute https, got {tw_image!r}")
+        if PLACEHOLDER in tw_image:
+            errors.append(
+                f"{label}: twitter:image points at 206px placeholder {PLACEHOLDER!r} — "
+                f"same rationale as og:image."
+            )
+
+    # Only assert width/height/type when og:image is present. If og:image itself is
+    # missing, the "missing OG tags" error above is the real signal; dumping three
+    # more "og:image:width missing" errors underneath would just be noise.
+    if og_image:
+        w = tags.get("og:image:width")
+        if w != EXPECTED_OG_IMAGE_WIDTH:
+            errors.append(f"{label}: og:image:width must be {EXPECTED_OG_IMAGE_WIDTH!r}, got {w!r}")
+        h = tags.get("og:image:height")
+        if h != EXPECTED_OG_IMAGE_HEIGHT:
+            errors.append(f"{label}: og:image:height must be {EXPECTED_OG_IMAGE_HEIGHT!r}, got {h!r}")
+        t = tags.get("og:image:type")
+        if t != EXPECTED_OG_IMAGE_TYPE:
+            errors.append(f"{label}: og:image:type must be {EXPECTED_OG_IMAGE_TYPE!r}, got {t!r}")
+
+    return errors
+
+
+def assert_canonical(
+    canonicals: list[str],
+    og_url: str,
+    label: str,
+    *,
+    must_have_canonical: bool,
+) -> list[str]:
+    """Enforce the canonical/og:url contract.
+
+    - Pages in TARGETS_WITH_CANONICAL: exactly one canonical link, equal to og:url.
+    - Pages in NO_CANONICAL_PAGES: zero canonical links (see NO_CANONICAL_PAGES doc).
+    """
+    errors: list[str] = []
+    if must_have_canonical:
+        if not canonicals:
+            errors.append(
+                f"{label}: missing <link rel=\"canonical\" href=\"...\"> — "
+                f"required so Google indexes the URL that og:url promises social clicks"
+            )
+            return errors
+        if len(canonicals) > 1:
+            errors.append(
+                f"{label}: {len(canonicals)} canonical <link> tags found "
+                f"({canonicals!r}) — only one is allowed; Google will pick nondeterministically"
+            )
+        canonical = canonicals[0]
+        if not canonical.startswith("https://"):
+            errors.append(f"{label}: canonical must be absolute https, got {canonical!r}")
+        if og_url and canonical != og_url:
+            errors.append(
+                f"{label}: canonical / og:url disagree — "
+                f"canonical={canonical!r} vs og:url={og_url!r}. "
+                f"Google will index one URL while social shares preview under another."
+            )
+    else:
+        if canonicals:
+            errors.append(
+                f"{label}: page is in NO_CANONICAL_PAGES but carries "
+                f"{len(canonicals)} canonical link(s) ({canonicals!r}). "
+                f"404s must not self-canonicalize; see NO_CANONICAL_PAGES doc."
+            )
+    return errors
+
+
+def assert_brand_tags(tags: dict[str, str], label: str) -> list[str]:
+    """Per-page presence + shape check for the four brand-identity tags.
+
+    Also enforces the same-page agreement og:image:alt == twitter:image:alt.
+    The two tags describe the same branded card image; if they disagree, a
+    screen reader on Facebook reads one description and a screen reader on
+    Twitter reads another for the same PNG — a LAW #11 leak nothing else
+    on the page surface catches.
+    """
+    errors: list[str] = []
+
+    missing = [k for k in REQUIRED_BRAND_TAGS if not tags.get(k, "").strip()]
+    if missing:
+        errors.append(f"{label}: missing brand tags: {missing!r}")
+
+    locale = tags.get("og:locale", "")
+    if locale and locale != EXPECTED_OG_LOCALE:
+        errors.append(
+            f"{label}: og:locale must be {EXPECTED_OG_LOCALE!r} (site copy is US English), got {locale!r}"
+        )
+
+    og_alt = tags.get("og:image:alt", "").strip()
+    tw_alt = tags.get("twitter:image:alt", "").strip()
+    if og_alt and tw_alt and og_alt != tw_alt:
+        errors.append(
+            f"{label}: og:image:alt / twitter:image:alt disagree on the same page — "
+            f"og:image:alt={og_alt!r} vs twitter:image:alt={tw_alt!r}. "
+            f"They describe the same PNG; screen readers on FB vs Twitter will read different text."
+        )
+
+    return errors
+
+
+def assert_brand_agreement(per_page: dict[str, dict[str, str]]) -> list[str]:
+    """Cross-page identity check: every brand tag must be identical on all pages.
+
+    Opposite of assert_indexable_uniqueness — the four brand tags describe the
+    company + the shared branded card, so drift across pages means the brand
+    reads as two separate publishers on social platforms.
+    """
+    errors: list[str] = []
+    for key in REQUIRED_BRAND_TAGS:
+        seen: dict[str, list[str]] = {}
+        for label, tags in per_page.items():
+            value = tags.get(key, "").strip()
+            if not value:
+                continue
+            seen.setdefault(value, []).append(label)
+        if len(seen) > 1:
+            summary = {v: sorted(labels) for v, labels in seen.items()}
+            errors.append(
+                f"brand-tag drift on {key}: values disagree across pages {summary!r} — "
+                f"{key} must be identical on all pages (brand-level, not page-level). "
+                f"Fix: copy the majority value to every outlier page."
+            )
+    return errors
+
+
+def assert_indexable_uniqueness(
+    per_page: dict[str, dict[str, str]],
+) -> list[str]:
+    """Enforce per-page uniqueness on og:url / og:title / og:description.
+
+    `per_page` maps page label -> tag dict. Only pages in TARGETS_WITH_CANONICAL
+    are passed in — the 404's og:url is deliberately homepage, so including it
+    would flag a false positive on the intentional share-safety behavior.
+
+    Catches the copy-paste class of drift: a new lane page shipped with an
+    older page's OG boilerplate still forgotten. Every individual per-page
+    check would pass; only cross-page comparison surfaces the mistake.
+    """
+    errors: list[str] = []
+    for key, human in (
+        ("og:url", "og:url"),
+        ("og:title", "og:title"),
+        ("og:description", "og:description"),
+    ):
+        seen: dict[str, list[str]] = {}
+        for label, tags in per_page.items():
+            value = tags.get(key, "").strip()
+            if not value:
+                continue
+            seen.setdefault(value, []).append(label)
+        for value, labels in seen.items():
+            if len(labels) > 1:
+                errors.append(
+                    f"duplicate {human} across indexable pages "
+                    f"{sorted(labels)!r}: {value!r} — every indexable page must "
+                    f"carry its own {human} or social shares of the newer page "
+                    f"preview as the older one"
+                )
+    return errors
+
+
+def _valid_tags() -> dict[str, str]:
+    """Minimal-but-valid tag set used as the selftest baseline."""
+    return {
+        "og:type": "website",
+        "og:title": "Big 7 Construction — Commercial · Industrial · Residential",
+        "og:description": "Two divisions, every trade in-house.",
+        "og:url": "https://big7construction.com/",
+        "og:image": "https://big7construction.com/images/og-card.png",
+        "og:image:width": EXPECTED_OG_IMAGE_WIDTH,
+        "og:image:height": EXPECTED_OG_IMAGE_HEIGHT,
+        "og:image:type": EXPECTED_OG_IMAGE_TYPE,
+        "og:site_name": "Big 7 Construction",
+        "og:locale": EXPECTED_OG_LOCALE,
+        "og:image:alt": "Big 7 Construction branded preview card.",
+        "twitter:card": EXPECTED_TWITTER_CARD,
+        "twitter:title": "Big 7 Construction",
+        "twitter:description": "Two divisions, every trade in-house.",
+        "twitter:image": "https://big7construction.com/images/og-card.png",
+        "twitter:image:alt": "Big 7 Construction branded preview card.",
+    }
+
+
+def selftest() -> int:
+    baseline = _valid_tags()
+    if assert_og_twitter(baseline, "selftest-baseline"):
+        print("SELFTEST FAIL: baseline should be valid", file=sys.stderr)
+        return 1
+
+    cases: list[tuple[str, dict[str, str]]] = []
+    b = _valid_tags(); b.pop("og:title"); cases.append(("og:title missing", b))
+    b = _valid_tags(); b.pop("og:image"); cases.append(("og:image missing", b))
+    b = _valid_tags(); b.pop("twitter:card"); cases.append(("twitter:card missing", b))
+    b = _valid_tags(); b.pop("twitter:image"); cases.append(("twitter:image missing", b))
+    b = _valid_tags(); b["og:url"] = "http://big7construction.com/"; cases.append(("og:url not https", b))
+    b = _valid_tags(); b["og:image"] = "https://big7construction.com/images/jobsite-01.jpg"; cases.append(("og:image is 206px placeholder", b))
+    b = _valid_tags(); b["og:image"] = "https://big7construction.com/images/random.png"; cases.append(("og:image not branded card", b))
+    b = _valid_tags(); b["twitter:card"] = "summary"; cases.append(("twitter:card summary not large_image", b))
+    b = _valid_tags(); b["og:image:width"] = "600"; cases.append(("og:image:width wrong", b))
+    b = _valid_tags(); b["og:image:height"] = "315"; cases.append(("og:image:height wrong", b))
+    b = _valid_tags(); b["og:image:type"] = "image/jpeg"; cases.append(("og:image:type wrong", b))
+    b = _valid_tags(); b["twitter:image"] = "https://big7construction.com/images/jobsite-01.jpg"; cases.append(("twitter:image is 206px placeholder", b))
+
+    failures = [name for name, tags in cases if not assert_og_twitter(tags, "selftest")]
+    if failures:
+        for name in failures:
+            print(f"SELFTEST FAIL: mutation not caught: {name}", file=sys.stderr)
+        return 1
+
+    # Canonical/og:url contract selftest — baseline + mutations.
+    good_og_url = "https://big7construction.com/commercial-industrial.html"
+    good_canonical = ["https://big7construction.com/commercial-industrial.html"]
+    if assert_canonical(good_canonical, good_og_url, "selftest-canonical-baseline", must_have_canonical=True):
+        print("SELFTEST FAIL: canonical baseline should be valid", file=sys.stderr)
+        return 1
+    if assert_canonical([], "https://big7construction.com/", "selftest-canonical-404-baseline", must_have_canonical=False):
+        print("SELFTEST FAIL: canonical 404-baseline should be valid", file=sys.stderr)
+        return 1
+
+    canon_cases: list[tuple[str, list[str], str, bool]] = [
+        ("canonical missing on indexable page", [], good_og_url, True),
+        ("canonical / og:url mismatch",
+         ["https://big7construction.com/"], good_og_url, True),
+        ("canonical not https",
+         ["http://big7construction.com/commercial-industrial.html"], good_og_url, True),
+        ("two canonicals on one page",
+         [good_og_url, good_og_url], good_og_url, True),
+        ("404 accidentally sprouted a canonical",
+         ["https://big7construction.com/"], "https://big7construction.com/", False),
+    ]
+    canon_failures = [
+        name for name, canonicals, og_url, must in canon_cases
+        if not assert_canonical(canonicals, og_url, "selftest-canonical", must_have_canonical=must)
+    ]
+    if canon_failures:
+        for name in canon_failures:
+            print(f"SELFTEST FAIL: canonical mutation not caught: {name}", file=sys.stderr)
+        return 1
+
+    # Per-indexable-page uniqueness contract — baseline + mutations.
+    def _page(url: str, title: str, desc: str) -> dict[str, str]:
+        t = _valid_tags()
+        t["og:url"] = url
+        t["og:title"] = title
+        t["og:description"] = desc
+        return t
+
+    unique_baseline = {
+        "index.html": _page("https://big7construction.com/", "Home", "Homepage copy"),
+        "home-repair.html": _page(
+            "https://big7construction.com/home-repair.html", "Home Repair", "Home repair copy"
+        ),
+        "commercial-industrial.html": _page(
+            "https://big7construction.com/commercial-industrial.html",
+            "Commercial", "Commercial copy",
+        ),
+    }
+    if assert_indexable_uniqueness(unique_baseline):
+        print("SELFTEST FAIL: uniqueness baseline should be valid", file=sys.stderr)
+        return 1
+
+    # Each mutation collapses one field on a second page onto the first.
+    dup_url = {
+        "index.html": _page("https://big7construction.com/", "Home", "Homepage copy"),
+        "home-repair.html": _page("https://big7construction.com/", "Home Repair", "Home repair copy"),
+    }
+    dup_title = {
+        "index.html": _page("https://big7construction.com/", "Big 7 Construction", "Homepage copy"),
+        "home-repair.html": _page(
+            "https://big7construction.com/home-repair.html", "Big 7 Construction", "Home repair copy"
+        ),
+    }
+    dup_desc = {
+        "index.html": _page("https://big7construction.com/", "Home", "Two divisions, in-house."),
+        "home-repair.html": _page(
+            "https://big7construction.com/home-repair.html", "Home Repair", "Two divisions, in-house."
+        ),
+    }
+    unique_cases: list[tuple[str, dict[str, dict[str, str]]]] = [
+        ("duplicate og:url across two indexable pages", dup_url),
+        ("duplicate og:title across two indexable pages", dup_title),
+        ("duplicate og:description across two indexable pages", dup_desc),
+    ]
+    unique_failures = [
+        name for name, per_page in unique_cases
+        if not assert_indexable_uniqueness(per_page)
+    ]
+    if unique_failures:
+        for name in unique_failures:
+            print(f"SELFTEST FAIL: uniqueness mutation not caught: {name}", file=sys.stderr)
+        return 1
+
+    # Brand-tag per-page contract — baseline + mutations.
+    if assert_brand_tags(_valid_tags(), "selftest-brand-baseline"):
+        print("SELFTEST FAIL: brand-tag baseline should be valid", file=sys.stderr)
+        return 1
+
+    brand_cases: list[tuple[str, dict[str, str]]] = []
+    b = _valid_tags(); b.pop("og:site_name"); brand_cases.append(("og:site_name missing", b))
+    b = _valid_tags(); b.pop("og:locale"); brand_cases.append(("og:locale missing", b))
+    b = _valid_tags(); b.pop("og:image:alt"); brand_cases.append(("og:image:alt missing", b))
+    b = _valid_tags(); b.pop("twitter:image:alt"); brand_cases.append(("twitter:image:alt missing", b))
+    b = _valid_tags(); b["og:locale"] = "fr_FR"; brand_cases.append(("og:locale wrong value", b))
+    b = _valid_tags(); b["twitter:image:alt"] = "different alt text"
+    brand_cases.append(("og:image:alt / twitter:image:alt disagree on same page", b))
+
+    brand_failures = [name for name, tags in brand_cases if not assert_brand_tags(tags, "selftest-brand")]
+    if brand_failures:
+        for name in brand_failures:
+            print(f"SELFTEST FAIL: brand mutation not caught: {name}", file=sys.stderr)
+        return 1
+
+    # Cross-page brand-agreement contract — baseline + mutations.
+    def _brand_page(site_name: str, locale: str, og_alt: str, tw_alt: str) -> dict[str, str]:
+        t = _valid_tags()
+        t["og:site_name"] = site_name
+        t["og:locale"] = locale
+        t["og:image:alt"] = og_alt
+        t["twitter:image:alt"] = tw_alt
+        return t
+
+    canonical_brand_row = ("Big 7 Construction", EXPECTED_OG_LOCALE,
+                           "Big 7 Construction branded preview card.",
+                           "Big 7 Construction branded preview card.")
+    brand_agree_baseline = {
+        "index.html": _brand_page(*canonical_brand_row),
+        "home-repair.html": _brand_page(*canonical_brand_row),
+        "commercial-industrial.html": _brand_page(*canonical_brand_row),
+    }
+    if assert_brand_agreement(brand_agree_baseline):
+        print("SELFTEST FAIL: brand-agreement baseline should be valid", file=sys.stderr)
+        return 1
+
+    drift_site_name = {
+        "index.html": _brand_page(*canonical_brand_row),
+        "home-repair.html": _brand_page("Big Seven Construction", EXPECTED_OG_LOCALE,
+                                        canonical_brand_row[2], canonical_brand_row[3]),
+    }
+    drift_locale = {
+        "index.html": _brand_page(*canonical_brand_row),
+        "home-repair.html": _brand_page(canonical_brand_row[0], "en_GB",
+                                        canonical_brand_row[2], canonical_brand_row[3]),
+    }
+    drift_og_alt = {
+        "index.html": _brand_page(*canonical_brand_row),
+        "home-repair.html": _brand_page(canonical_brand_row[0], EXPECTED_OG_LOCALE,
+                                        "Different card alt.", canonical_brand_row[3]),
+    }
+    drift_tw_alt = {
+        "index.html": _brand_page(*canonical_brand_row),
+        "home-repair.html": _brand_page(canonical_brand_row[0], EXPECTED_OG_LOCALE,
+                                        canonical_brand_row[2], "Different card alt."),
+    }
+    brand_agree_cases: list[tuple[str, dict[str, dict[str, str]]]] = [
+        ("brand drift on og:site_name across two pages", drift_site_name),
+        ("brand drift on og:locale across two pages", drift_locale),
+        ("brand drift on og:image:alt across two pages", drift_og_alt),
+        ("brand drift on twitter:image:alt across two pages", drift_tw_alt),
+    ]
+    brand_agree_failures = [
+        name for name, per_page in brand_agree_cases
+        if not assert_brand_agreement(per_page)
+    ]
+    if brand_agree_failures:
+        for name in brand_agree_failures:
+            print(f"SELFTEST FAIL: brand-agreement mutation not caught: {name}", file=sys.stderr)
+        return 1
+
+    total = (
+        len(cases) + len(canon_cases) + len(unique_cases)
+        + len(brand_cases) + len(brand_agree_cases)
+    )
+    print(
+        f"SELFTEST OK: baseline PASS + {len(cases)}/{len(cases)} OG/Twitter mutations caught + "
+        f"{len(canon_cases)}/{len(canon_cases)} canonical mutations caught + "
+        f"{len(unique_cases)}/{len(unique_cases)} uniqueness mutations caught + "
+        f"{len(brand_cases)}/{len(brand_cases)} brand-tag mutations caught + "
+        f"{len(brand_agree_cases)}/{len(brand_agree_cases)} brand-agreement mutations caught "
+        f"({total} total)"
+    )
+    return 0
+
+
+def main() -> int:
+    if "--selftest" in sys.argv:
+        return selftest()
+
+    errors: list[str] = []
+    indexable_tags: dict[str, dict[str, str]] = {}
+    all_page_tags: dict[str, dict[str, str]] = {}
+    for path in TARGETS:
+        if not path.exists():
+            errors.append(f"{path.name} not found at {path}")
+            continue
+        html = path.read_text(encoding="utf-8")
+        tags = extract_meta(html)
+        errors.extend(assert_og_twitter(tags, path.name))
+        errors.extend(assert_brand_tags(tags, path.name))
+        canonicals = extract_canonicals(html)
+        errors.extend(
+            assert_canonical(
+                canonicals,
+                tags.get("og:url", ""),
+                path.name,
+                must_have_canonical=(path in TARGETS_WITH_CANONICAL),
+            )
+        )
+        if path in TARGETS_WITH_CANONICAL:
+            indexable_tags[path.name] = tags
+        all_page_tags[path.name] = tags
+
+    errors.extend(assert_indexable_uniqueness(indexable_tags))
+    errors.extend(assert_brand_agreement(all_page_tags))
+
+    if errors:
+        for e in errors:
+            print(f"FAIL: {e}", file=sys.stderr)
+        return 1
+
+    names = ", ".join(p.name for p in TARGETS)
+    print(
+        f"OK: {names} carry valid OG + Twitter tags; "
+        f"og:image + twitter:image point at branded {BRAND_CARD} (1200x630 image/png); "
+        f"canonical <link> agrees with og:url on {len(TARGETS_WITH_CANONICAL)} indexable pages; "
+        f"brand tags {list(REQUIRED_BRAND_TAGS)!r} present and identical across all {len(TARGETS)} pages"
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

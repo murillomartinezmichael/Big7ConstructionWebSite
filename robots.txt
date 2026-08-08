@@ -1,0 +1,6 @@
+# Big 7 Construction — crawler policy
+# Public marketing site. Nothing sensitive on any path.
+User-agent: *
+Allow: /
+
+Sitemap: https://big7construction.com/sitemap.xml

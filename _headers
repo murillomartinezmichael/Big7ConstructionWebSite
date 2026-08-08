@@ -1,0 +1,10 @@
+# Cloudflare Workers static-assets headers (host of record since 2026-07-17).
+# Mirrors the 5 defense-in-depth headers nginx.conf serves on the Railway
+# fallback (SECURITY_AUDIT.md § M3-M6) — without this file the CF deploy
+# ships none of them.
+/*
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(), microphone=(), camera=(), payment=()

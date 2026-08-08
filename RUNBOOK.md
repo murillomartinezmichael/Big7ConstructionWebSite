@@ -1,31 +1,9 @@
-> **STATUS: DRAFT** — this doc is a structured outline of what needs to be answered. Sections without content are TODO for the owner. Fill in over time; do not delete until replaced with real content.
-
----
-
-<!--
-  WHY THIS DOC EXISTS
-  -------------------
-  RUNBOOK.md is the answer to every "how do I..." question about THIS
-  specific project. README.md sells the project; RUNBOOK.md runs it.
-
-  Audience: future-you at 2am when prod is down, a new dev on day 3, an
-  on-call engineer who has never seen this codebase.
-
-  Rule: every command must be copy-pasteable. No "you know what I mean"
-  pseudo-commands. If a step requires judgment, write what the judgment is.
-
-  How to use this template:
-    1. Copy to your project root as RUNBOOK.md
-    2. Fill in every {{PLACEHOLDER}}
-    3. Delete any section that genuinely doesn't apply (e.g., no DB? drop the DB section)
-    4. Test it: hand it to someone who has never touched the project. If they get stuck, fix the doc.
--->
-
 # Big7Construction — Runbook
 
-**Last updated:** 2026-06-29
-**Owner:** Michael Martinez
-**Repo:** {{REPO_URL}}
+**Last updated:** 2026-07-03
+**Owner:** Michael Martinez (murillomartinezmichael@gmail.com)
+**Client:** Big 7 Construction — multi-7 contractor, home construction + home repair, Metro Atlanta.
+**Project shape:** static single-file HTML5 marketing site. No JS framework, no build step, no server-side logic.
 
 ---
 
@@ -33,257 +11,151 @@
 
 | Task | Command |
 |---|---|
-| Run locally | `./build.sh && ./scripts/run.sh` |
-| Run tests | `./scripts/test.sh` |
-| Build Docker image | `docker build -t Big7Construction .` |
-| Deploy | `{{DEPLOY_COMMAND}}` |
-| Tail prod logs | `{{LOG_COMMAND}}` |
-| Open prod dashboard | `{{DASHBOARD_URL}}` |
+| Run locally | `python -m http.server 8080` (from repo root) |
+| Build Docker image | `docker build -t big7:local .` |
+| Run container | `docker run --rm -p 8080:8080 -e PORT=8080 big7:local` |
+| Deploy | `git push origin main` — Railway auto-deploys from the Dockerfile |
+| Tail prod logs | `railway logs` |
+| Smoke test prod | `curl -I <PROD_URL>` → expect `HTTP/2 200` |
+| Open live site | `<PROD_URL>` — set in `STATUS.md` |
+
+`<PROD_URL>` is tracked in `STATUS.md § 🟢 LIVE right now` (currently `null` — fill in when Railway assigns the public domain).
 
 ---
 
 ## 1. Local development
 
-### 1.1 Prerequisites
-
-These must be installed before `build.sh` will succeed.
-
-| Tool | Version | Install |
-|---|---|---|
-| {{LANG_RUNTIME, e.g. Python 3.11}} | {{exact}} | {{install command or link}} |
-| {{PKG_MANAGER, e.g. pip / npm / dotnet}} | {{exact}} | (bundled with runtime) |
-| Docker Desktop | latest | https://docker.com/products/docker-desktop |
-| {{DATABASE, e.g. Postgres 16}} | 16+ | `docker run -p 5432:5432 -e POSTGRES_PASSWORD=dev postgres:16` |
-| {{OTHER_DEPENDENCY}} | {{ver}} | {{link}} |
-
-### 1.2 First-time setup (clean clone)
+The whole site is `index.html` plus `images/` plus a `Dockerfile` and `nginx.conf`. Any HTTP server works locally.
 
 ```bash
-git clone {{REPO_URL}}
-cd {{PROJECT_DIR}}
-
-# Unix / macOS
-./build.sh
-
-# Windows
-build.bat
+cd Big7Construction
+python -m http.server 8080
+# open http://localhost:8080
 ```
 
-`build.sh` / `build.bat` will:
-- Verify prerequisites
-- Create the virtualenv / install packages / restore .NET packages
-- Generate `.env` from `.env.example` if missing (you must fill in real values)
-- Run migrations against your local DB
-- Build any DLLs / compiled artifacts
-- Print a "READY" banner when done
-
-### 1.3 Environment variables
-
-Copy `.env.example` to `.env` and fill in:
-
-| Variable | Required | Description | Where to get it |
-|---|---|---|---|
-| `{{VAR_NAME}}` | yes | {{what it does}} | {{where to get the value}} |
-
-**Never commit `.env`.** Verify it's in `.gitignore`.
-
-### 1.4 Run the service
-
-```bash
-./scripts/run.sh        # Unix
-scripts\run.bat         # Windows
-```
-
-Then open `{{LOCAL_URL, e.g. http://localhost:8000/docs}}`.
-
-Healthcheck: `GET {{LOCAL_URL}}/health` → returns `200 OK` with JSON body `{"status": "ok"}`.
+There is **no build step, no JavaScript**. Edit `index.html`, refresh, done.
 
 ---
 
-## 2. Tests
+## 2. Environment variables
 
-### 2.1 Run everything
-```bash
-./scripts/test.sh
+**None from the site itself.** Railway injects `PORT` at container start; the Dockerfile substitutes it into `nginx.conf` via `sed`:
+
+```dockerfile
+CMD sed -i "s/NGINX_PORT/${PORT:-8080}/g" /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'
 ```
 
-### 2.2 Run by tier
-```bash
-./scripts/test.sh unit         # fast, no external services
-./scripts/test.sh integration  # requires DB / message bus running
-./scripts/test.sh e2e          # requires service running on {{LOCAL_URL}}
-```
-
-### 2.3 Run a single test
-```bash
-{{TEST_RUNNER_SINGLE_COMMAND, e.g. pytest tests/unit/test_invoice_service.py::test_calculates_tax}}
-```
-
-### 2.4 Coverage
-```bash
-./scripts/test.sh coverage
-```
-Opens `htmlcov/index.html`. CI fails if service-layer line coverage drops below 70%.
-
-### 2.5 What each tier covers
-- **Unit:** service layer, pure functions. Mocked deps. Must run in <30s total.
-- **Integration:** real DB (testcontainer), real message bus, real HTTP client against mocked external APIs.
-- **E2E:** Selenium / Playwright, real browser, screenshots on failure into `tests/e2e/screenshots/`.
+If you're testing the container locally without a `PORT` env var, `nginx.conf` will fall back to `8080`.
 
 ---
 
 ## 3. Docker
 
-### 3.1 Build image
 ```bash
-docker build -t Big7Construction:local .
+docker build -t big7:local .
+docker run --rm -p 8080:8080 big7:local
+# open http://localhost:8080
 ```
 
-### 3.2 Run container
-```bash
-docker run --rm -p {{HOST_PORT}}:{{CONTAINER_PORT}} --env-file .env Big7Construction:local
-```
-
-### 3.3 docker-compose (full local stack)
-```bash
-docker compose up -d
-docker compose logs -f {{SERVICE_NAME}}
-docker compose down
-```
-
-`docker-compose.yml` brings up the service + every dependency (DB, message bus, etc.) so a contributor can start without installing them.
+Base image: `nginx:alpine`. Total image size is small — a few hundred KB of HTML + images.
 
 ---
 
-## 4. Database
+## 4. Deploy
 
-### 4.1 Migrations
+Push to `main` triggers Railway auto-deploy. Typically ~90 seconds to live.
+
 ```bash
-./scripts/migrate.sh up          # apply pending migrations
-./scripts/migrate.sh down 1      # roll back one
-./scripts/migrate.sh new <name>  # create a new migration file
+git add index.html images/
+git commit -m "content: <what changed>"
+git push origin main
 ```
 
-### 4.2 Seed data
-```bash
-./scripts/seed.sh
-```
-Idempotent — safe to re-run.
+**Post-deploy smoke test (mandatory per `docs/DEPLOY_STANDARDS.md § 5`):**
 
-### 4.3 Connect to local DB
 ```bash
-{{DB_CONNECT_COMMAND, e.g. psql -h localhost -U dev -d Big7Construction}}
-```
-
-### 4.4 Connect to prod DB (read-only)
-**Use the read-only role**. Never query prod with a write-capable role unless you are running a planned migration.
-```bash
-{{PROD_DB_READ_COMMAND}}
+curl -sS -o /dev/null -w "%{http_code}\n" <PROD_URL>
+# expect 200
+curl -sS <PROD_URL> | grep -c 'Big 7'
+# expect ≥ 1 — confirms brand text made it into the served HTML
 ```
 
 ---
 
-## 5. Deploy
+## 5. Rollback
 
-### 5.1 Environments
+Static site, no state — rollback is always safe. Per `docs/DEPLOY_STANDARDS.md § 6`:
 
-| Env | URL | Branch | Deploy trigger |
-|---|---|---|---|
-| local | http://localhost:{{PORT}} | any | manual |
-| staging | {{STAGING_URL}} | `main` | auto on push |
-| production | {{PROD_URL}} | tag `v*` | manual: `{{DEPLOY_COMMAND}}` |
-
-### 5.2 Deploy to staging
-Auto on every merge to `main` via CI.
-
-### 5.3 Deploy to production
-1. Verify staging is healthy (`{{STAGING_URL}}/health`)
-2. Run smoke tests against staging: `./scripts/smoke.sh staging`
-3. Tag the release: `git tag -a v{{X.Y.Z}} -m "release notes" && git push --tags`
-4. {{DEPLOY_COMMAND}} (or watch CI for the tag-triggered deploy)
-5. Verify prod is healthy (`{{PROD_URL}}/health`)
-6. Run smoke tests against prod: `./scripts/smoke.sh prod`
-7. Post in #releases channel
-
-### 5.4 Rollback
 ```bash
-{{ROLLBACK_COMMAND, e.g. git revert <sha> && git push, or platform-specific rollback}}
+git revert <bad-sha>
+git push origin main
+# Railway redeploys in ~90s
 ```
-**Always rollback before debugging if prod is broken.** Fix forward only if rollback would lose data.
 
 ---
 
 ## 6. Debug
 
-### 6.1 Local
-- Logs print to stdout in dev. Set `LOG_LEVEL=DEBUG` in `.env` for more.
-- Attach debugger: {{DEBUGGER_INSTRUCTIONS}}
+### 6.1 Locally
 
-### 6.2 Staging / prod logs
+- Open browser DevTools. There is no JS to break, so most bugs are CSS or HTML structure.
+- Missing image? Check the `images/` folder is intact and paths in `index.html` match.
+
+### 6.2 Prod logs
+
 ```bash
-{{LOG_TAIL_COMMAND, e.g. railway logs --tail, az webapp log tail, fly logs}}
+railway logs
 ```
+
+nginx access lines print to stdout. `502` from Railway means the container isn't binding to `$PORT` — check the `sed` step in the Dockerfile ran.
 
 ### 6.3 Common failure modes
 
 | Symptom | Likely cause | Fix |
 |---|---|---|
-| `build.sh` fails at "installing packages" | Wrong runtime version | Check § 1.1; install correct version |
-| 500 on every request | Missing env var | Compare `.env` to `.env.example`, check prod config |
-| Tests pass locally, fail in CI | OS-specific path / case sensitivity | Use forward slashes; case-sensitive imports |
-| DB connection refused | DB container not running | `docker compose up -d {{DB_SERVICE}}` |
-| {{ADD_PROJECT_SPECIFIC}} | | |
-
-### 6.4 When stuck
-1. Read the last 500 lines of logs, slowly
-2. Reproduce locally with prod env values (sanitized)
-3. Check the last 5 commits — did something change at the same time as the symptom?
-4. Ask in {{CHANNEL}} with: the symptom, what you tried, the relevant log lines
+| 502 on prod URL | nginx not binding to `$PORT` | Rebuild + check the `sed` line in Dockerfile substituted `NGINX_PORT` correctly |
+| Images missing on prod but present locally | New image not added to git | `git status`, `git add images/<file>`, commit, push |
+| Fonts fail to load | Google Fonts blocked / typo in URL | Verify `<link>` tags at top of `<head>` |
+| Layout breaks on mobile | Broken CSS media query | Bisect back to the last working commit |
 
 ---
 
-## 7. On-call / incident response
+## 7. Content editing rules
 
-### 7.1 Alerts route to
-{{ALERTING_SETUP, e.g. PagerDuty service "X", Slack channel "#alerts-x"}}
-
-### 7.2 Severity
-- **SEV1** — full outage. Page on-call. Rollback immediately, investigate after.
-- **SEV2** — degraded (>10% errors, slow). Page on-call. Investigate within 1 hour.
-- **SEV3** — single feature broken, workaround exists. Open issue, fix next sprint.
-
-### 7.3 During an incident
-1. Acknowledge the alert
-2. Post in {{INCIDENT_CHANNEL}}: "Investigating {{symptom}}"
-3. Decide: rollback or fix-forward (default: rollback)
-4. Communicate every 15 min until resolved
-5. Post-incident: write a postmortem in `docs/postmortems/YYYY-MM-DD-{{slug}}.md` within 48h
+- **No JavaScript.** Pure HTML + CSS. If a feature needs JS, that's a scope conversation, not a quick edit.
+- **All styles in the `<style>` block inside `index.html`.** No external CSS.
+- **Images go in `images/`** and are copied into the Docker image.
+- **Fonts:** Anton (display headings) + Barlow (body), both from Google Fonts.
+- **Palette:** warm off-white, orange-red, electric blue.
+- **Nav brand link** (`.brand`) points at `#hero` — matches the "01 Home" nav entry. If you rename the hero section id, update both.
 
 ---
 
 ## 8. Secrets
 
-| Where | Used for | Managed by |
-|---|---|---|
-| `.env` (local) | Dev | Each developer; never committed |
-| {{PROD_SECRET_STORE, e.g. Railway env, Azure Key Vault, AWS Secrets Manager}} | Staging, prod | {{OWNER}} |
+**None.** Fully static site.
 
-**Rotation:** every 90 days, or immediately if leak is suspected. See `docs/secret-rotation.md`.
+Global rotation cadence per `docs/SECURITY_STANDARDS.md` doesn't apply — no secrets to rotate.
 
 ---
 
 ## 9. Useful one-liners
 
 ```bash
-# Reset local DB completely
-./scripts/db-reset.sh
+# Sanity check the Dockerfile port substitution before pushing
+grep -E "NGINX_PORT|sed.*PORT" Dockerfile nginx.conf
 
-# Generate OpenAPI spec from running service
-curl {{LOCAL_URL}}/openapi.json > openapi.json
-
-# Re-run last failed test
-{{LAST_FAILED_COMMAND}}
-
-# Format + lint everything
-./scripts/lint.sh --fix
+# Count images referenced vs images on disk (should match)
+grep -oE 'images/[^"'"'"']+' index.html | sort -u | wc -l
+ls images/ | wc -l
 ```
+
+---
+
+## Cross-refs
+
+- **Where Big7 fits in the tree:** `../PROJECT_GLOSSARY.md`
+- **Live URL manifest:** `../STATUS.md § 🟢 LIVE right now`
+- **CTA + intake standard:** `../docs/CONVERSION_STANDARDS.md`
+- **Deploy standard:** `../docs/DEPLOY_STANDARDS.md`
+- **Hosting choice rationale:** `../docs/HOSTING_STANDARDS.md` + `../docs/DECISIONS.md § D-001` (Railway default)
