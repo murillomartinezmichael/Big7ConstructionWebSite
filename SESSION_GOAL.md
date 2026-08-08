@@ -1,4 +1,4 @@
 PROJECT: Big7Construction
-GOAL:    Two-path restructure shipped: homepage is a lean chooser (hero + path cards + trust strip, no form), commercial-industrial.html and residential-construction.html are full destination pages each with a verified Formspree intake form, home-repair.html 301s to residential#home-repair, shared money JS extracted to /big7.js, full `make test` + `make test-container` green, merged to main.
-BUDGET:  Full working session (multi-phase; plan at ~/.claude/plans, 8-commit sequence)
-STARTED: 2026-07-17
+GOAL:    verify-standards green on main's HEAD commit (rerun after runner-acquisition failure), resilience fix on session/2026-08-07-verify-standards as draft PR with CI green on PR head, www-drift docs corrected + decision item in PENDING_MANUAL.md, gate receipt at docs/handoffs/2026-08-07-Big7Construction-gate.md.
+BUDGET:  90 min (Lane B, Fable final-week)
+STARTED: 2026-08-06 (Lane B session)
