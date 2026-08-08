@@ -9,7 +9,11 @@
    ═══════════════════════════════════════════════════════════════════ */
 
 /* Page slug for analytics payloads: '/' → 'home',
-   '/commercial-industrial.html' → 'commercial-industrial', etc. */
+   '/commercial-industrial' → 'commercial-industrial', etc.
+   Internal links + canonicals all use the clean extensionless form (the
+   `.html` URLs 307 to it), but the `.html` strip below stays as a defensive
+   normalizer so a legacy inbound/bookmarked `.html` URL still reports the
+   SAME analytics slug instead of splitting the funnel into two page keys. */
 var BIG7_PAGE = (function () {
   var p = window.location.pathname.replace(/\/+$/, '') || '/';
   if (p === '/' || p === '/index.html') return 'home';
@@ -169,7 +173,7 @@ async function submitForm(e) {
 
   // ─── URL-param prefill (bio-link landing) ────────────────
   // Money path: a TikTok / Instagram / email-footer bio link like
-  //   https://big7construction.com/commercial-industrial.html?intent=service:tenant-improvement&src=tiktok-bio
+  //   https://big7construction.com/commercial-industrial?intent=service:tenant-improvement&src=tiktok-bio
   // lands the visitor on a form that already knows why they came.
   // Also accepts `?type=<projectType>` (direct radio value — bio-link
   // authors can pick from the radio values without knowing the

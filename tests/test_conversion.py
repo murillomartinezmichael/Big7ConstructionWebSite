@@ -76,6 +76,38 @@ REBUILT_LANE_SRC: dict[str, str] = {
 # menu. Tighten to 4 the next time the lane pages are re-audited.
 MIN_LANE_CTAS = 3
 
+# Compliance-packet download (2026-07-20 competitor-research fix): the
+# #credentials block on the commercial lane used to route "Request the
+# compliance packet" to the contact form with nothing to actually send.
+# Now it links straight to a real PDF compiled from the page's own
+# cred-table. Locks both halves so a future edit can't silently drop the
+# file or repoint the link at a dead path.
+COMPLIANCE_PACKET_PATH = "docs/big7-capability-statement.pdf"
+COMPLIANCE_PACKET_HREF = "/docs/big7-capability-statement.pdf"
+COMPLIANCE_PACKET_MIN_BYTES = 1000
+
+
+def check_compliance_packet_link(lane_html: str) -> list[str]:
+    errors: list[str] = []
+    pdf_path = REPO_ROOT / COMPLIANCE_PACKET_PATH
+    if not pdf_path.exists():
+        errors.append(
+            f"{COMPLIANCE_PACKET_PATH} does not exist — the 'Request the "
+            f"compliance packet' link would 404"
+        )
+    elif pdf_path.stat().st_size < COMPLIANCE_PACKET_MIN_BYTES:
+        errors.append(
+            f"{COMPLIANCE_PACKET_PATH} is only {pdf_path.stat().st_size} bytes "
+            f"— looks like an empty placeholder, not a real compiled statement"
+        )
+    if f'href="{COMPLIANCE_PACKET_HREF}"' not in lane_html:
+        errors.append(
+            f'commercial-industrial.html: no href="{COMPLIANCE_PACKET_HREF}" found '
+            f"— compliance-packet CTA no longer points at the real PDF "
+            f"(regressed back to '#contact' or a dead path)"
+        )
+    return errors
+
 INTENT_TO_TYPE_BLOCK_RE = re.compile(
     r"const\s+INTENT_TO_TYPE\s*=\s*\{(?P<body>[^}]*)\}",
     re.DOTALL,
@@ -415,10 +447,35 @@ def _selftest(html: str) -> int:
             print(f"SELFTEST FAIL: {f}", file=sys.stderr)
         return 1
 
-    total = len(cases) + len(rebuilt_cases)
+    packet_baseline = f'<a href="{COMPLIANCE_PACKET_HREF}" data-intent="bid:compliance-packet">Download</a>'
+    packet_baseline_errs = check_compliance_packet_link(packet_baseline)
+    if packet_baseline_errs:
+        print("SELFTEST ABORT: compliance-packet baseline itself fails:", file=sys.stderr)
+        for e in packet_baseline_errs:
+            print(f"  {e}", file=sys.stderr)
+        return 1
+
+    packet_mutated = packet_baseline.replace(f'href="{COMPLIANCE_PACKET_HREF}"', 'href="#contact"')
+    packet_errs = check_compliance_packet_link(packet_mutated)
+    if not packet_errs:
+        print(
+            "SELFTEST FAIL: compliance-packet link regressed to '#contact' but "
+            "check_compliance_packet_link found no error",
+            file=sys.stderr,
+        )
+        return 1
+    if not any("no longer points at the real PDF" in e for e in packet_errs):
+        print(
+            f"SELFTEST FAIL: compliance-packet regression caught but wrong error: {packet_errs}",
+            file=sys.stderr,
+        )
+        return 1
+
+    total = len(cases) + len(rebuilt_cases) + 1
     print(
         f"SELFTEST OK: {total} broken inputs all caught with the expected error "
-        f"({len(cases)} mapping/attribution + {len(rebuilt_cases)} rebuilt-lane)."
+        f"({len(cases)} mapping/attribution + {len(rebuilt_cases)} rebuilt-lane + "
+        f"1 compliance-packet)."
     )
     return 0
 
@@ -450,6 +507,8 @@ def main(argv: list[str]) -> int:
             min_ctas=MIN_LANE_CTAS,
         ))
         lane_link_count += len(parse_intents(lane_html))
+        if lane == "commercial-industrial.html":
+            errors.extend(check_compliance_packet_link(lane_html))
 
     if errors:
         for e in errors:

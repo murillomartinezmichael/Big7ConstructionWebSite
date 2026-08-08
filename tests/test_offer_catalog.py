@@ -139,7 +139,13 @@ def assert_catalog(parent: dict, expected_lane_urls: list[str]) -> list[str]:
                     f"{CANONICAL_ORIGIN}/, got {url!r}"
                 )
             path_part = url[len(CANONICAL_ORIGIN) + 1:] if url.startswith(CANONICAL_ORIGIN + "/") else ""
-            if path_part and not (REPO_ROOT / path_part).is_file():
+            # Clean-URL form (2026-07-19): lane URLs are extensionless
+            # (`/commercial-industrial` serves commercial-industrial.html);
+            # accept either the literal file or the `.html` sibling.
+            if path_part and not (
+                (REPO_ROOT / path_part).is_file()
+                or (REPO_ROOT / f"{path_part}.html").is_file()
+            ):
                 errors.append(
                     f"{prefix}.url points at {path_part!r} which is not an on-disk lane file"
                 )

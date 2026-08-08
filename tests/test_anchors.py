@@ -57,11 +57,45 @@ PAGES = (
     ("index.html", 5, ("main", "contact")),
     ("commercial-industrial.html", 10, ("main", "contact")),
     ("residential-construction.html", 10, ("main", "contact", "home-repair")),
+    # Case-study page (2026-07-20): no #contact section of its own — its
+    # CTAs link cross-page to commercial-industrial.html#contact, which
+    # HREF_ANCHOR_RE does not match (only bare href="#name"), so 0 is the
+    # honest floor here.
+    ("south-fulton-distribution.html", 0, ("main",)),
 )
 
 # Skip-link target — WCAG 2.4.1 "Bypass Blocks". Assert unconditionally so
 # a future edit can't silently drop it.
 REQUIRED_ANCHORS = ("main", "contact")
+
+# Cross-page reachability lock (2026-07-20 fix): south-fulton-distribution.html
+# shipped fully wired into sitemap/Dockerfile/OG/meta/a11y tests, but its ONLY
+# inbound link was itself — the industrial-01 pf-card on
+# commercial-industrial.html pointed href="#contact" instead of the case-study
+# page, so a human could reach it only via a direct URL or SERP click (the
+# same orphan-page bug class test_lane_nav.py locked for the two lane pages
+# on 2026-07-16). Fixed by repointing the pf-card's href; this lock guards
+# the fix against silent regression (e.g. a future portfolio-grid refactor
+# reverting every card back to a uniform href="#contact").
+#
+# 2026-08-03: the link must now use the CLEAN extensionless path — the `.html`
+# form 307s on the live worker, so a `.html` card href costs the visitor an
+# extra hop. The regex rejects `.html` rather than tolerating both forms, so
+# the clean shape cannot silently drift back.
+CASE_STUDY_PAGE = "south-fulton-distribution.html"
+CASE_STUDY_HOST_PAGE = "commercial-industrial.html"
+CASE_STUDY_LINK_RE = re.compile(r'href="/south-fulton-distribution"', re.IGNORECASE)
+
+
+def check_case_study_reachable(host_html: str) -> list[str]:
+    """Return errors if commercial-industrial.html has no real link to the
+    South Fulton case-study page. Empty list = PASS."""
+    if CASE_STUDY_LINK_RE.search(host_html):
+        return []
+    return [
+        f"{CASE_STUDY_HOST_PAGE} has no href to {CASE_STUDY_PAGE} — the "
+        f"case-study page is orphaned (reachable only by direct URL/SERP)"
+    ]
 
 
 def check_anchors(
@@ -220,12 +254,27 @@ def selftest() -> int:
         if err:
             misses.append(err)
 
+    # check_case_study_reachable — separate mini-fixture (it inspects one
+    # <a href> pattern on a host page, not the anchor-id contract above).
+    host_baseline = '<a class="pf-card" href="/south-fulton-distribution" data-intent="portfolio:industrial-01">card</a>'
+    if check_case_study_reachable(host_baseline):
+        misses.append("case-study reachable baseline: expected PASS, got a failure")
+    # Extra mutation (2026-08-03): the legacy `.html` href must FAIL now, so a
+    # revert to the redirecting form is caught, not silently tolerated.
+    legacy = host_baseline.replace('href="/south-fulton-distribution"', 'href="/south-fulton-distribution.html"')
+    if not check_case_study_reachable(legacy):
+        misses.append("case-study `.html` href: expected FAIL (307 hop), got PASS")
+    orphaned = host_baseline.replace('href="/south-fulton-distribution"', 'href="#contact"')
+    orphan_errors = check_case_study_reachable(orphaned)
+    if not orphan_errors or "orphaned" not in orphan_errors[0]:
+        misses.append(f"case-study re-orphaned mutation: expected 'orphaned' failure, got {orphan_errors!r}")
+
     if misses:
         for m in misses:
             print(f"SELFTEST FAIL: {m}", file=sys.stderr)
         return 1
 
-    print(f"SELFTEST OK: baseline PASS + {len(mutations)}/{len(mutations)} mutations caught")
+    print(f"SELFTEST OK: baseline PASS + {len(mutations)}/{len(mutations)} mutations caught + case-study reachability lock verified")
     return 0
 
 
@@ -252,10 +301,19 @@ def main() -> int:
     if failed:
         return 1
 
+    host_path = REPO_ROOT / CASE_STUDY_HOST_PAGE
+    host_html = host_path.read_text(encoding="utf-8")
+    case_study_errors = check_case_study_reachable(host_html)
+    if case_study_errors:
+        for e in case_study_errors:
+            print(f"FAIL: {e}", file=sys.stderr)
+        return 1
+
     print(
         f"OK: {total_refs} href=\"#...\" references across {len(PAGES)} pages all "
         f"resolve to real ids; per-page #contact floors hold; skip-link, money "
-        f"targets, and the residential #home-repair 301 target present"
+        f"targets, and the residential #home-repair 301 target present; "
+        f"{CASE_STUDY_PAGE} is human-reachable from {CASE_STUDY_HOST_PAGE}"
     )
     return 0
 

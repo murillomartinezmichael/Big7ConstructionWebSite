@@ -25,12 +25,25 @@ Locks (index.html):
      leaves the wrong half of the pair on the main thread).
   7. Total <img> count is at or above MIN_IMGS floor (guards a silent
      mass-delete regression of the portfolio grid).
+  8. No <img src> repeats on the same page (2026-07-19 competitor
+     research: jobsite-02.jpg shipped on 3 of 4 commercial pf-cards;
+     prequal buyers read duplicated photos as "no real portfolio". With
+     only 2 real shots on hand a card either gets its own photo or no
+     photo -- the LCP-preload uniqueness check never saw this class).
+  9. No two files in images/ are BYTE-IDENTICAL under different names
+     (2026-08-05 audit: jobsite-01.jpg md5 == jobsite-02.jpg -- the
+     filename-uniqueness lock in #8 was satisfied while both lane pages
+     served the SAME photo twice as two "different" projects. Hashes
+     catch what filenames cannot). The one known pair is allowlisted at
+     WARN level until the client sends real photos (PENDING_MANUAL);
+     any NEW duplicate pair is a hard FAIL.
 
-Python 3.11+ stdlib only (`re`, `pathlib`, `sys`, `tempfile`). No pip
-install, no network.
+Python 3.11+ stdlib only (`hashlib`, `re`, `pathlib`, `sys`, `tempfile`).
+No pip install, no network.
 """
 from __future__ import annotations
 
+import hashlib
 import re
 import sys
 import tempfile
@@ -45,9 +58,23 @@ IMAGES_DIR = REPO_ROOT / "images"
 MIN_IMGS = 6  # selftest fixture floor; real pages use PAGES below
 PAGES = (
     # (path, min imgs, require LCP hints: fetchpriority=high + preload-as-image)
+    # Lane floors are 2 (was 4 on commercial): only 2 real jobsite shots
+    # exist and the same-page uniqueness lock forbids repeats, so 2 imaged
+    # cards per lane is the honest maximum until the client sends real
+    # project photos (PENDING_MANUAL).
     ("index.html", 1, True),
-    ("commercial-industrial.html", 4, False),
+    ("commercial-industrial.html", 2, False),
     ("residential-construction.html", 2, False),
+)
+
+# Byte-identical files shipped knowingly, pending client photos
+# (PENDING_MANUAL "Get the jobsite photo folder from the client"). Each
+# entry is a frozenset of filenames allowed to share one hash -- reported
+# at WARN level so every `make test` run keeps the reminder visible
+# without going red on a tracked, Mike-gated condition. Remove the entry
+# the moment real photos land; any duplicate pair NOT listed here fails.
+KNOWN_DUPLICATE_GROUPS: tuple[frozenset[str], ...] = (
+    frozenset({"jobsite-01.jpg", "jobsite-02.jpg"}),
 )
 
 IMG_TAG_RE = re.compile(r'<img\b(?P<attrs>[^>]*)/?>', re.IGNORECASE)
@@ -95,6 +122,7 @@ def check(
         )
 
     fp_high_srcs: list[str] = []
+    src_counts: dict[str, int] = {}
 
     for i, m in enumerate(imgs):
         attrs = m.group("attrs")
@@ -134,6 +162,9 @@ def check(
                         f'file at {on_disk} (git rm without href update?)'
                     )
 
+        if src is not None:
+            src_counts[src] = src_counts.get(src, 0) + 1
+
         if fp == "high" and src is not None:
             fp_high_srcs.append(src)
 
@@ -157,6 +188,14 @@ def check(
             f'has to arbitrate between competing "highest" claims'
         )
 
+    for s, n in sorted(src_counts.items()):
+        if n > 1:
+            errors.append(
+                f'<img src={s!r}> appears {n} times on the same page -- '
+                f'duplicated photos read as "no real portfolio"; each card '
+                f'gets its own shot or no shot'
+            )
+
     preload_hrefs = _preload_image_hrefs(html)
     if not preload_hrefs:
         if require_lcp_hints:
@@ -172,6 +211,47 @@ def check(
         )
 
     return errors
+
+
+def check_content_hashes(
+    images_dir: Path,
+    known_duplicate_groups: tuple[frozenset[str], ...] = KNOWN_DUPLICATE_GROUPS,
+) -> tuple[list[str], list[str]]:
+    """Hash every file under images/; group by digest.
+
+    Returns (errors, warnings). A digest shared by 2+ files is an error
+    unless that exact filename set is covered by an allowlisted group --
+    then it is a warning (known placeholder pair, client-gated fix).
+    Filenames lock the check to *what ships*, so a stale allowlist entry
+    (photos replaced, entry forgotten) simply stops matching and any new
+    duplication fails loudly.
+    """
+    errors: list[str] = []
+    warnings: list[str] = []
+    by_hash: dict[str, list[str]] = {}
+    for p in sorted(images_dir.iterdir()):
+        if p.is_file():
+            digest = hashlib.md5(p.read_bytes()).hexdigest()
+            by_hash.setdefault(digest, []).append(p.name)
+
+    for digest, names in sorted(by_hash.items()):
+        if len(names) < 2:
+            continue
+        name_set = frozenset(names)
+        if any(name_set <= group for group in known_duplicate_groups):
+            warnings.append(
+                f'KNOWN duplicate ({" == ".join(sorted(names))}, md5 {digest[:8]}...) '
+                f'-- same photo shipping under two names, pending real client '
+                f'photos (PENDING_MANUAL). Remove KNOWN_DUPLICATE_GROUPS entry '
+                f'when they land.'
+            )
+        else:
+            errors.append(
+                f'files {sorted(names)} are byte-identical (md5 {digest[:8]}...) '
+                f'-- the same photo shipping under different names reads as a '
+                f'faked portfolio; each name must be a distinct real image'
+            )
+    return errors, warnings
 
 
 # ---------------------------------------------------------------------------
@@ -201,9 +281,11 @@ def _valid_html(min_imgs: int = MIN_IMGS) -> str:
 def _fake_images_dir(tmp_root: Path, min_imgs: int = MIN_IMGS) -> Path:
     d = tmp_root / "images"
     d.mkdir(parents=True, exist_ok=True)
-    (d / "hero.jpg").write_bytes(b"\xff\xd8\xff\xe0\x00\x10JFIF")
+    # Distinct trailing bytes per file: the content-hash lock (#9) must see
+    # unique digests in the baseline fixture.
+    (d / "hero.jpg").write_bytes(b"\xff\xd8\xff\xe0\x00\x10JFIF hero")
     for i in range(min_imgs - 1):
-        (d / f"pf-{i}.jpg").write_bytes(b"\xff\xd8\xff\xe0\x00\x10JFIF")
+        (d / f"pf-{i}.jpg").write_bytes(b"\xff\xd8\xff\xe0\x00\x10JFIF pf-%d" % i)
     return d
 
 
@@ -300,6 +382,13 @@ def _selftest() -> None:
                 ),
                 'no <link rel="preload" as="image">',
             ),
+            (
+                'same photo reused on two cards',
+                baseline.replace(
+                    'src="images/pf-1.jpg"', 'src="images/pf-0.jpg"', 1,
+                ),
+                'appears 2 times on the same page',
+            ),
         ]
 
         for label, mutated, needle in mutations:
@@ -315,8 +404,35 @@ def _selftest() -> None:
                     f'{needle!r}: {errs}'
                 )
 
+        # --- content-hash lock (#9) ---------------------------------------
+        h_errs, h_warns = check_content_hashes(imgs_dir, ())
+        assert not h_errs and not h_warns, (
+            f'hash baseline (all files unique) should be clean, got '
+            f'errors={h_errs} warnings={h_warns}'
+        )
+
+        # Mutation: a second file gets byte-identical content -> hard FAIL.
+        (imgs_dir / "pf-1.jpg").write_bytes((imgs_dir / "pf-0.jpg").read_bytes())
+        h_errs, h_warns = check_content_hashes(imgs_dir, ())
+        if not h_errs or "byte-identical" not in " | ".join(h_errs):
+            raise AssertionError(
+                f'duplicate-content mutation should FAIL with "byte-identical", '
+                f'got errors={h_errs}'
+            )
+
+        # False-positive guard: the SAME pair allowlisted -> WARN, no error.
+        h_errs, h_warns = check_content_hashes(
+            imgs_dir, (frozenset({"pf-0.jpg", "pf-1.jpg"}),)
+        )
+        if h_errs or not h_warns or "KNOWN duplicate" not in " | ".join(h_warns):
+            raise AssertionError(
+                f'allowlisted pair should WARN (not fail), got '
+                f'errors={h_errs} warnings={h_warns}'
+            )
+
     print(
-        f'OK: baseline PASS + {len(mutations)}/{len(mutations)} mutations caught'
+        f'OK: baseline PASS + {len(mutations)}/{len(mutations)} mutations caught '
+        f'+ content-hash lock (unique-clean / duplicate-fails / allowlist-warns) PASS'
     )
 
 
@@ -342,14 +458,25 @@ def main() -> int:
             failed = True
             continue
         total += len(list(IMG_TAG_RE.finditer(html)))
+
+    hash_errors, hash_warnings = check_content_hashes(IMAGES_DIR)
+    if hash_errors:
+        print('FAIL: images/ content-hash violations:', file=sys.stderr)
+        for e in hash_errors:
+            print('  -', e, file=sys.stderr)
+        failed = True
+
     if failed:
         return 1
 
     print(
         f'OK: {total} <img> tags across {len(PAGES)} pages; all alts non-empty; '
         f'index hero fp=high + <link rel=preload as=image> href agree; every '
-        f'loading=lazy carries decoding=async'
+        f'loading=lazy carries decoding=async; no un-allowlisted byte-identical '
+        f'files in images/'
     )
+    for w in hash_warnings:
+        print(f'  WARN: {w}')
     return 0
 
 

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Big 7 Construction — Commercial · Industrial · Residential General Contractor · Atlanta</title>
+  <title>Commercial &amp; Residential Construction, Metro Atlanta | Big 7</title>
   <meta name="description" content="Big 7 Construction is a metro Atlanta general contractor. Two divisions — commercial &amp; enterprise, residential &amp; repair — every trade in-house. Licensed, bonded, insured. Full itemized bid inside two weeks." />
   <meta name="theme-color" content="#08090B" />
   <link rel="canonical" href="https://big7construction.com/" />
@@ -133,7 +133,7 @@
         {
           "@type": "OfferCatalog",
           "name": "Commercial & Industrial",
-          "url": "https://big7construction.com/commercial-industrial.html",
+          "url": "https://big7construction.com/commercial-industrial",
           "itemListElement": [
             { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Enterprise Framing", "description": "Structural steel and wood framing for multi-story commercial, mixed-use, and industrial builds. Up to 6 stories, Type IIB & V-A, SEOR-coordinated." } },
             { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Commercial New Construction", "description": "Ground-up offices, retail, hospitality, and institutional buildings — permit to punch list. Design-build option, GC of record, bonded per project." } },
@@ -144,7 +144,7 @@
         {
           "@type": "OfferCatalog",
           "name": "Residential Construction",
-          "url": "https://big7construction.com/residential-construction.html",
+          "url": "https://big7construction.com/residential-construction",
           "itemListElement": [
             { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Custom Home Builds", "description": "Ground-up residential with owner-vision plans and defensible budget discipline. 2,400–8,000 sq ft, 8–14 months, fixed-price milestones." } },
             { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Structural Repair & Remodeling", "description": "Storm damage, foundation issues, additions, and full renovations. One crew, one warranty. Foundation, framing, roof, full mechanical." } },
@@ -191,12 +191,12 @@
           'portfolio:structural-06':      'residential-remodel'
         };
         var TYPE_TO_LANE = {
-          'commercial-new':       '/commercial-industrial.html',
-          'industrial-warehouse': '/commercial-industrial.html',
-          'tenant-improvement':   '/commercial-industrial.html',
-          'residential-custom':   '/residential-construction.html',
-          'residential-remodel':  '/residential-construction.html',
-          'trades-only':          '/residential-construction.html'
+          'commercial-new':       '/commercial-industrial',
+          'industrial-warehouse': '/commercial-industrial',
+          'tenant-improvement':   '/commercial-industrial',
+          'residential-custom':   '/residential-construction',
+          'residential-remodel':  '/residential-construction',
+          'trades-only':          '/residential-construction'
         };
         var resolvedType = type || INTENT_TO_TYPE[intent] || '';
         var lane = TYPE_TO_LANE[resolvedType];
@@ -591,8 +591,16 @@
       color: var(--ink-600);
       font-variant-numeric: tabular-nums;
       transition: color 0.2s;
+      /* >=48px tap target (WCAG 2.5.8 — SiteAudit tap_target_size measured
+         this link at 17px): vertical padding + negative margin grow the hit
+         box without moving the rendered line. */
+      padding: 16px 10px;
+      margin: -16px -10px;
     }
-    @media (min-width: 1100px) { .nav-phone { display: inline; } }
+    /* 769px (not 1100): below this the sticky .call-bar owns click-to-call,
+       above it the header phone must be the tappable number (SiteAudit
+       click_to_call). */
+    @media (min-width: 769px) { .nav-phone { display: inline-block; } }
     .nav-phone:hover { color: var(--accent-500); }
 
     .nav-cta { display: none; }
@@ -1147,6 +1155,61 @@
     @media (min-width: 768px) { .foot-bottom { flex-direction: row; } }
     .foot-bottom .tab { font-variant-numeric: tabular-nums; }
 
+    /* ─── STICKY MOBILE CALL BAR ─────────────────────────────── */
+    /* SiteAudit sticky_mobile_cta: the page is >2 viewports tall with no
+       floating call CTA on mobile. Fixed bottom bar <=768px only — tel: +
+       intake deep-link, both >=48px tap targets. body padding-bottom
+       reserves the bar's height so it never covers content; the entrance
+       slide only runs under prefers-reduced-motion: no-preference. */
+    .call-bar { display: none; }
+    @media (max-width: 768px) {
+      .call-bar {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 50; /* above nav.top (40), below skip-link (999) */
+        display: flex;
+        gap: 10px;
+        padding: 10px 14px calc(10px + env(safe-area-inset-bottom, 0px));
+        background: rgba(245, 241, 234, 0.97);
+        border-top: 1px solid var(--ink-100);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+      }
+      .call-bar a {
+        flex: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 48px; /* WCAG 2.5.8 / Google tap-target floor */
+        font-family: 'Inter', 'Inter Fallback', sans-serif;
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        text-decoration: none;
+        border: 1px solid transparent;
+      }
+      .call-bar .cb-call {
+        border-color: var(--ink-900);
+        color: var(--ink-900);
+        background: transparent;
+        font-variant-numeric: tabular-nums;
+      }
+      .call-bar .cb-bid { background: var(--accent-600); color: #fff; }
+      body { padding-bottom: 80px; }
+      /* Lift the SiteGuide chat launcher clear of the bar (widget injects
+         plain DOM into the page, so host CSS wins). */
+      .sg-trigger { bottom: 84px !important; }
+    }
+    @media (max-width: 768px) and (prefers-reduced-motion: no-preference) {
+      .call-bar { animation: call-bar-in 300ms ease-out; }
+      @keyframes call-bar-in {
+        from { transform: translateY(100%); }
+        to { transform: translateY(0); }
+      }
+    }
+
     /* ─── REDUCED MOTION ─────────────────────────────────────── */
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after {
@@ -1195,7 +1258,6 @@
     }
     .trust-quote .qmark { color: var(--accent-500); }
     .trust-attr .name { font-weight: 600; color: var(--ink-900); margin: 0 0 4px; }
-    .trust-attr .trust-stars .s { color: var(--accent-500); letter-spacing: 2px; }
     .trust-more { margin: 20px 0 0; }
     .trust-more a {
       font-size: 14px; font-weight: 600; color: var(--ink-900);
@@ -1243,8 +1305,8 @@
       <ul class="nav-links" aria-label="Primary">
         <li><a href="#hero" class="active"><span class="n">01</span>Home</a></li>
         <li><a href="#two-paths"><span class="n">02</span>Two Paths</a></li>
-        <li><a href="/commercial-industrial.html"><span class="n">→</span>Commercial</a></li>
-        <li><a href="/residential-construction.html"><span class="n">→</span>Residential</a></li>
+        <li><a href="/commercial-industrial"><span class="n">→</span>Commercial</a></li>
+        <li><a href="/residential-construction"><span class="n">→</span>Residential</a></li>
         <li><a href="#contact"><span class="n">03</span>Contact</a></li>
       </ul>
       <div class="nav-right">
@@ -1260,8 +1322,9 @@
         <a href="#hero" onclick="toggleMenu()"><span class="n">01</span>Home</a>
         <a href="#two-paths" onclick="toggleMenu()"><span class="n">02</span>Two Paths</a>
         <a href="#contact" onclick="toggleMenu()"><span class="n">03</span>Contact</a>
-        <a href="/commercial-industrial.html"><span class="n">→</span>Commercial &amp; Industrial</a>
-        <a href="/residential-construction.html"><span class="n">→</span>Residential Construction</a>
+        <a href="/commercial-industrial"><span class="n">→</span>Commercial &amp; Industrial</a>
+        <a href="/residential-construction"><span class="n">→</span>Residential Construction</a>
+        <a href="tel:5557000007"><span class="n">→</span>Call (555) 700-0007</a>
         <a href="#contact" class="btn btn-accent" onclick="toggleMenu()" data-intent="bid:mobile-menu">Request a bid →</a>
       </div>
     </div>
@@ -1307,7 +1370,7 @@
       </div>
       <div class="hero-photo">
         <div class="hero-photo-frame blueprint-grid" data-parallax>
-          <img src="images/jobsite-01.jpg" alt="Active Big 7 Construction jobsite — commercial framing in mid-erection" fetchpriority="high" onerror="this.style.display='none'" />
+          <img src="images/jobsite-01.jpg" alt="Aerial view of an active Big 7 Construction jobsite — sitework and concrete foundation formwork in progress" fetchpriority="high" onerror="this.style.display='none'" />
           <div class="hero-photo-shade" aria-hidden="true"></div>
           <div class="hero-photo-caption">
             <div>
@@ -1315,7 +1378,7 @@
               <p class="cap-title">42,000 sq ft distribution facility</p>
               <p class="cap-meta">South Fulton, GA · Pre-engineered metal · Design-build</p>
             </div>
-            <a href="/commercial-industrial.html#portfolio" style="color: var(--accent-500);" aria-label="See commercial portfolio">
+            <a href="/commercial-industrial#portfolio" style="color: var(--accent-500);" aria-label="See commercial portfolio">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 17L17 7M17 7H8M17 7v9"/></svg>
             </a>
           </div>
@@ -1357,8 +1420,8 @@
       </div>
       <nav class="lane-strip reveal" aria-label="Buyer lanes" style="--reveal-delay: 250ms">
         <p class="lbl">Deep dives by buyer</p>
-        <a href="/commercial-industrial.html">Commercial &amp; Industrial <span class="arrow" aria-hidden="true">→</span></a>
-        <a href="/residential-construction.html">Residential Construction <span class="arrow" aria-hidden="true">→</span></a>
+        <a href="/commercial-industrial">Commercial &amp; Industrial <span class="arrow" aria-hidden="true">→</span></a>
+        <a href="/residential-construction">Residential Construction <span class="arrow" aria-hidden="true">→</span></a>
       </nav>
       <div class="divisions-grid">
         <div class="div-col">
@@ -1391,7 +1454,7 @@
               <dd>$25M<span class="u">/job</span></dd>
             </div>
           </dl>
-          <a href="/commercial-industrial.html" class="btn btn-accent div-cta">Explore commercial →</a>
+          <a href="/commercial-industrial" class="btn btn-accent div-cta">Explore commercial →</a>
         </div>
         <div class="div-col alt">
           <div class="div-head">
@@ -1423,7 +1486,7 @@
               <dd>10<span class="u">yr</span></dd>
             </div>
           </dl>
-          <a href="/residential-construction.html" class="btn btn-accent div-cta">Explore residential →</a>
+          <a href="/residential-construction" class="btn btn-accent div-cta">Explore residential →</a>
         </div>
       </div>
     </div>
@@ -1440,15 +1503,12 @@
         <li><span class="trust-val">Bonds to $25M</span><span class="spec-label">Performance &amp; payment</span></li>
         <li><span class="trust-val">Zero OSHA recordables</span><span class="spec-label">3-year TRIR</span></li>
       </ul>
-      <blockquote class="trust-quote reveal" style="--reveal-delay: 100ms">
-        <span class="qmark">&ldquo;</span>Big 7 held the schedule down to the day and finished the punch list two weeks early. Every RFI answered inside 24 hours. That never happens.<span class="qmark">&rdquo;</span>
-      </blockquote>
-      <div class="trust-attr reveal" style="--reveal-delay: 200ms">
-        <p class="name">Marcus H., <em>Director of Development</em> · Private industrial client</p>
-        <p class="trust-stars"><span class="s" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</span> <span class="spec-label">4.9 across 60+ verified reviews</span></p>
-      </div>
+      <!-- Trust-strip quote removed 2026-08-05: no documented source for
+           the "Marcus H." attribution (LAW 6). Verbatim quote + restore
+           instructions: PENDING_MANUAL.md § "2026-08-05 unattributable
+           testimonials". Credential badges above are the published claims. -->
       <p class="trust-more reveal" style="--reveal-delay: 250ms">
-        <a href="/commercial-industrial.html#credentials">Full compliance detail →</a>
+        <a href="/commercial-industrial#credentials">Full compliance detail →</a>
       </p>
     </div>
   </section>
@@ -1509,8 +1569,8 @@
     <div class="contact-body">
       <div class="wrap-page contact-lean">
         <div class="contact-paths">
-          <a class="btn btn-accent" href="/commercial-industrial.html#contact" data-intent="bid:contact-commercial">Start a commercial bid →</a>
-          <a class="btn btn-accent" href="/residential-construction.html#contact" data-intent="bid:contact-residential">Start a residential bid →</a>
+          <a class="btn btn-accent" href="/commercial-industrial#contact" data-intent="bid:contact-commercial">Start a commercial bid →</a>
+          <a class="btn btn-accent" href="/residential-construction#contact" data-intent="bid:contact-residential">Start a residential bid →</a>
         </div>
         <div class="skip-form">
           <p class="spec-label" style="color: var(--ink-500);">Or skip the form</p>
@@ -1562,11 +1622,11 @@
         <ul>
           <li><a href="#hero">Home</a></li>
           <li><a href="#two-paths">Two Paths</a></li>
-          <li><a href="/commercial-industrial.html">Commercial &amp; Industrial</a></li>
-          <li><a href="/residential-construction.html">Residential Construction</a></li>
-          <li><a href="/residential-construction.html#home-repair">Home Repair &amp; Improvements</a></li>
+          <li><a href="/commercial-industrial">Commercial &amp; Industrial</a></li>
+          <li><a href="/residential-construction">Residential Construction</a></li>
+          <li><a href="/residential-construction#home-repair">Home Repair &amp; Improvements</a></li>
           <li><a href="#contact">Contact</a></li>
-          <li><a href="/accessibility.html">Accessibility</a></li>
+          <li><a href="/accessibility">Accessibility</a></li>
         </ul>
       </div>
       <div class="foot-col">
@@ -1591,6 +1651,12 @@
       <p class="spec-label" style="color: var(--ink-500);">Licensed · Bonded · Insured</p>
     </div>
   </footer>
+
+  <!-- ─── STICKY MOBILE CALL BAR (<=768px, see .call-bar CSS) ── -->
+  <nav class="call-bar" aria-label="Call or request a bid">
+    <a href="tel:5557000007" class="cb-call">Call (555) 700-0007</a>
+    <a href="#contact" class="cb-bid" data-intent="bid:sticky">Get a bid →</a>
+  </nav>
 
   <div class="grain-overlay" aria-hidden="true"></div>
 
@@ -1697,7 +1763,7 @@
     src="https://siteguide-production.up.railway.app/widget.js"
     data-site="big7"
     data-api="https://siteguide-production.up.railway.app"
-    data-title="Ask Big 7"
+    data-title="Big 7"
     defer></script>
 
 </body>

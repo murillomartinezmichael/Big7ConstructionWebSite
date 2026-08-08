@@ -6,7 +6,7 @@
   <title>Commercial &amp; Industrial — Big 7 Construction</title>
   <meta name="description" content="Commercial and industrial general contracting in Metro Atlanta. Ground-up new construction, warehouse and distribution, tenant improvement, enterprise framing. Licensed, bonded, insured — one accountable GC." />
   <meta name="robots" content="index,follow" />
-  <link rel="canonical" href="https://big7construction.com/commercial-industrial.html" />
+  <link rel="canonical" href="https://big7construction.com/commercial-industrial" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%2308090B'/%3E%3Ctext x='50%25' y='68%25' font-family='Georgia,serif' font-size='38' font-weight='500' text-anchor='middle' fill='%23F5F1EA'%3EB7%3C/text%3E%3Crect x='4' y='4' width='56' height='2' fill='%23E85D2C'/%3E%3C/svg%3E" />
 
   <!--
@@ -18,7 +18,7 @@
   <meta property="og:site_name" content="Big 7 Construction" />
   <meta property="og:title" content="Commercial &amp; Industrial — Big 7 Construction" />
   <meta property="og:description" content="Commercial and industrial GC work in Metro Atlanta. Ground-up new, warehouse, tenant improvement, enterprise framing. One accountable GC." />
-  <meta property="og:url" content="https://big7construction.com/commercial-industrial.html" />
+  <meta property="og:url" content="https://big7construction.com/commercial-industrial" />
   <meta property="og:image" content="https://big7construction.com/images/og-card.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
@@ -42,7 +42,7 @@
     "@type": "BreadcrumbList",
     "itemListElement": [
       { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://big7construction.com/" },
-      { "@type": "ListItem", "position": 2, "name": "Commercial & Industrial", "item": "https://big7construction.com/commercial-industrial.html" }
+      { "@type": "ListItem", "position": 2, "name": "Commercial & Industrial", "item": "https://big7construction.com/commercial-industrial" }
     ]
   }
   </script>
@@ -64,7 +64,7 @@
     "name": "Commercial & Industrial",
     "serviceType": "Commercial and Industrial General Contracting",
     "description": "Commercial and industrial general contracting in Metro Atlanta. Ground-up new construction, warehouse and distribution, tenant improvement, and enterprise framing. One accountable GC — licensed, bonded, insured.",
-    "url": "https://big7construction.com/commercial-industrial.html",
+    "url": "https://big7construction.com/commercial-industrial",
     "provider": {
       "@type": "GeneralContractor",
       "name": "Big 7 Construction",
@@ -94,7 +94,7 @@
           "itemOffered": {
             "@type": "Service",
             "name": "Enterprise Framing",
-            "url": "https://big7construction.com/commercial-industrial.html#contact"
+            "url": "https://big7construction.com/commercial-industrial#contact"
           }
         },
         {
@@ -102,7 +102,7 @@
           "itemOffered": {
             "@type": "Service",
             "name": "Commercial New Construction",
-            "url": "https://big7construction.com/commercial-industrial.html#contact"
+            "url": "https://big7construction.com/commercial-industrial#contact"
           }
         },
         {
@@ -110,7 +110,7 @@
           "itemOffered": {
             "@type": "Service",
             "name": "Industrial & Warehouse",
-            "url": "https://big7construction.com/commercial-industrial.html#contact"
+            "url": "https://big7construction.com/commercial-industrial#contact"
           }
         },
         {
@@ -118,7 +118,7 @@
           "itemOffered": {
             "@type": "Service",
             "name": "Tenant Improvement",
-            "url": "https://big7construction.com/commercial-industrial.html#contact"
+            "url": "https://big7construction.com/commercial-industrial#contact"
           }
         },
         {
@@ -126,7 +126,7 @@
           "itemOffered": {
             "@type": "Service",
             "name": "Trades-Only · Sub to Your GC",
-            "url": "https://big7construction.com/commercial-industrial.html#contact"
+            "url": "https://big7construction.com/commercial-industrial#contact"
           }
         }
       ]
@@ -288,6 +288,13 @@
     }
     .top-links a:hover { color: var(--accent-600); }
     .top-links a.btn-accent { color: #fff; }
+    .top-links a[href^="tel:"] {
+      /* >=48px tap target (WCAG 2.5.8 — SiteAudit tap_target_size flags
+         bare 13px tel: links): padding + negative margin grow the hit box
+         without moving the rendered layout. */
+      padding: 17px 9px;
+      margin: -17px -9px;
+    }
 
     main { max-width: 960px; margin: 0 auto; padding: 56px 24px 96px; flex: 1; width: 100%; }
     section { margin: 0 0 72px; }
@@ -382,6 +389,13 @@
       font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-500);
     }
     .pf-card dd { margin: 0; font-size: 14px; }
+    .pf-case-link {
+      display: block; margin-top: 12px;
+      font-family: 'Barlow Condensed', 'Barlow Condensed Fallback', sans-serif; font-weight: 600;
+      font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--accent-600);
+    }
+    .pf-card:hover .pf-case-link { color: var(--accent-500); }
     .pf-foot { display: flex; gap: 10px 18px; flex-wrap: wrap; align-items: center; }
 
     /* Credentials */
@@ -425,7 +439,6 @@
       margin: 0; padding: 16px 18px; background: #fff;
       border: 1px solid rgba(0,0,0,0.08); border-radius: 4px;
     }
-    .chorus .cs { color: var(--accent-500); letter-spacing: 2px; margin-bottom: 8px; }
     .chorus blockquote { margin: 0 0 10px; font-family: 'Fraunces', 'Fraunces Fallback', Georgia, serif; font-style: italic; font-size: 15px; line-height: 1.55; }
     .chorus figcaption { font-size: 13px; color: var(--ink-500); }
 
@@ -542,6 +555,48 @@
       .cred-note { grid-column: 1; }
       .process-steps li { grid-template-columns: 44px 1fr; }
     }
+    /* ─── STICKY MOBILE CALL BAR ─────────────────────────────── */
+    /* SiteAudit sticky_mobile_cta: >2-viewport page, no floating call CTA
+       on mobile. Fixed bottom bar <=768px only — tel: + intake deep-link,
+       both >=48px tap targets. body padding-bottom keeps the bar clear of
+       content; the entrance slide runs only under
+       prefers-reduced-motion: no-preference. */
+    .call-bar { display: none; }
+    @media (max-width: 768px) {
+      .call-bar {
+        position: fixed; left: 0; right: 0; bottom: 0;
+        z-index: 90; /* below .skip-link (100) */
+        display: flex; gap: 10px;
+        padding: 10px 14px calc(10px + env(safe-area-inset-bottom, 0px));
+        background: var(--paper); border-top: 1px solid rgba(0,0,0,0.08);
+      }
+      .call-bar a {
+        flex: 1; display: inline-flex; align-items: center; justify-content: center;
+        min-height: 48px; /* WCAG 2.5.8 / Google tap-target floor */
+        font-family: 'Barlow Condensed', 'Barlow Condensed Fallback', sans-serif;
+        font-weight: 600; font-size: 14px; letter-spacing: 0.08em;
+        text-transform: uppercase; text-decoration: none; border-radius: 3px;
+      }
+      .call-bar .cb-call {
+        border: 1px solid var(--ink-500); color: var(--ink-800);
+        background: transparent; font-variant-numeric: tabular-nums;
+      }
+      .call-bar .cb-call:hover { border-color: var(--accent-600); color: var(--accent-600); }
+      .call-bar .cb-bid { background: var(--accent-600); color: #fff; }
+      .call-bar .cb-bid:hover { color: #fff; filter: brightness(0.88); }
+      body { padding-bottom: 80px; }
+      /* Lift the SiteGuide chat launcher clear of the bar (widget injects
+         plain DOM into the page, so host CSS wins). */
+      .sg-trigger { bottom: 84px !important; }
+    }
+    @media (max-width: 768px) and (prefers-reduced-motion: no-preference) {
+      .call-bar { animation: call-bar-in 300ms ease-out; }
+      @keyframes call-bar-in {
+        from { transform: translateY(100%); }
+        to { transform: translateY(0); }
+      }
+    }
+
     @media (prefers-reduced-motion: reduce) {
       html { scroll-behavior: auto; }
       *, *::before, *::after {
@@ -564,7 +619,7 @@
     <a href="/" class="brand">BIG&nbsp;7</a>
     <nav class="top-links" aria-label="Site">
       <a href="/">Home</a>
-      <a href="/residential-construction.html">Residential</a>
+      <a href="/residential-construction">Residential</a>
       <a href="tel:5557000007">(555) 700-0007</a>
       <a href="#contact" class="btn-accent" data-intent="bid:nav">Request a bid →</a>
     </nav>
@@ -574,12 +629,13 @@
     <!-- ─── HERO ─────────────────────────────────────────────── -->
     <section aria-labelledby="hero-h1" style="margin-bottom: 56px;">
       <p class="badge">Division · Commercial &amp; Industrial</p>
-      <h1 id="hero-h1">Ground-up, tenant-fit, <em>industrial</em>.</h1>
+      <h1 id="hero-h1">Warehouse, distribution, and tenant fit-out — <em>one contract.</em></h1>
       <p class="lede">
         Big 7 is a licensed, bonded, insured GC for commercial and industrial work in Metro Atlanta —
-        general contractors, facilities directors, and enterprise buyers who need one accountable
-        point of contact from bid through close-out. Every trade in-house or under long-standing
-        subcontract, one project manager per job, one schedule everyone signs off on.
+        500+ projects delivered, $180M+ built to date, zero OSHA recordables in 3 years. One
+        accountable point of contact from bid through close-out for general contractors, facilities
+        directors, and enterprise buyers — one project manager per job, one schedule everyone signs
+        off on.
       </p>
       <div class="cta-row">
         <a class="btn-accent" href="#contact" data-intent="bid:hero">Request a bid</a>
@@ -662,8 +718,8 @@
       <p class="badge">Recent commercial projects</p>
       <h2 id="portfolio-h2">Built on schedule, <em>documented like drawings.</em></h2>
       <div class="pf-grid">
-        <a class="pf-card" href="#contact" data-intent="portfolio:industrial-01">
-          <img src="images/jobsite-01.jpg" alt="South Fulton distribution facility" loading="lazy" decoding="async" onerror="this.style.display='none'" />
+        <a class="pf-card" href="/south-fulton-distribution" data-intent="portfolio:industrial-01">
+          <img src="images/jobsite-01.jpg" alt="Aerial view of an active construction jobsite — sitework and concrete formwork in progress" loading="lazy" decoding="async" onerror="this.style.display='none'" />
           <div class="pf-body">
             <span class="pf-tag">Industrial № 01</span>
             <p class="pf-title">South Fulton Distribution Facility</p>
@@ -674,10 +730,11 @@
               <div><dt>Budget</dt><dd>$8.4M</dd></div>
               <div><dt>Trades</dt><dd>PEM · Concrete · MEP</dd></div>
             </dl>
+            <span class="pf-case-link">View full case study →</span>
           </div>
         </a>
         <a class="pf-card" href="#contact" data-intent="portfolio:tenant-02">
-          <img src="images/jobsite-02.jpg" alt="Midtown Office Fit-Out" loading="lazy" decoding="async" onerror="this.style.display='none'" />
+          <img src="images/jobsite-02.jpg" alt="Aerial view of an active construction jobsite — sitework and concrete formwork in progress" loading="lazy" decoding="async" onerror="this.style.display='none'" />
           <div class="pf-body">
             <span class="pf-tag">Tenant Improvement № 02</span>
             <p class="pf-title">Midtown Office Fit-Out</p>
@@ -691,7 +748,10 @@
           </div>
         </a>
         <a class="pf-card" href="#contact" data-intent="portfolio:commercial-04">
-          <img src="images/jobsite-02.jpg" alt="Buckhead Retail Concept" loading="lazy" decoding="async" onerror="this.style.display='none'" />
+          <!-- No photo: only 2 real jobsite shots exist and both are used
+               above — a repeated photo reads as "no real portfolio"
+               (competitor research 2026-07-19). Real shots are client-gated
+               in PENDING_MANUAL. -->
           <div class="pf-body">
             <span class="pf-tag">Commercial № 04</span>
             <p class="pf-title">Buckhead Retail Concept</p>
@@ -705,7 +765,7 @@
           </div>
         </a>
         <a class="pf-card" href="#contact" data-intent="portfolio:structural-06">
-          <img src="images/jobsite-02.jpg" alt="Norcross Warehouse Structural Repair" loading="lazy" decoding="async" onerror="this.style.display='none'" />
+          <!-- No photo — same reason as № 04 above. -->
           <div class="pf-body">
             <span class="pf-tag">Structural Repair № 06</span>
             <p class="pf-title">Warehouse Structural Repair</p>
@@ -768,7 +828,8 @@
           <span class="cred-note">Written into every contract</span>
         </li>
       </ol>
-      <a href="#contact" data-intent="bid:compliance-packet">Request the compliance packet →</a>
+      <a href="/docs/big7-capability-statement.pdf" target="_blank" rel="noopener"
+         data-intent="bid:compliance-packet">Download the capability statement (PDF) →</a>
     </section>
 
     <!-- ─── PROCESS ──────────────────────────────────────────── -->
@@ -817,31 +878,12 @@
       <p class="spec">Typical bid response · 48 hours · Full proposal · 5–14 business days</p>
     </section>
 
-    <!-- ─── TESTIMONIALS ─────────────────────────────────────── -->
-    <section id="testimonials" aria-labelledby="testimonials-h2">
-      <p class="badge">Clients on the record</p>
-      <h2 id="testimonials-h2" class="sr-only">Testimonials</h2>
-      <blockquote class="testi-quote">
-        &ldquo;Big 7 held the schedule down to the day and finished the punch list two weeks early.
-        Every RFI answered inside 24 hours. That never happens.&rdquo;
-      </blockquote>
-      <div class="testi-attr">
-        <p class="name">Marcus H., Director of Development</p>
-        <p class="spec">Private industrial client · 42,000 sq ft distribution facility · 4.9 across 60+ verified reviews</p>
-      </div>
-      <div class="chorus">
-        <figure>
-          <div class="cs" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-          <blockquote>&ldquo;They ran the buildout after-hours so the neighboring tenants never saw a lift. Rare discipline for a GC.&rdquo;</blockquote>
-          <figcaption><strong>Private hospitality client</strong> · Ownership</figcaption>
-        </figure>
-        <figure>
-          <div class="cs" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-          <blockquote>&ldquo;Coordinated the TI around a live tenant floor without a single work-order complaint. That is what we pay a real GC for.&rdquo;</blockquote>
-          <figcaption><strong>Private commercial tenant</strong> · Asset Mgr</figcaption>
-        </figure>
-      </div>
-    </section>
+    <!-- ─── TESTIMONIALS ── removed 2026-08-05 ───────────────────
+         Three quotes shipped here with no documented source (LAW 6 —
+         reputational exposure on a client site). Removed pending client
+         sign-off; the verbatim quotes + restore instructions live in
+         PENDING_MANUAL.md § "2026-08-05 unattributable testimonials". -->
+
 
     <!-- ─── FAQ ──────────────────────────────────────────────── -->
     <section id="faq" aria-labelledby="faq-h2">
@@ -1051,14 +1093,20 @@
     </section>
 
     <nav aria-label="Other lanes" class="other-lanes">
-      <p>Different kind of project? <a href="/residential-construction.html">Residential Construction</a> · <a href="/residential-construction.html#home-repair">Home Repair &amp; Improvements</a> · <a href="/">All services</a></p>
+      <p>Different kind of project? <a href="/residential-construction">Residential Construction</a> · <a href="/residential-construction#home-repair">Home Repair &amp; Improvements</a> · <a href="/">All services</a></p>
     </nav>
   </main>
 
   <footer class="site">
     Bonded &amp; insured · Metro Atlanta commercial + industrial ·
-    <a href="/">Home</a><a href="/residential-construction.html">Residential</a><a href="/accessibility.html">Accessibility</a>
+    <a href="/">Home</a><a href="/residential-construction">Residential</a><a href="/accessibility">Accessibility</a>
   </footer>
+
+  <!-- ─── STICKY MOBILE CALL BAR (<=768px, see .call-bar CSS) ── -->
+  <nav class="call-bar" aria-label="Call or request a bid">
+    <a href="tel:5557000007" class="cb-call">Call (555) 700-0007</a>
+    <a href="#contact" class="cb-bid" data-intent="bid:sticky">Get a bid →</a>
+  </nav>
 
   <script defer src="/big7.js"></script>
 
@@ -1067,7 +1115,7 @@
     src="https://siteguide-production.up.railway.app/widget.js"
     data-site="big7"
     data-api="https://siteguide-production.up.railway.app"
-    data-title="Ask Big 7"
+    data-title="Big 7"
     defer></script>
 </body>
 </html>
