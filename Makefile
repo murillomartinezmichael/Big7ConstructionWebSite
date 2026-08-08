@@ -10,7 +10,7 @@
 # =============================================================================
 
 .DEFAULT_GOAL := help
-.PHONY: help build run test test-container test-jsonld test-seo-files test-conversion test-primary-ctas test-url-prefill test-og test-assets test-anchors test-nginx test-form test-font-preload test-images test-breadcrumbs test-service-schema test-offer-catalog test-dockerfile test-meta-descriptions test-intake-analytics test-a11y-baseline test-lane-nav test-404-lane-recovery test-click-to-call test-url-shape test-phone test-unit test-integration test-e2e lint fmt clean docker docker-run deploy
+.PHONY: help build run test test-container test-jsonld test-seo-files test-conversion test-primary-ctas test-url-prefill test-og test-assets test-anchors test-nginx test-form test-font-preload test-images test-breadcrumbs test-service-schema test-offer-catalog test-dockerfile test-meta-descriptions test-intake-analytics test-a11y-baseline test-lane-nav test-404-lane-recovery test-click-to-call test-url-shape test-phone test-shipped-source test-unit test-integration test-e2e lint fmt clean docker docker-run deploy
 
 help: ## Show this help
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -21,7 +21,7 @@ build: ## Clean-clone -> running prerequisites met (delegates to build.sh)
 run: ## Run the service locally
 	./scripts/run.sh
 
-test: test-jsonld test-seo-files test-conversion test-primary-ctas test-url-prefill test-og test-assets test-anchors test-nginx test-form test-font-preload test-images test-breadcrumbs test-service-schema test-offer-catalog test-dockerfile test-meta-descriptions test-intake-analytics test-a11y-baseline test-lane-nav test-404-lane-recovery test-click-to-call test-url-shape test-phone ## Run all tests (stdlib-only smoke suite)
+test: test-jsonld test-seo-files test-conversion test-primary-ctas test-url-prefill test-og test-assets test-anchors test-nginx test-form test-font-preload test-images test-breadcrumbs test-service-schema test-offer-catalog test-dockerfile test-meta-descriptions test-intake-analytics test-a11y-baseline test-lane-nav test-404-lane-recovery test-click-to-call test-url-shape test-phone test-shipped-source ## Run all tests (stdlib-only smoke suite)
 
 test-container: ## Build the production image; prove nginx boots and home/lane/404 routes respond correctly
 	python scripts/test-container-boot.py
@@ -121,6 +121,10 @@ test-url-shape: ## ONE canonical URL shape everywhere (apex, https, no www, no .
 test-phone: ## Phone single-source lock: every tel:/display/JSON-LD number across all pages + big7.js agrees with site.config.json; loud WARN (not red) while the 555 placeholder ships
 	python tests/test_phone.py
 	python tests/test_phone.py --selftest
+
+test-shipped-source: ## Shipped-source leak lock: .assetsignore covers every non-public file (wrangler serves the repo root); no LAW number / PENDING_MANUAL / tests path / SiteAudit id in anything the browser can fetch
+	python tests/test_shipped_source.py
+	python tests/test_shipped_source.py --selftest
 
 test-unit: ## Run unit tests only
 	./scripts/test.sh unit

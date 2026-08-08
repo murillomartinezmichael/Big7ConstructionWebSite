@@ -3,7 +3,7 @@
   Real crawler targets only — 404.html is `noindex` (nginx returns it as
   internal via error_page) and is deliberately excluded per sitemap.org
   guidance. Same origin (https://big7construction.com/) as index.html's
-  canonical + robots.txt Sitemap: — locked by tests/test_seo_files.py.
+  canonical + robots.txt Sitemap:.
 -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>

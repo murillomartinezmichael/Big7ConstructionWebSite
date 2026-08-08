@@ -1,0 +1,83 @@
+# Cloudflare Workers static-assets exclusion list.
+#
+# wrangler.jsonc sets `assets.directory: "./"` — the repo root IS the document
+# root, so WITHOUT this file every tracked file is published at
+# https://big7construction.com/<path>. Verified live 2026-08-08: PENDING_MANUAL.md,
+# TODO.md, DECISIONS.md, CLAUDE.md, AGENTS.md, tests/*.py, .env.example and
+# .git/config all returned HTTP 200 on the client's production domain.
+#
+# The public surface is defined by the Dockerfile's explicit COPY list (the
+# Railway/nginx fallback ships exactly those files and nothing else). This file
+# makes the Cloudflare host of record match that surface. Anything not on the
+# Dockerfile COPY list belongs here.
+#
+# `_headers` and `_redirects` are deliberately absent: Cloudflare consumes them
+# rather than serving them (both verified 404 live), and excluding them risks
+# the pipeline never reading them.
+#
+# Locked by tests/test_shipped_source.py — add a new non-public file to the repo
+# and that test fails until the path is covered here.
+#
+# Syntax: .gitignore-style. Deny-list only, no `!` negations, because a
+# negation cannot re-include a file whose parent directory is already excluded.
+
+# ── Version control ──────────────────────────────────────────────────
+# `.git/` is uploaded verbatim otherwise: .git/config leaks the private
+# GitHub remote, .git/index leaks the full file inventory with blob SHAs.
+.git/
+.gitignore
+.gitattributes
+.github/
+
+# ── Internal governance, planning, and session docs ──────────────────
+# Every .md in this repo is internal. The only public document is the
+# capability-statement PDF, which is not matched by these patterns.
+*.md
+
+# ── Tests, build tooling, and generators ─────────────────────────────
+*.py
+*.pyc
+__pycache__/
+.pytest_cache/
+tests/
+scripts/
+Makefile
+build.sh
+build.bat
+run.sh
+run.bat
+deploy-cf.bat
+
+# ── Internal ADRs and postmortems (docs/big7-capability-statement.pdf
+#    is deliberately NOT excluded — it is linked from the site) ────────
+docs/adr/
+docs/postmortems/
+
+# ── Deploy + container config (describes our infrastructure) ─────────
+Dockerfile
+.dockerignore
+nginx.conf
+wrangler.jsonc
+.railwayignore
+.assetsignore
+
+# ── Config that is build/test-time only, never fetched by the browser ─
+site.config.json
+LICENSE
+.editorconfig
+.env.example
+.gitleaks.toml
+.pre-commit-config.yaml
+
+# ── Agent/automation state ───────────────────────────────────────────
+.autoimprove/
+.claims/
+
+# ── Local dev cruft (never committed, but never publishable either) ──
+node_modules/
+.venv/
+venv/
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

@@ -2,9 +2,7 @@
    big7.js — shared money-path JS for big7construction.com
    Loaded via <script defer src="/big7.js"> on every page (home + lanes).
    One copy so the intake form, prefill, and analytics cannot drift
-   between pages (LAW #6/7 — money code). Tests parse THIS file:
-   test_conversion.py · test_url_prefill.py · test_intake_analytics.py.
-   Decorative page-specific JS (progress rail, parallax, ticker, menu)
+   between pages. Decorative page-specific JS (progress rail, parallax, ticker, menu)
    stays inline on its own page — do not move it here.
    ═══════════════════════════════════════════════════════════════════ */
 
@@ -31,9 +29,8 @@ async function submitForm(e) {
   btn.textContent = 'Sending…';
   btn.disabled = true;
 
-  // Mirror the lead to the n8n automation webhook (leads data table +
-  // follow-up nudger + morning briefing). Fire-and-forget by design:
-  // Formspree below remains the path of record, so an n8n outage can never
+  // Mirror the lead to the automation webhook. Fire-and-forget by design:
+  // Formspree below remains the path of record, so a webhook outage can never
   // block or fail the visitor's submission. Form-encoded body keeps this a
   // CORS "simple request" (no preflight). Honeypot + Formspree-internal
   // fields are stripped before mirroring.
@@ -69,7 +66,6 @@ async function submitForm(e) {
 }
 
 // ─── Conversion: data-intent → prefill + attribution ─
-// CONVERSION_STANDARDS.md § 2 (intent), § 3 (prefill), § 4 (events).
 // Every service/portfolio CTA carries data-intent; on click we prefill
 // the contact form's projectType radio + textarea hint (so the visitor
 // never faces a blank form) and push a cta_click event to window.dataLayer
@@ -124,16 +120,15 @@ async function submitForm(e) {
     const intent = el.getAttribute('data-intent');
     const label = labelFor(el);
     // Position = intent segment after the namespace (`bid:hero` → `hero`,
-    // `service:enterprise-framing` → `enterprise-framing`). Satisfies
-    // CONVERSION_STANDARDS.md § 4 `cta_click.position` requirement so
-    // funnel views can split by page region without a code change.
+    // `service:enterprise-framing` → `enterprise-framing`), so funnel
+    // views can split by page region without a code change.
     const position = (intent.split(':')[1] || 'unspecified');
     track('cta_click', { intent: intent, page: BIG7_PAGE, position: position, label: label });
     prefill(intent, label);
   });
   const form = document.querySelector('form.cform');
   if (form) {
-    // intake_start — CONVERSION_STANDARDS.md § 4. Fires once, on the
+    // intake_start — fires once, on the
     // visitor's first focus into any intake-form field. Without it, the
     // funnel has a hidden hole between cta_click and intake_submit: we
     // cannot tell "clicked CTA but bailed on the form" from "never
@@ -158,8 +153,8 @@ async function submitForm(e) {
       // gets the attribution but GA4/Plausible see intake_submit blind —
       // "which lane page produced the intake?" is unanswerable at the
       // funnel-view surface even though the data reached the estimator's
-      // inbox. Same drift class the tick-27 lane-attribution loop closed
-      // at the Formspree surface; this closes it at the dataLayer surface.
+      // inbox. The Formspree surface already carries it; this closes the
+      // same gap at the dataLayer surface.
       const srcField = form.querySelector('input[name="source"]');
       track('intake_submit', {
         intent: checked ? 'type:' + checked.value : 'type:unset',
@@ -182,7 +177,7 @@ async function submitForm(e) {
   // before touching the DOM — a URL param NEVER hits querySelector raw.
   // Reuses INTENT_TO_TYPE / PREFILL_MARK / labelFor / track from the
   // closure above so the mapping stays single-source-of-truth (a slug
-  // rename locked by test_conversion.py auto-propagates to landing).
+  // rename auto-propagates to landing).
   (function () {
     try {
       const params = new URLSearchParams(window.location.search);
@@ -238,7 +233,7 @@ async function submitForm(e) {
 // `window.dataLayer` (GA4-compatible payload shape). This adapter
 // monkey-patches `dataLayer.push` so every future push is mirrored
 // to whichever consumer script is loaded — none, GA4, Plausible, or
-// both. Michael's zero-code activation (add to each page's <head>):
+// both. Zero-code activation (add to each page's <head>):
 //   GA4:      <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXX"></script>
 //             <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-XXXXXXX');</script>
 //   Plausible: <script defer data-domain="big7construction.com" src="https://plausible.io/js/script.js"></script>
