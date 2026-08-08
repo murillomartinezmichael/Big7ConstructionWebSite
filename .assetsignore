@@ -74,6 +74,10 @@ LICENSE
 .claims/
 
 # ── Local dev cruft (never committed, but never publishable either) ──
+# `.wrangler/` matters: a dry-run or local deploy leaves no-op-worker.js and
+# other build artifacts there, and without this line the next `wrangler deploy`
+# from a dev machine publishes them.
+.wrangler/
 node_modules/
 .venv/
 venv/
