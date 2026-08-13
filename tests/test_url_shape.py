@@ -10,9 +10,11 @@ The site has ONE canonical URL shape:
 Three separate facts make that shape load-bearing rather than cosmetic:
 
   1. Cloudflare Workers static assets (host of record since 2026-07-17) serves
-     pages extensionless and **307s the `.html` form** — verified live
+     pages extensionless and redirects the `.html` form away — verified live
      2026-08-03. So a `.html` URL anywhere costs a redirect hop, and a `.html`
-     canonical points at a URL that redirects away from itself.
+     canonical points at a URL that redirects away from itself. As of
+     2026-08-12 that hop is a permanent 301 (contract 8 below); before then it
+     was CF's built-in `html_handling` **307**, which is a temporary signal.
   2. `www` was slated for decommission (Mike's call, 2026-07-17); observed
      2026-08-07 it still serves a byte-identical duplicate of apex (disposition
      pending in PENDING_MANUAL.md). Either way apex is the sole canonical
@@ -48,6 +50,21 @@ Contract asserted
   7. The literal string `www.big7construction.com` appears nowhere in any
      shipped file — apex is the sole canonical host (www's live disposition
      is a pending dashboard decision, not a markup concern).
+  8. Every page that ships as a root `*.html` file carries an explicit
+     **301** rule in `_redirects` sending its `.html` form to its clean path
+     (`/index.html` -> `/`). Without the explicit rule CF falls back to
+     `html_handling`, which answers **307 Temporary** — Google keeps the
+     `.html` URL as a live index candidate instead of consolidating it, and
+     legacy inbound link equity is not fully passed. Also asserted: no rule's
+     target is another rule's source (that is a redirect CHAIN), no rule
+     points at itself (that is a LOOP), and no source is declared twice
+     (Cloudflare applies the FIRST match, so a duplicate silently overrides).
+  9. `wrangler.jsonc` keeps an `html_handling` mode under which the clean
+     paths still serve 200 **directly**. Contract 8's rules are only one hop
+     because their targets don't redirect again — and that is decided in the
+     worker config, not in `_redirects`. `force-trailing-slash` would make
+     every `.html` 301 a two-hop chain and turn every submitted sitemap URL
+     into a redirect; `none` would 404 every canonical and internal link.
 
 Python 3.11+ stdlib only (`re`, `pathlib`, `sys`). No pip, no network.
 
@@ -114,7 +131,7 @@ def _url_shape_errors(url: str, where: str) -> list[str]:
     if re.search(r"\.html(?:[?#]|$)", url):
         errors.append(
             f"{where}: {url!r} carries a `.html` extension — the live worker "
-            f"307s that form, so this URL redirects away from itself"
+            f"301s that form, so this URL redirects away from itself"
         )
     return errors
 
@@ -146,7 +163,7 @@ def check_internal_hrefs(name: str, html: str) -> list[str]:
         seen.add(href)
         errors.append(
             f"{name}: internal href={href!r} uses the `.html` form — the live "
-            f"worker 307s it, so every click pays an extra hop; link '/{page}'"
+            f"worker 301s it, so every click pays an extra hop; link '/{page}'"
         )
     return errors
 
@@ -183,6 +200,130 @@ def check_redirects(text: str) -> list[str]:
         if WWW_HOST in dst:
             errors.append(f"_redirects: rule targets the decommissioned www host: {dst!r}")
     return errors
+
+
+def _parse_redirect_rules(text: str) -> list[tuple[str, str, str]]:
+    """(src, dst, code) for every parseable rule; comments/blank lines skipped."""
+    rules: list[tuple[str, str, str]] = []
+    for raw in text.splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#"):
+            continue
+        m = REDIRECT_LINE_RE.match(line)
+        if m:
+            rules.append((m.group("src"), m.group("dst"), m.group("code")))
+    return rules
+
+
+def check_redirect_completeness(repo_root: Path, text: str) -> list[str]:
+    """Contract 8 — every shipped page's `.html` form 301s, one hop, no chains.
+
+    Driven by what is actually on disk rather than a hard-coded page list, so a
+    new page added to the repo without its `_redirects` rule fails immediately
+    instead of quietly inheriting CF's 307.
+    """
+    errors: list[str] = []
+    rules = _parse_redirect_rules(text)
+
+    # Cloudflare applies the FIRST matching rule, not the last. Building this
+    # map last-wins would let a stray 302 prepended above the real 301 pass the
+    # suite and then deploy as a 302 (Codex review, 2026-08-12). Keep the first
+    # occurrence and reject duplicate sources outright — a duplicated source is
+    # always either dead weight or a silent override.
+    by_src: dict[str, tuple[str, str]] = {}
+    for src, dst, code in rules:
+        if src in by_src:
+            errors.append(
+                f"_redirects: duplicate rule for {src!r} — Cloudflare applies "
+                f"the FIRST match ({by_src[src][0]!r} {by_src[src][1]}), so the "
+                f"later rule ({dst!r} {code}) is silently dead; delete one"
+            )
+            continue
+        by_src[src] = (dst, code)
+
+    # `404.html` is served internally via not_found_handling and is never
+    # linked or indexed, so it needs no canonical redirect.
+    for page in sorted(p.stem for p in repo_root.glob("*.html")):
+        if page == "404":
+            continue
+        src = f"/{page}.html"
+        want_dst = "/" if page == "index" else f"/{page}"
+        found = by_src.get(src)
+        if found is None:
+            errors.append(
+                f"_redirects: no rule for {src!r} — without an explicit rule "
+                f"Cloudflare's html_handling answers 307 Temporary, so Google "
+                f"keeps {src!r} as a live index candidate instead of "
+                f"consolidating it into {want_dst!r}; add "
+                f"`{src} {want_dst} 301`"
+            )
+            continue
+        dst, code = found
+        if dst != want_dst:
+            errors.append(
+                f"_redirects: rule {src!r} targets {dst!r}, expected "
+                f"{want_dst!r} (the clean path that serves 200 directly)"
+            )
+        if code != "301":
+            errors.append(
+                f"_redirects: rule {src!r} uses status {code} — a permanent "
+                f"URL migration must be 301, or ranking signals are not "
+                f"consolidated onto {want_dst!r}"
+            )
+
+    # Chain + loop guards. A target that is also a source means the browser
+    # (and the crawler) pays two hops; a rule pointing at itself never settles.
+    # Targets are normalized (query + fragment stripped) before comparison —
+    # `/a -> /b#section` still lands on `/b`, so if `/b` is a redirect source
+    # that is a chain even though the raw strings differ.
+    sources = {src for src, _, _ in rules}
+    for src, dst, _code in rules:
+        dst_path = re.split(r"[?#]", dst, maxsplit=1)[0]
+        if dst_path == src:
+            errors.append(f"_redirects: rule {src!r} points at itself — redirect LOOP")
+        elif dst_path in sources:
+            errors.append(
+                f"_redirects: rule {src!r} targets {dst!r}, which is itself a "
+                f"redirect source — that is a redirect CHAIN (two hops); point "
+                f"{src!r} at the final destination instead"
+            )
+    return errors
+
+
+# Cloudflare `html_handling` values under which the clean paths this whole arc
+# depends on still serve 200 directly:
+#   auto-trailing-slash (the default) / drop-trailing-slash -> `/page` serves.
+#   force-trailing-slash -> `/page` REDIRECTS to `/page/`, which would turn
+#     every `.html` 301 into a two-hop chain AND make every submitted sitemap
+#     URL a redirect during Search Console's first crawl.
+#   none -> `/page` stops resolving entirely; every canonical, sitemap loc and
+#     internal link 404s.
+SAFE_HTML_HANDLING = ("auto-trailing-slash", "drop-trailing-slash")
+HTML_HANDLING_RE = re.compile(r'"html_handling"\s*:\s*"(?P<value>[^"]*)"')
+
+
+def check_wrangler_html_handling(text: str) -> list[str]:
+    """Contract 9 — the worker config keeps clean paths serving 200 directly.
+
+    The `_redirects` rules are only one hop because their targets resolve
+    without a further redirect. That is a property of `html_handling`, which
+    lives in a different file — so locking the rules without locking this
+    leaves the arc breakable from outside the test's line of sight
+    (Codex review, 2026-08-12).
+    """
+    m = HTML_HANDLING_RE.search(text)
+    if m is None:
+        # Absent = Cloudflare's default, `auto-trailing-slash`. Safe.
+        return []
+    value = m.group("value")
+    if value not in SAFE_HTML_HANDLING:
+        return [
+            f"wrangler.jsonc: html_handling={value!r} — the clean paths that "
+            f"every canonical, sitemap <loc> and `_redirects` target points at "
+            f"would no longer serve 200 directly. Use one of "
+            f"{list(SAFE_HTML_HANDLING)} (or omit it for the default)"
+        ]
+    return []
 
 
 def check_nginx(text: str) -> list[str]:
@@ -257,7 +398,13 @@ def run_all_checks(repo_root: Path) -> list[str]:
     if not redirects.is_file():
         errors.append("_redirects missing")
     else:
-        errors.extend(check_redirects(redirects.read_text(encoding="utf-8")))
+        redirects_text = redirects.read_text(encoding="utf-8")
+        errors.extend(check_redirects(redirects_text))
+        errors.extend(check_redirect_completeness(repo_root, redirects_text))
+
+    wrangler = repo_root / "wrangler.jsonc"
+    if wrangler.is_file():
+        errors.extend(check_wrangler_html_handling(wrangler.read_text(encoding="utf-8")))
 
     nginx = repo_root / "nginx.conf"
     if not nginx.is_file():
@@ -302,6 +449,7 @@ BASELINE_SITEMAP = """<?xml version="1.0" encoding="UTF-8"?>
 BASELINE_REDIRECTS = """# comment line
 /home-repair.html /residential-construction 301
 /home-repair /residential-construction 301
+/commercial-industrial.html /commercial-industrial 301
 """
 
 BASELINE_NGINX = """server {
@@ -316,6 +464,14 @@ BASELINE_NGINX = """server {
 """
 
 
+BASELINE_WRANGLER = """{
+  "name": "big7",
+  "compatibility_date": "2026-07-01",
+  "assets": { "directory": "./", "not_found_handling": "404-page" }
+}
+"""
+
+
 def _write_baseline(root: Path) -> None:
     for f in root.glob("*"):
         if f.is_file():
@@ -324,6 +480,7 @@ def _write_baseline(root: Path) -> None:
     (root / "sitemap.xml").write_text(BASELINE_SITEMAP, encoding="utf-8")
     (root / "_redirects").write_text(BASELINE_REDIRECTS, encoding="utf-8")
     (root / "nginx.conf").write_text(BASELINE_NGINX, encoding="utf-8")
+    (root / "wrangler.jsonc").write_text(BASELINE_WRANGLER, encoding="utf-8")
 
 
 def selftest() -> int:
@@ -433,10 +590,91 @@ def selftest() -> int:
             "should mirror the clean CF target",
         )
 
+        # --- contract 8: `.html` -> clean must be an explicit, one-hop 301 ---
+        add(
+            "`.html` rule deleted (silently falls back to CF's 307)",
+            "_redirects",
+            BASELINE_REDIRECTS.replace(
+                "/commercial-industrial.html /commercial-industrial 301\n", ""
+            ),
+            "no rule for '/commercial-industrial.html'",
+        )
+        add(
+            "`.html` rule downgraded 301 -> 302 (temporary signal)",
+            "_redirects",
+            BASELINE_REDIRECTS.replace(
+                "/commercial-industrial.html /commercial-industrial 301",
+                "/commercial-industrial.html /commercial-industrial 302",
+            ),
+            "must be 301",
+        )
+        add(
+            "`.html` rule retargeted away from its clean path",
+            "_redirects",
+            BASELINE_REDIRECTS.replace(
+                "/commercial-industrial.html /commercial-industrial 301",
+                "/commercial-industrial.html / 301",
+            ),
+            "expected '/commercial-industrial'",
+        )
+        add(
+            "redirect CHAIN (target is another rule's source)",
+            "_redirects",
+            BASELINE_REDIRECTS.replace(
+                "/home-repair.html /residential-construction 301",
+                "/home-repair.html /home-repair 301",
+            ),
+            "redirect CHAIN",
+        )
+        add(
+            "redirect LOOP (rule points at itself)",
+            "_redirects",
+            BASELINE_REDIRECTS.replace(
+                "/commercial-industrial.html /commercial-industrial 301",
+                "/commercial-industrial.html /commercial-industrial.html 301",
+            ),
+            "redirect LOOP",
+        )
+
+        # --- gaps surfaced by the Codex second opinion, 2026-08-12 ---
+        add(
+            "duplicate source prepended (CF applies the FIRST match)",
+            "_redirects",
+            "/commercial-industrial.html /commercial-industrial 302\n" + BASELINE_REDIRECTS,
+            "duplicate rule for '/commercial-industrial.html'",
+        )
+        add(
+            "CHAIN hidden behind a fragment on the target",
+            "_redirects",
+            BASELINE_REDIRECTS.replace(
+                "/home-repair.html /residential-construction 301",
+                "/home-repair.html /home-repair#section 301",
+            ),
+            "redirect CHAIN",
+        )
+        add(
+            "html_handling forces trailing slash (every clean URL redirects)",
+            "wrangler.jsonc",
+            BASELINE_WRANGLER.replace(
+                '"not_found_handling": "404-page"',
+                '"not_found_handling": "404-page", "html_handling": "force-trailing-slash"',
+            ),
+            "would no longer serve 200 directly",
+        )
+        add(
+            "html_handling disabled (every clean URL 404s)",
+            "wrangler.jsonc",
+            BASELINE_WRANGLER.replace(
+                '"not_found_handling": "404-page"',
+                '"not_found_handling": "404-page", "html_handling": "none"',
+            ),
+            "would no longer serve 200 directly",
+        )
+
         if not_caught:
             print(f"SELFTEST: {len(not_caught)} mutation(s) not caught: {not_caught}")
             return 1
-        print("SELFTEST: all 10 mutations caught")
+        print("SELFTEST: all 19 mutations caught")
         return 0
 
 

@@ -114,7 +114,7 @@ test-click-to-call: ## Header tel: tappable + >=48px hit box; sticky mobile call
 	python tests/test_click_to_call.py
 	python tests/test_click_to_call.py --selftest
 
-test-url-shape: ## ONE canonical URL shape everywhere (apex, https, no www, no .html) across canonicals/og:url/JSON-LD/internal hrefs/sitemap/_redirects/nginx fallback
+test-url-shape: ## ONE canonical URL shape everywhere (apex, https, no www, no .html) across canonicals/og:url/JSON-LD/internal hrefs/sitemap/_redirects/nginx fallback; every shipped page's .html form carries an explicit 301 to its clean path (no CF 307 fallback), with chain + loop guards
 	python tests/test_url_shape.py
 	python tests/test_url_shape.py --selftest
 
