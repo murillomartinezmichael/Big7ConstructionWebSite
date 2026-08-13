@@ -6,6 +6,145 @@
 
 # Big7Construction — TODO
 
+## SHIPPED 2026-08-12 — canonical arc part 3: the hop is now a 301, not a 307
+
+**NOT DEPLOYED. Local commit only (`94c5052`), nothing pushed.** Live client
+site — a human decides when this goes out. See DEPLOY IMPACT below.
+
+The arc was marked CLOSED on 2026-08-03, and its two halves genuinely were:
+SEO-signal URLs (2026-07-19, `81d9f4d`) and internal links (2026-08-03,
+`fae2640`/`e8cee12`). What neither half touched was the **status code** of the
+`.html` -> clean hop. Both prior sessions recorded it as "307s the `.html`
+form" and treated that as a given rather than a defect.
+
+It is a defect. A **307 Temporary Redirect** tells Google the move is *not*
+permanent: the `.html` URL stays a live candidate in the index instead of
+consolidating into the clean path, and legacy inbound link equity is not fully
+passed through. The sitemap went to a Search Console Domain property on
+2026-07-19 and the first crawl is still settling — so this lands before
+indexing hardens, which was the entire argument in the original parked note.
+
+**State BEFORE (reproduced locally on wrangler dev 4.122.0, not assumed):**
+every `.html` form returned **307** to its clean path — one hop, no chain, no
+loop. Canonicals, og:url, JSON-LD, sitemap locs and internal hrefs were
+already clean and already correct. `/home-repair(.html)` already 301'd cleanly
+(part 2's fix holds). So the ONLY gap left in the arc was the 307.
+
+**Shipped (`94c5052`):**
+- **`_redirects`** gains an explicit **301** for each shipped page's `.html`
+  form (`/index.html` -> `/` plus the 4 lane/statement pages). An explicit
+  rule takes precedence over Cloudflare's `html_handling` — verified both
+  ways: the same path returns 307 without these lines and 301 with them.
+  **Query strings survive the hop**, which the `?intent=` / `?utm_*` prefill
+  in `big7.js` depends on (probed explicitly — money path).
+- **`tests/test_url_shape.py` contract 8** — every root `*.html` must carry a
+  one-hop 301 to its clean path, with **chain**, **loop** and
+  **duplicate-source** guards. Driven off what is on disk, not a hard-coded
+  page list, so a new page shipped without its rule fails immediately instead
+  of quietly inheriting the 307. Proven non-vacuous: run against the
+  pre-change `_redirects` it reports **5 failures**.
+- **`tests/test_url_shape.py` contract 9** — `wrangler.jsonc` must keep an
+  `html_handling` under which the clean paths still serve 200 **directly**.
+  Contract 8's rules are only one hop because their targets don't redirect
+  again, and that is decided in a *different file* than the one contract 8
+  reads.
+- Selftest grew 10 -> **19 mutations**, all caught.
+
+**Codex second opinion taken** (root CLAUDE.md hard trigger: migration change
+on a live client site). Verdict: no chain/loop/precedence/sitemap blocker.
+It found 4 gaps; 3 were fixed in this commit:
+  - `_redirects` precedence was modeled **last-rule-wins**; Cloudflare applies
+    the **first** match, so a stray 302 prepended above the real 301 would
+    have passed the suite and deployed as a 302. Now first-wins + duplicate
+    sources rejected outright.
+  - chain detection compared raw strings, so `/a -> /b#section` hid a chain
+    when `/b` was a source. Targets are now normalized before comparison.
+  - `html_handling` was unlocked (became contract 9). **Reproduced locally to
+    confirm the risk is real, not theoretical:** with `force-trailing-slash`,
+    `/commercial-industrial` itself 307s to `/commercial-industrial/` — every
+    submitted sitemap URL becomes a redirect during the pending first crawl,
+    and `.html` becomes a **301 -> 307 -> 200 chain**.
+  - 4th finding PARKED, see below.
+
+**Gates (real output, 2026-08-12):** `make test` exit 0 — **24/24 suites**, 48
+golden+selftest invocations, zero failures · `preflight-deploy.py` **[READY]**
+(0 required, 0 optional) · `check-tracked-imports.py` exit 0 · `test_url_shape`
+selftest **19/19 mutations caught** · `test_a11y_baseline` green on all 6 pages
+(LAW 11 — no HTML was touched this session, only `_redirects`/tests/Makefile).
+
+**Local verification — actual wrangler dev status codes, shipped config:**
+```
+/                                200          (0 hops)
+/index.html                      301 -> /                                 (1 hop)
+/commercial-industrial           200          (0 hops)
+/commercial-industrial.html      301 -> /commercial-industrial            (1 hop)
+/residential-construction        200          (0 hops)
+/residential-construction.html   301 -> /residential-construction         (1 hop)
+/south-fulton-distribution       200          (0 hops)
+/south-fulton-distribution.html  301 -> /south-fulton-distribution        (1 hop)
+/accessibility                   200          (0 hops)
+/accessibility.html              301 -> /accessibility                    (1 hop)
+/home-repair                     301 -> /residential-construction         (1 hop)
+/home-repair.html                301 -> /residential-construction         (1 hop)
+/sitemap.xml /robots.txt /big7.js  200 (0 hops)     /nope  404
+all 5 sitemap <loc>  -> 200, num_redirects=0
+all 5 canonicals     -> 200, num_redirects=0
+/commercial-industrial.html?intent=bid-commercial&utm_source=ig
+                                 301 -> /commercial-industrial?intent=bid-commercial&utm_source=ig
+5 security headers present on BOTH the 301 and the 200
+```
+Every path: **max one hop. Zero chains. Zero loops.** Sitemap unbroken.
+
+**DEPLOY IMPACT (what a push would change on the live site):** exactly one
+thing — the `.html` -> clean-path redirect changes from **307 Temporary** to
+**301 Permanent**. No HTML, no content, no headers, no sitemap, no canonical,
+no JS changes. Every URL that worked before still works, same destination,
+same hop count. Rollback = revert `_redirects`. Caveat worth stating: a 301 is
+cached hard by browsers, so it is the one-way door here — but the destination
+is the canonical path already declared by every canonical tag and sitemap
+entry, so the cached answer is the correct one.
+
+**NEXT ACTION (cold-start):** the deploy is Mike's call — this branch is
+`session/2026-08-07-verify-standards`, which also carries unrelated unpushed
+work (`4666dfe`, `a19f4bc`, `ce237d1`) and has **diverged from `origin/main`**
+(main moved ahead with 3 dependabot CI bumps: `4a80c1e`, `9feb3bf`, `40e3eed`).
+So: (1) decide whether `94c5052` rides the existing review PR or gets
+cherry-picked onto a fresh branch off current `origin/main`, (2) rebase/merge
+so main's dependabot commits are in the ancestry, (3) push once, (4) after the
+CF worker deploys, re-probe live:
+`curl -sI https://big7construction.com/commercial-industrial.html` must return
+**301** with `Location: /commercial-industrial` (it returns 307 today), and
+`curl -sIL` on each of the 5 sitemap URLs must stay 200 with zero hops.
+
+**PARKED (2026-08-12):**
+- **Query-string preservation is verified but not test-locked** (Codex P3 #4).
+  Probed live on wrangler this session and it holds, but no suite would catch
+  a future regression that drops `?intent=` / `?utm_*` through the 301 — that
+  needs a wrangler integration suite (new test + node dev-dep), which is a
+  bigger build than this arc. Do it with the container gate below, since both
+  are "boot something and probe it" work.
+- **nginx `.html` -> clean 301 on the Railway fallback** — unchanged from
+  2026-08-03 and still correctly parked. CF now 301s the `.html` form; nginx
+  still serves BOTH forms at 200, so the fallback has a duplicate-content
+  shape the live host doesn't. Note this is **not a new regression** — it was
+  equally true when CF answered 307. Still needs a regex `location` block
+  (which resets nginx `add_header` inheritance: all 5 security headers must be
+  repeated and `test_nginx_headers`'s protected-locations spec updated), and
+  **Docker was down again this session** (`make test-container` NOT run,
+  third session running — daemon not reachable). Do it in the session that
+  finally runs the container gate.
+- **`/404.html` still 307s to `/404`, and `/404` serves 200** — a soft-404
+  shape. Harmless today (the page is `noindex` and is never linked; CF serves
+  it via `not_found_handling` for real misses, which correctly returns 404 —
+  `/nope` verified 404). Deliberately left out of contract 8. Revisit only if
+  Search Console ever reports it.
+- **`tests/__pycache__/*.pyc` are tracked in git** (45 files, `__pycache__`
+  absent from `.gitignore`), so every test run dirties the tree and invites
+  binary churn into commits. Real wart, but touching 45 tracked files on a
+  live-client repo mid-deploy-decision is scope creep — kept out of `94c5052`
+  deliberately. One-line `.gitignore` fix + `git rm -r --cached` when the tree
+  is otherwise quiet.
+
 ## REVIEW BRANCH 2026-08-05 — professionalization pass
 
 Base: HEAD `382e29e` == `origin/main` (tree was clean at session start).
