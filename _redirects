@@ -1,13 +1,49 @@
 # Cloudflare Workers static-assets redirects (wrangler.jsonc assets dir = ./;
-# host of record since 2026-07-17). nginx (the Railway fallback) carries the
-# same redirect in nginx.conf WITH the #home-repair fragment; fragment support
-# is undocumented for CF-style _redirects files, so it is intentionally
-# omitted here. Both the .html and the extensionless form are listed because
-# CF's html_handling serves lane pages at extensionless URLs (.html 307s).
+# host of record since 2026-07-17). Every rule here targets the CLEAN
+# extensionless path — the site's one canonical URL shape. Locked end to end by
+# tests/test_url_shape.py.
 #
-# BOTH targets are the CLEAN extensionless path. Targeting
-# `/residential-construction.html` made the old URL chain 301 -> 307 -> 200
-# (verified live 2026-08-03) — a wasted hop that dilutes the redirect signal
-# and slows every legacy inbound link. Locked by tests/test_url_shape.py.
+# ---------------------------------------------------------------------------
+# SECTION 1 — retired lane page (2026-07-17 two-path restructure)
+# ---------------------------------------------------------------------------
+# Home Repair was folded into the residential page as an in-page section. nginx
+# (the Railway fallback) carries the same redirect WITH the #home-repair
+# fragment; fragment support is undocumented for CF-style _redirects files, so
+# it is intentionally omitted here.
+#
+# Both targets are the CLEAN path. Targeting `/residential-construction.html`
+# made the old URL chain 301 -> 307 -> 200 (verified live 2026-08-03) — a
+# wasted hop that dilutes the redirect signal and slows every legacy inbound
+# link.
 /home-repair.html /residential-construction 301
 /home-repair /residential-construction 301
+
+# ---------------------------------------------------------------------------
+# SECTION 2 — `.html` -> clean path, PERMANENT (added 2026-08-12)
+# ---------------------------------------------------------------------------
+# Cloudflare's `html_handling` already sends the `.html` form to the clean
+# path, but it does so with a **307 Temporary Redirect** (reproduced locally on
+# wrangler dev 4.122.0, and matching the live behaviour recorded 2026-08-03).
+#
+# A 307 is the wrong signal for a permanent URL migration:
+#   - Google treats it as temporary, so the `.html` URL stays a live candidate
+#     in the index instead of consolidating into the clean path.
+#   - Ranking signals from legacy inbound links are not fully passed through a
+#     temporary redirect the way they are through a 301.
+# The sitemap was submitted to a Search Console Domain property on 2026-07-19
+# and the first crawl is still settling, so making this permanent BEFORE
+# indexing hardens is the whole point.
+#
+# An explicit `_redirects` rule takes precedence over `html_handling`
+# (verified: the same path returns 307 without these lines and 301 with them),
+# and query strings are preserved through the hop — which the money-path
+# `?intent=` / `?utm_*` prefill in big7.js depends on.
+#
+# Every rule is exactly ONE hop: the target is an extensionless path that
+# serves 200 directly and is never itself a redirect source. Adding a rule
+# whose target appears as another rule's source would build a chain — do not.
+/index.html / 301
+/commercial-industrial.html /commercial-industrial 301
+/residential-construction.html /residential-construction 301
+/south-fulton-distribution.html /south-fulton-distribution 301
+/accessibility.html /accessibility 301
