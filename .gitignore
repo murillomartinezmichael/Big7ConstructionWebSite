@@ -2,6 +2,12 @@
 .DS_Store
 Thumbs.db
 
+# Python bytecode / interpreter caches (the stdlib-only test suite in tests/
+# generates these on every `make test`; 45 of them were committed by mistake).
+# `*.py[cod]` matches .pyc/.pyo/.pyd only — never .py source.
+__pycache__/
+*.py[cod]
+
 # Session ephemera (auto-improve tick state + fleet claims coordination)
 .autoimprove/
 .claims/
