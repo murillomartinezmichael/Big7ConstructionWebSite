@@ -1,4 +1,4 @@
 PROJECT: Big7Construction
-GOAL:    Two-path restructure shipped: homepage is a lean chooser (hero + path cards + trust strip, no form), commercial-industrial.html and residential-construction.html are full destination pages each with a verified Formspree intake form, home-repair.html 301s to residential#home-repair, shared money JS extracted to /big7.js, full `make test` + `make test-container` green, merged to main.
-BUDGET:  Full working session (multi-phase; plan at ~/.claude/plans, 8-commit sequence)
-STARTED: 2026-07-17
+GOAL:    nginx (Railway fallback) 301s every shipped page's `.html` form to the same clean path Cloudflare does, proven by a real container probe (`.html` -> 301, clean path -> 200, `/` -> 200 with no redirect loop) and locked by a rewritten test_url_shape contract 6 that derives ONE expected redirect map and asserts BOTH stacks satisfy it.
+BUDGET:  90 min
+STARTED: 2026-08-12

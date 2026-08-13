@@ -4,6 +4,16 @@ Reversible + small choices only. Load-bearing choices live in `docs/adr/`.
 
 ---
 
+## 2026-08-12 · nginx redirect parity: exact-match blocks + `location = /`, not a regex block
+
+**What:** to make the Railway fallback 301 every `.html` URL like Cloudflare does, the options were (a) one regex `location ~ \.html$` block, (b) one exact `location = /<page>.html` block per page. Picked (b), plus a new `location = / { try_files /index.html =404; }` that serves the homepage instead of the `index` directive.
+
+**Why:** nginx picks locations by *specificity*, not file order — an exact `=` match short-circuits the search before any prefix or regex location is even considered, so the redirect wins no matter how the file is later reordered. A regex block's precedence depends on the rest of the file, and it cannot express `/index.html -> /` or `/home-repair -> /residential-construction` without extra branching. The `location = /` half is a loop guard: `index index.html;` answers `/` with an internal redirect to `/index.html`, and an internal redirect re-runs location matching, so it would have hit `return 301 /` and bounced the homepage forever; `try_files` keeps processing in the current location when the file exists. Cost is ~9 repeated lines per block (nginx `add_header` inheritance resets in any block declaring one) — accepted, and `test_nginx_headers` contract 2b now enforces it generically instead of by hand-maintained list. Every redirect target carries `$is_args$args` because nginx's `return`, unlike Cloudflare, drops the query string and the intake-form prefill rides on it.
+
+**How to escalate if wrong:** if the page count grows enough that the repeated header blocks become the maintenance problem, move to a `map` + one regex location and repeat the headers once — but keep the exact `=` block for `/index.html`, and keep `location = /`, or the homepage loops.
+
+---
+
 ## 2026-07-09 - One parent site with three buyer lanes, not three separate sites
 
 **What:** Big7 is a large company, but the next cleanup should be one parent site with three lane pages: Commercial & Industrial, Residential Construction, and Home Repair & Improvements. Do not split into separate domains/sites yet. Do not introduce microservices for the marketing surface.

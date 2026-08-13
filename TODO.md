@@ -6,6 +6,97 @@
 
 # Big7Construction — TODO
 
+## SHIPPED 2026-08-12 — canonical arc part 4: the two serving stacks now AGREE
+
+**NOT DEPLOYED. Local commits only, nothing pushed.** Branch
+`fix/2026-08-12-nginx-redirect-parity`, off `fix/2026-08-12-canonical-301-onto-main`.
+
+Part 3 made Cloudflare 301 every `.html` URL to its clean path. The nginx
+Railway fallback did not follow: `try_files $uri $uri.html $uri/ =404` found
+`commercial-industrial.html` on disk and answered **200**, so every page was
+reachable at two URLs on the fallback. Only `/home-repair.html` had an explicit
+`return 301`. **If the site ever failed over, the whole SEO consolidation
+reversed silently** — and `test_url_shape` contract 6 blessed that shape, so
+nothing would have caught it. Found by a real `make test-container` run.
+
+**What contract 6 asserted before (and why — it was not wrong, just narrow):**
+`location /`'s try_files carries `$uri.html` and still ends in `=404`, and no
+`return 301` target uses the `.html` form. That was written on 2026-08-03 when
+`$uri.html` was ADDED — without it the fallback 404s on every internal link on
+the site, so the assertion is load-bearing and is **kept verbatim** as contract
+6a. What it never said was anything about the `.html` forms themselves.
+
+**Shipped:**
+- **`nginx.conf`** — exact-match `location = /<page>.html { return 301 /<page>; }`
+  for all 5 root pages (`/index.html` -> `/`), plus `/home-repair.html` **and**
+  `/home-repair` (extensionless; CF 301s it, nginx used to 404 it since the
+  file was deleted in the restructure). Destinations match `_redirects` exactly.
+- **`location = / { try_files /index.html =404; }`** — the loop guard. `index
+  index.html;` answers `/` with an *internal redirect* to `/index.html`, and an
+  internal redirect re-runs location matching, so it would have hit the new
+  `return 301 /` and bounced the homepage forever. `try_files` keeps processing
+  in the current location when the file exists — no re-match, no loop. (That
+  same property is why `/commercial-industrial` still serves 200 from
+  `commercial-industrial.html` while the `.html` URL redirects.)
+- **`$is_args$args` on every redirect target — money-path fix found by Codex.**
+  Unlike Cloudflare, nginx's `return` emits exactly the URL written and DROPS
+  the query string. Without the suffix, an ad/bio-link click on
+  `/commercial-industrial.html?intent=bid-commercial&utm_source=ig` would have
+  landed with an empty intake form and no attribution. Reproduced in the
+  container, then fixed and re-proved.
+- **`tests/test_url_shape.py` contract 6 rewritten** around ONE shared source:
+  `expected_redirect_map(repo_root)` (on-disk pages + the two legacy
+  `/home-repair` forms). `_redirects` (contract 8) and `nginx.conf` (contract 6)
+  are both checked against it *and* against each other key by key, so neither
+  stack can drift. Also asserts the `=` exact-match form and `$is_args$args`.
+- **`scripts/test-container-boot.py` imports the same map** — the runtime probe
+  can no longer disagree with the static contract. Its two `.html` -> 200 routes
+  (which encoded the old duplicate-content shape) are gone; every map entry is
+  probed for 301 + destination + query survival.
+- **`tests/test_nginx_headers.py` contract 2b** — *any* location declaring an
+  add_header must repeat all 5 security headers, not just a hand-maintained
+  list. This change added 7 header-declaring blocks at once. Also fixed both
+  files' comment stripper: nginx starts a comment only at a token boundary, so
+  the naive `#.*` strip was eating the `;` off
+  `return 301 /residential-construction#home-repair;` and hiding the directive.
+- Selftests: `test_url_shape` 19 -> **25** mutations, `test_nginx_headers`
+  12 -> **13**. All caught.
+
+**Proven non-vacuous (the red run, before touching nginx.conf):**
+`python tests/test_url_shape.py` reported **6 failures** — one per missing
+nginx redirect (`/accessibility.html`, `/commercial-industrial.html`,
+`/home-repair`, `/index.html`, `/residential-construction.html`,
+`/south-fulton-distribution.html`) — and correctly stayed silent about
+`/home-repair.html`, which already had its `return 301`. The `$is_args$args`
+check was proved the same way: reverting one target turned both the static
+suite AND the container probe red, then green again on restore.
+
+**Gates (real output, 2026-08-12):**
+- `make test` exit **0** — 24 suites / 48 golden+selftest invocations, zero failures.
+- `make test-container` exit **0** — Docker server 29.6.1, image built, container
+  booted non-root. `/` `/commercial-industrial` `/residential-construction`
+  `/south-fulton-distribution` `/accessibility` `/big7.js` -> **200**; missing
+  route -> **404**; all **7** redirect sources -> **301** to the CF destination;
+  query string survived all 7 hops.
+- Header probe on the new 301s: all 5 security headers present on
+  `/commercial-industrial.html`, `/index.html`, `/home-repair` and on `/`.
+- `test_a11y_baseline` green on all 6 pages — **no HTML was touched** (LAW 11).
+
+**nginx precedence finding (verified independently, not assumed from CF):**
+nginx resolves locations by **specificity, not file order** — an exact
+`location = /x` short-circuits the search before any prefix or regex location
+is considered, wherever it sits in the file. Cloudflare's `_redirects` is the
+opposite: **first matching line wins**. The test therefore requires the `=`
+form so a future reorder cannot resurrect the 200.
+
+**DEPLOY IMPACT:** none on Cloudflare — `_redirects`, `wrangler.jsonc`, HTML,
+sitemap and JS are all untouched. This changes only the Railway fallback image.
+Rollback = revert `nginx.conf`.
+
+**NEXT ACTION (cold-start):** this branch + `fix/2026-08-12-canonical-301-onto-main`
+are both unpushed and unreviewed. Mike's call whether they ride one PR. Nothing
+here is live until Railway rebuilds the image.
+
 ## SHIPPED 2026-08-12 — canonical arc part 3: the hop is now a 301, not a 307
 
 **NOT DEPLOYED. Local commit only (`94c5052`), nothing pushed.** Live client
@@ -123,16 +214,16 @@ CF worker deploys, re-probe live:
   needs a wrangler integration suite (new test + node dev-dep), which is a
   bigger build than this arc. Do it with the container gate below, since both
   are "boot something and probe it" work.
-- **nginx `.html` -> clean 301 on the Railway fallback** — unchanged from
-  2026-08-03 and still correctly parked. CF now 301s the `.html` form; nginx
-  still serves BOTH forms at 200, so the fallback has a duplicate-content
-  shape the live host doesn't. Note this is **not a new regression** — it was
-  equally true when CF answered 307. Still needs a regex `location` block
-  (which resets nginx `add_header` inheritance: all 5 security headers must be
-  repeated and `test_nginx_headers`'s protected-locations spec updated), and
-  **Docker was down again this session** (`make test-container` NOT run,
-  third session running — daemon not reachable). Do it in the session that
-  finally runs the container gate.
+  **Half-closed 2026-08-12:** the *nginx* side is now locked both statically
+  (`$is_args$args` required on every redirect target) and at runtime (the
+  container probe replays `?intent=…&utm_source=…` through all 7 redirects).
+  Cloudflare's side is still unlocked — that is the wrangler suite above.
+- ~~**nginx `.html` -> clean 301 on the Railway fallback**~~ **CLOSED
+  2026-08-12** — see "canonical arc part 4" above. Done with exact-match
+  (`location = /x`) blocks, not the regex block this note predicted; the 5
+  security headers are repeated per block and `test_nginx_headers` gained a
+  generic rule instead of a longer hand-maintained list. Docker was up this
+  time and `make test-container` ran green.
 - **`/404.html` still 307s to `/404`, and `/404` serves 200** — a soft-404
   shape. Harmless today (the page is `noindex` and is never linked; CF serves
   it via `not_found_handling` for real misses, which correctly returns 404 —
@@ -284,7 +375,9 @@ static-test-verified only.
   need the new block added to its protected-locations spec), and it could not
   be boot-verified this session with Docker down. Low value while Railway is
   fallback-only and uncrawled. Do it in the same session that runs the
-  container gate.
+  container gate. *(**CLOSED 2026-08-12** — canonical arc part 4, at the top of
+  this file. Done in the session that finally ran the container gate, exactly
+  as this note scoped it.)*
 - Fragment support in CF `_redirects` is still undocumented, so
   `/home-repair*` lands on `/residential-construction` without the
   `#home-repair` fragment on Cloudflare (nginx keeps the fragment). Unchanged
