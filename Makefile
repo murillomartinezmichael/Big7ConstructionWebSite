@@ -23,7 +23,7 @@ run: ## Run the service locally
 
 test: test-jsonld test-seo-files test-conversion test-primary-ctas test-url-prefill test-og test-assets test-anchors test-nginx test-form test-font-preload test-images test-breadcrumbs test-service-schema test-offer-catalog test-dockerfile test-meta-descriptions test-intake-analytics test-a11y-baseline test-lane-nav test-404-lane-recovery test-click-to-call test-url-shape test-phone ## Run all tests (stdlib-only smoke suite)
 
-test-container: ## Build the production image; prove nginx boots and home/lane/404 routes respond correctly
+test-container: ## Build the production image; prove nginx boots, clean paths 200, every .html form 301s to the same target Cloudflare uses (map imported from tests/test_url_shape.py), and the ?intent=/?utm_* money query survives each hop
 	python scripts/test-container-boot.py
 
 test-jsonld: ## LocalBusiness JSON-LD parses + required fields; FAQPage Q.name agrees with visible <summary> text in order (schema/page drift lock)
@@ -114,7 +114,7 @@ test-click-to-call: ## Header tel: tappable + >=48px hit box; sticky mobile call
 	python tests/test_click_to_call.py
 	python tests/test_click_to_call.py --selftest
 
-test-url-shape: ## ONE canonical URL shape everywhere (apex, https, no www, no .html) across canonicals/og:url/JSON-LD/internal hrefs/sitemap/_redirects/nginx fallback; every shipped page's .html form carries an explicit 301 to its clean path (no CF 307 fallback), with chain + loop guards
+test-url-shape: ## ONE canonical URL shape everywhere (apex, https, no www, no .html) across canonicals/og:url/JSON-LD/internal hrefs/sitemap/_redirects/nginx fallback; every shipped page's .html form carries an explicit 301 to its clean path (no CF 307 fallback), with chain + loop guards; BOTH serving stacks checked against one derived redirect map so Cloudflare and nginx cannot drift apart
 	python tests/test_url_shape.py
 	python tests/test_url_shape.py --selftest
 

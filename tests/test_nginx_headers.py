@@ -23,10 +23,15 @@ default) means CDNs pin a stale HTML for a year even after redeploy.
 Contract asserted:
   1. Server block has all 5 security headers + Vary: Accept-Encoding +
      the long-cache default.
-  2. Each protected location (`/index.html`, `/robots.txt`,
+  2. Each protected location (`/`, `/index.html`, `/robots.txt`,
      `/sitemap.xml`, `/404.html`) declares at least one add_header
      itself — which triggers nginx inheritance reset — and therefore
      MUST repeat all 5 security headers inline.
+  2b. GENERALIZED (2026-08-12): *any* location block that declares at
+     least one add_header must repeat all 5, not just the named ones.
+     The named list needed hand-maintenance, and the canonical-redirect
+     work added 7 new header-declaring blocks at once; one forgotten
+     HSTS line in any of them ships an unprotected response.
   3. `/index.html` Cache-Control is short-cache (`max-age=0,
      must-revalidate`) — never immutable.
   4. `/robots.txt` + `/sitemap.xml` + `/404.html` Cache-Control is
@@ -76,6 +81,10 @@ REQUIRED_SECURITY_HEADERS: dict[str, str] = {
 # 5 security headers. Each entry: (nginx location matcher, expected
 # Cache-Control value).
 PROTECTED_LOCATIONS: dict[str, str] = {
+    # `= /` serves the homepage HTML directly (see nginx.conf — the `index`
+    # directive can't be used now that `/index.html` 301s), so it carries the
+    # same short-cache requirement as `/index.html` used to.
+    "= /": "public, max-age=0, must-revalidate",
     "= /index.html": "public, max-age=0, must-revalidate",
     "= /robots.txt": "public, max-age=3600",
     "= /sitemap.xml": "public, max-age=3600",
@@ -87,8 +96,12 @@ def _strip_comments(conf: str) -> str:
     """Strip nginx `# ...` comments so they can't fool the location-block
     regex. A comment that reads `# nested location = /foo below` would
     otherwise satisfy `location\\s+[^{]+?\\s*\\{` all the way through to
-    the next real block's opening brace."""
-    return re.sub(r"#[^\n]*", "", conf)
+    the next real block's opening brace.
+
+    nginx starts a comment only where `#` begins a token, so a `#` inside a
+    value is data: `return 301 /residential-construction#home-repair;` is a
+    working directive and must survive stripping with its `;` intact."""
+    return re.sub(r"(?m)(^|\s)#[^\n]*", r"\1", conf)
 
 
 def _extract_server_body(conf: str) -> str:
@@ -217,6 +230,16 @@ def check_nginx_conf(conf: str) -> list[str]:
             f"should be long-cache immutable"
         )
 
+    # Contract 2b — every header-declaring block, named or not. A block with
+    # no add_header of its own inherits the server-level 5 and is fine; the
+    # moment it declares one, nginx drops all inherited add_headers.
+    for matcher, body in location_bodies.items():
+        if matcher in PROTECTED_LOCATIONS:
+            continue  # checked with its Cache-Control spec below
+        if not re.search(r"\badd_header\b", body):
+            continue
+        errors.extend(_check_security_headers(f"location {matcher}", body))
+
     for matcher, expected_cc in PROTECTED_LOCATIONS.items():
         if matcher not in location_bodies:
             errors.append(f"missing `location {matcher}` block")
@@ -298,6 +321,16 @@ def _baseline_conf() -> str:
         internal;
 {loc_security}
         add_header Cache-Control "public, max-age=3600" always;
+    }}
+    location = / {{
+{loc_security}
+        add_header Cache-Control "public, max-age=0, must-revalidate" always;
+        try_files /index.html =404;
+    }}
+    location = /home-repair.html {{
+{loc_security}
+        add_header Cache-Control "public, max-age=3600" always;
+        return 301 /residential-construction#home-repair;
     }}
     location / {{
         try_files $uri $uri/ =404;
@@ -390,6 +423,20 @@ def selftest() -> int:
                 "try_files $uri $uri/ /index.html;",
             ),
             "try_files fallback",
+        ),
+        (
+            # Contract 2b: this block is NOT in PROTECTED_LOCATIONS, so before
+            # 2026-08-12 nothing checked it — a redirect could ship with the
+            # inheritance reset and no HSTS.
+            "HSTS dropped from an unnamed header-declaring block (/home-repair.html)",
+            re.sub(
+                r"(location = /home-repair\.html \{[^}]*?)        add_header Strict-Transport-Security[^\n]*\n",
+                r"\1",
+                baseline,
+                count=1,
+                flags=re.DOTALL,
+            ),
+            "location = /home-repair.html: missing add_header Strict-Transport-Security",
         ),
         (
             "HSTS max-age below 6-month floor",
