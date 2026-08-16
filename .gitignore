@@ -2,6 +2,9 @@
 .DS_Store
 Thumbs.db
 
+# Cloudflare Wrangler local cache
+.wrangler/
+
 # Session ephemera (auto-improve tick state + fleet claims coordination)
 .autoimprove/
 .claims/
