@@ -6,6 +6,123 @@
 
 # Big7Construction — TODO
 
+## SHIPPED 2026-08-17 — design/a11y pass off DESIGN_AUDIT_2026-08-16 §4–§7
+
+**NOT DEPLOYED. NOT PUSHED. Local commits only.** Branch
+`design/a11y-2026-08-17`, off `fix/2026-08-12-nginx-redirect-parity` (`55dd363`).
+`f3979df` · `d666ad3` · `abeca08`.
+
+**Why nothing was pushed, and why nothing may be:** `big7construction.com` is
+under an active P0 exposure. `wrangler.jsonc` sets `assets.directory: "./"`, so
+the repo root IS the document root — `/.git/config`, `/TODO.md` (this file),
+`/PENDING_MANUAL.md` and every internal doc answer 200 on the client's live
+domain, and **every branch push deploys the Worker**. PR #10's `.assetsignore`
+fixes the config but is not on `main`, so the leak re-opens on the next branch
+push regardless. Until `.assetsignore` is on `main` AND Workers Builds is
+restricted to the `main` branch in the Cloudflare dashboard, a push from this
+branch republishes the repo. Nothing in this session goes near a remote, and no
+new file was added anywhere under `docs/` (also publicly served).
+
+**Shipped — 7 findings, every one closed against a measurement, not an assertion
+(LAW #6).** Contrast recomputed with the WCAG 2.1 relative-luminance formula,
+calibrated exact against three published pairs (#000/#fff = 21.00,
+#777/#fff = 4.48, #767676/#fff = 4.54), then re-measured against the *rendered*
+pages in real Google Chrome via puppeteer-core (the Chrome MCP extension was
+failing with "No group with id" — puppeteer-core driving real Chrome was the
+sanctioned fallback; never Opera). Pages were served from a local
+`python -m http.server`, never the live domain. **No form was submitted** —
+Formspree and the n8n intake are live and were not touched.
+
+1. **Contrast (index.html).** A full rendered sweep found **19 failing text
+   nodes; now 0 of 80.** The failures were grey-on-black and they all sat on the
+   trust copy — "PROJECTS DELIVERED", "BOND CAPACITY", "WARRANTY", "BID
+   RESPONSE", every footer heading. Orange was already correct and was not
+   touched (`--accent-600` behind white = 5.59, `--accent-400` on dark = 7.34).
+   - `#4C5258` on `#08090B` **2.52 -> 7.81** (`#9CA3AA`, `--ink-500` -> `--ink-300`):
+     `.div-stat dt`, `.div-head .type`, `.hero-stats .fine`, `.foot-col .lbl`,
+     `.foot-bottom`, both inline `.spec-label` uses on `--ink-950`.
+   - `#4C5258` on `#0E1012` **2.41 -> 7.47** — `.div-col.alt .div-head .type`.
+   - `#6E757C` on `#08090B` **4.27 -> 7.81** (`--ink-400` -> `--ink-300`):
+     `.divider.dark`, `.hero-stats dt`, `.cap-meta`, `.scroll-hint`,
+     `.lane-strip .lbl`, `.cta-facts`, `.foot-hero p`.
+   - `#2565CC` on `#0E1012` **3.46 -> 5.20** (`#4B85E0`, `--steel-500` ->
+     `--steel-400`) — "Division 02" and its `.div-stat` unit suffix.
+   - `#6E757C` on `#F5F1EA` **4.15 -> 7.03** (`--ink-400` -> `--ink-500`) — the
+     nav and mobile-menu numerals. **The audit filed these under the dark
+     sections; measured, they render on `--paper` and failed there instead.**
+     Caught only because the sweep read the rendered background rather than
+     trusting the finding's stated pairing.
+   - Two cases needed a scoped override, not a token swap, because a child
+     re-declared the color and out-specified its section: `.section-marker`
+     inside `.divider.dark`, and `.spec-label` inside `.cta-facts`.
+   - The parked-issue comment above `.divider.dark` is **replaced**: it
+     estimated ~3.15:1 for a pairing that actually measures 2.52:1, and its
+     premise (the `--ink-200` tabular override is the AA patch) no longer holds
+     now that the inherited color passes on its own.
+2. **375px overflow — both lane pages, `scrollWidth` 429 -> 375**, in-flow
+   elements past 375px 10 -> 0 (commercial) and 13 -> 0 (residential); all four
+   `fieldset.cform-set` go from `x=24 w=405 right=429` to `x=24 w=327 right=351`.
+   **Root cause was not a fixed width.** A `<fieldset>` floors its inline size at
+   min-content, and `.cform-legend .hint` was `white-space: nowrap` at 265px, so
+   the fieldset physically could not shrink below 405px; `.type-grid`,
+   `.type-row` and the wrapping `<label>`s inherited it. `min-width: 0` removes
+   the floor, the hint wraps, and `minmax(0, 1fr)` + `max-width: 100%` stop the
+   grid children re-introducing it.
+3. **Clipped sticky CTA — fixed by (2), as predicted.** `a.cb-bid`
+   ("Get a bid ->") right edge now measures 361 <= 375, on-screen.
+4. **`<legend>` on the radio groups.** 4/4 fieldsets per lane page now carry a
+   `<legend>` (was 0), 2/2 radio groups named, 0 `div.cform-legend` left. The
+   audit named the two radio fieldsets; the other two were the identical defect
+   in the identical file, so they went with them (LAW #11). Visual parity
+   verified, not assumed: at 1280px all four legends still measure x=184 w=584
+   h=19, single line, `padding-left: 0` — `width:100%` + `padding:0` cancel the
+   UA legend's shrink-to-fit and 2px inline padding. The one intended delta is
+   at 375px, where the project-type hint drops to its own line (19px -> 50px).
+5. **`aria-live` on the async form result.** `.form-note` is now
+   `role="status" aria-live="polite" tabindex="-1"`, and `big7.js` moves focus
+   there on both the success and failure paths. The blanket
+   `input, select, textarea -> disabled` on success is gone — it stranded focus
+   on a dead control and hid what the visitor had just typed. `btn.disabled` is
+   still set earlier in the handler, so double-submit is still impossible. No
+   change to the Formspree POST, the n8n mirror, the fetch order, or either
+   message string (LAW #7).
+6. **`role="dialog"` removed** from the mobile menu (`index.html`): no focus
+   trap, no Esc handler, no backdrop, so the role promised three behaviours the
+   widget does not have (WCAG 4.1.2). `aria-expanded`/`aria-controls` on the
+   toggle already describe it. Its `aria-label` went too — not exposed on a bare
+   div. *(A `role="dialog"` still appears in the rendered DOM as `#sg-panel`;
+   that is the third-party SiteGuide chat widget, not our markup.)*
+7. **Primary `<nav>` named.** `aria-label="Primary"` moved onto
+   `<nav class="top">` and dropped from the child `<ul>`, where it was naming a
+   list rather than the landmark. All three nav landmarks are now uniquely named
+   and none is doubled.
+8. **Honest hero alt.** `index.html` no longer attributes the placeholder photo
+   (byte-identical to `jobsite-02.jpg`) to "an active Big 7 Construction
+   jobsite". It now matches the neutral wording the lane pages already shipped.
+
+**Verification gate:** `make test` -> **24/24 PASS, exit 0**, run before and
+after, and the full output is **byte-identical** across the two runs.
+
+**Explicitly NOT touched (client-blocked, already logged):** the phone number
+`(555) 700-0007`; the "500+ / $180M+ / zero OSHA" stats; the AGC/NAHB/BOMA
+membership claims; the warranty contradiction.
+
+**NEXT ACTION (cold start, 60 seconds):** do NOT push this branch. First close
+the P0: merge PR #10 onto `main`, then restrict Workers Builds to the `main`
+branch in the Cloudflare dashboard (that second step is the actual fix — the
+config alone re-breaks on the next branch push) and rotate the n8n webhook in
+`big7.js:46`. Only after Workers Builds is branch-restricted is it safe to open
+a PR for `design/a11y-2026-08-17`.
+
+**Parked from this audit, still open, no client input needed:** delete
+`Bid № 2026-0187` (`index.html`); drop the `geo`/`hasMap` downtown-Atlanta
+centroid; unhide the `.sr-only` Message label on both lane forms; delete the
+orphaned testimonial CSS incl. the star-rating rule; reconcile "8 trades" vs
+"11 trades"; add the shared call bar to `/accessibility` and refresh its
+last-updated + alt-text claim; add `SiteGuide` and the n8n hostname to
+`LEAK_PATTERNS`. Radio inputs render 13x13px — a WCAG 2.2 (2.5.8) target-size
+issue, outside LAW #11's 2.1 baseline, worth fixing for conversion anyway.
+
 ## SHIPPED 2026-08-12 — canonical arc part 4: the two serving stacks now AGREE
 
 **NOT DEPLOYED. Local commits only, nothing pushed.** Branch

@@ -1,4 +1,4 @@
 PROJECT: Big7Construction
-GOAL:    nginx (Railway fallback) 301s every shipped page's `.html` form to the same clean path Cloudflare does, proven by a real container probe (`.html` -> 301, clean path -> 200, `/` -> 200 with no redirect loop) and locked by a rewritten test_url_shape contract 6 that derives ONE expected redirect map and asserts BOTH stacks satisfy it.
+GOAL:    The 7 agent-fixable a11y/design findings from DESIGN_AUDIT_2026-08-16 §4-§7 ship on `design/a11y-2026-08-17`, each proved by measurement rather than assertion: every rendered text node on `/`, `/commercial-industrial` and `/residential-construction` clears WCAG 2.1 AA contrast in real Chrome; both lane pages measure `scrollWidth == 375` at 375x812 with `a.cb-bid`'s right edge on-screen; the radio fieldsets expose a `<legend>` group name; `.form-note` is a `role="status" aria-live="polite"` region that takes focus instead of the form disabling every field; `role="dialog"` is off the non-modal menu; the primary `<nav>` is named exactly once; the homepage hero alt stops attributing a placeholder photo to a Big 7 jobsite. `make test` stays 24/24 PASS exit 0. Nothing pushed.
 BUDGET:  90 min
-STARTED: 2026-08-12
+STARTED: 2026-08-17
