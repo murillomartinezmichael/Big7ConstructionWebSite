@@ -59,12 +59,24 @@ async function submitForm(e) {
     if (!res.ok) throw new Error('Formspree returned ' + res.status);
     btn.textContent = 'Request received ✓';
     btn.style.background = '#2F5D3A';
-    form.querySelectorAll('input, select, textarea').forEach(f => f.disabled = true);
-    if (note) note.textContent = "A senior estimator will reach out within 48 hours. Drawings + specs can be emailed to info@big7construction.com.";
+    // The old success path disabled every input, which strands keyboard and
+    // screen-reader focus on a dead control and hides what the visitor just
+    // typed. Leave the fields readable; `btn` stays disabled from above, so
+    // the form still cannot be double-submitted. `.form-note` is a
+    // role="status" aria-live="polite" region, so the swap below is announced
+    // (WCAG 4.1.3); focus then moves to it so keyboard users land on the
+    // outcome rather than wherever the submit button used to be.
+    if (note) {
+      note.textContent = "A senior estimator will reach out within 48 hours. Drawings + specs can be emailed to info@big7construction.com.";
+      if (typeof note.focus === 'function') note.focus();
+    }
   } catch (err) {
     btn.textContent = original;
     btn.disabled = false;
-    if (note) note.textContent = "Something went wrong sending the form. Email info@big7construction.com directly or call (555) 700-0007.";
+    if (note) {
+      note.textContent = "Something went wrong sending the form. Email info@big7construction.com directly or call (555) 700-0007.";
+      if (typeof note.focus === 'function') note.focus();
+    }
   }
 }
 
