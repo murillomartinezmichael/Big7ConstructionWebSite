@@ -484,15 +484,24 @@
     /* Intake form */
     .contact-grid { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 28px; margin-top: 24px; }
     .cform { min-width: 0; }
-    .cform-set { border: 0; padding: 0; margin: 0 0 26px; }
-    .cform-legend { display: flex; align-items: baseline; gap: 12px; margin: 0 0 14px; }
+    /* A <fieldset> floors its inline size at min-content, so the nowrap
+       `.hint` inside its legend (265px wide) pushed .cform-set out to 405px
+       at x=24 — measured 429px scrollWidth on a 375px viewport, which also
+       stretched the sticky call bar and pushed its "Get a bid" CTA
+       off-screen. min-width:0 removes that floor so the legend wraps. */
+    .cform-set { border: 0; padding: 0; margin: 0 0 26px; min-width: 0; max-width: 100%; }
+    /* Now a real <legend> (WCAG 1.3.1 group name). width:100% + padding:0
+       reproduce the block-level <div> it replaced: a UA <legend> is
+       shrink-to-fit and carries 2px inline padding. flex-wrap lets the
+       hint drop to its own line instead of overflowing. */
+    .cform-legend { display: flex; flex-wrap: wrap; align-items: baseline; gap: 12px; margin: 0 0 14px; padding: 0; width: 100%; max-width: 100%; }
     .cform-legend .lbl {
       font-family: 'Barlow Condensed', 'Barlow Condensed Fallback', sans-serif; font-weight: 600;
       font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-500);
       white-space: nowrap;
     }
     .cform-legend .rule { flex: 1; height: 1px; background: rgba(0,0,0,0.12); }
-    .cform-legend .hint { font-size: 12px; color: var(--ink-500); white-space: nowrap; }
+    .cform-legend .hint { font-size: 12px; color: var(--ink-500); min-width: 0; }
     .cform-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
     .cform label { display: block; margin: 0 0 14px; }
     .cform label > span { display: block; font-size: 13px; font-weight: 500; color: var(--ink-700); margin: 0 0 5px; }
@@ -501,11 +510,11 @@
       border: 1px solid rgba(0,0,0,0.18); border-radius: 3px; background: #fff; color: var(--ink-900);
     }
     .cform textarea { resize: vertical; }
-    .type-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .type-grid label { margin: 0; }
+    .type-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; max-width: 100%; }
+    .type-grid label { margin: 0; min-width: 0; max-width: 100%; }
     .type-grid input[type="radio"] { position: absolute; opacity: 0; }
     .type-row {
-      display: flex; gap: 12px; align-items: baseline; height: 100%;
+      display: flex; gap: 12px; align-items: baseline; height: 100%; min-width: 0; max-width: 100%;
       padding: 12px 14px; background: #fff; border: 1px solid rgba(0,0,0,0.14);
       border-radius: 4px; cursor: pointer;
     }
@@ -948,10 +957,10 @@
           <!-- Lane attribution default; an explicit ?src=/?utm_source= param overwrites it (big7.js) -->
           <input type="hidden" name="source" value="residential-page" />
           <fieldset class="cform-set">
-            <div class="cform-legend">
+            <legend class="cform-legend">
               <span class="lbl">01 · Who&rsquo;s asking</span>
               <div class="rule"></div>
-            </div>
+            </legend>
             <div class="cform-cols">
               <label>
                 <span>Full name *</span>
@@ -979,11 +988,11 @@
           </fieldset>
 
           <fieldset class="cform-set">
-            <div class="cform-legend">
+            <legend class="cform-legend">
               <span class="lbl">02 · Project type</span>
               <div class="rule"></div>
               <span class="hint">Pick the closest — we&rsquo;ll refine on the site walk.</span>
-            </div>
+            </legend>
             <div class="type-grid">
               <label>
                 <input type="radio" name="projectType" value="residential-custom" required />
@@ -1019,10 +1028,10 @@
           </fieldset>
 
           <fieldset class="cform-set">
-            <div class="cform-legend">
+            <legend class="cform-legend">
               <span class="lbl">03 · Budget range</span>
               <div class="rule"></div>
-            </div>
+            </legend>
             <!-- Homeowner-scale ranges anchored to real Metro-Atlanta pricing
                  (researched 2026-07-17): painting/plumbing/electrical service
                  jobs $1K–$10K (water heater ~$850–$3.5K, panel ~$1.3K–$3K);
@@ -1042,10 +1051,10 @@
           </fieldset>
 
           <fieldset class="cform-set">
-            <div class="cform-legend">
+            <legend class="cform-legend">
               <span class="lbl">04 · Tell us about it</span>
               <div class="rule"></div>
-            </div>
+            </legend>
             <label>
               <span class="sr-only">Message</span>
               <textarea name="message" rows="5" placeholder="Scope, size, target start date, existing plans, any code / permit hurdles. Plans + photos can be emailed to info@big7construction.com after you send this."></textarea>
@@ -1060,7 +1069,11 @@
             <button type="submit" class="btn-dark" id="formBtn">Send request →</button>
             <a href="tel:5557000007" class="alt-call">or call (555) 700-0007</a>
           </div>
-          <p class="form-note">
+          <!-- role=status + aria-live=polite: big7.js swaps this text after the
+               async Formspree POST; without a live region a screen reader never
+               hears the result. tabindex=-1 so big7.js can move focus here
+               instead of disabling every field and stranding the user. -->
+          <p class="form-note" role="status" aria-live="polite" tabindex="-1">
             By submitting, you agree we can call or email you at the details above. No mailing lists, no lead resale.
           </p>
         </form>
