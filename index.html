@@ -380,15 +380,15 @@
     }
     .section-marker .normal { text-transform: none; letter-spacing: normal; font-weight: 500; }
     .divider { padding: 24px 0; }
-    .divider.dark { background: var(--ink-950); color: var(--ink-400); }
+    .divider.dark { background: var(--ink-950); color: var(--ink-300); }
     .divider.light { background: var(--paper); color: var(--ink-500); }
-    /* AA-contrast override for dark-divider tabular spans. Inherited color of
-       --ink-500 (#4C5258) on --ink-950 (#08090B) sits at ~3.15 — fails WCAG AA
-       for small text (4.5:1). --ink-200 (#CBCFD3) on --ink-950 clears ~11.5,
-       comfortably passes AA even with the inline `opacity:0.8` on the "of 08"
-       counter spans (effective L drops but still >7). Light-divider case
-       (--paper bg) already passes and is intentionally untouched. Closes
-       TODO PARKED §2 (dark-divider tabular contrast). */
+    /* Dark-divider text. `.section-marker` sets its own --ink-500, which beat
+       `.divider.dark`'s inherited color — measured 2.52:1 on --ink-950, not the
+       ~3.15 the old parked note estimated. Both now carry --ink-300 (#9CA3AA
+       on #08090B = 7.81:1). The --ink-200 tabular span stays as emphasis, no
+       longer as the AA patch; it clears AA even under its inline opacity:0.8.
+       Light-divider case (--paper bg) passes at 7.03:1 and is untouched. */
+    .divider.dark .section-marker { color: var(--ink-300); }
     .divider.dark .section-marker span.tabular { color: var(--ink-200); }
 
     /* ─── BUTTONS ────────────────────────────────────────────── */
@@ -568,7 +568,7 @@
       transition: color 0.2s;
     }
     .nav-links a:hover, .nav-links a.active { color: var(--ink-900); }
-    .nav-links a .n { font-variant-numeric: tabular-nums; font-size: 10px; color: var(--ink-400); margin-right: 6px; }
+    .nav-links a .n { font-variant-numeric: tabular-nums; font-size: 10px; color: var(--ink-500); margin-right: 6px; }
     .nav-links a::after {
       content: '';
       position: absolute;
@@ -642,7 +642,7 @@
       transition: color 0.2s;
     }
     .mob-menu a:hover { color: var(--accent-500); }
-    .mob-menu a .n { font-variant-numeric: tabular-nums; font-size: 12px; color: var(--ink-400); }
+    .mob-menu a .n { font-variant-numeric: tabular-nums; font-size: 12px; color: var(--ink-500); }
     .mob-menu .btn { margin-top: 20px; width: 100%; }
 
     /* ─── HERO ───────────────────────────────────────────────── */
@@ -720,7 +720,7 @@
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.22em;
-      color: var(--ink-400);
+      color: var(--ink-300);
     }
     .hero-stats dd {
       margin: 6px 0 0;
@@ -733,7 +733,7 @@
       letter-spacing: -0.025em;
     }
     .hero-stats dd .up { color: var(--accent-500); font-size: 18px; }
-    .hero-stats .fine { display: block; margin-top: 4px; font-family: 'Barlow Condensed', 'Barlow Condensed Fallback', sans-serif; font-size: 10px; letter-spacing: 0.12em; color: var(--ink-500); font-variant-numeric: tabular-nums; text-transform: uppercase; }
+    .hero-stats .fine { display: block; margin-top: 4px; font-family: 'Barlow Condensed', 'Barlow Condensed Fallback', sans-serif; font-size: 10px; letter-spacing: 0.12em; color: var(--ink-300); font-variant-numeric: tabular-nums; text-transform: uppercase; }
 
     .hero-photo {
       position: relative;
@@ -786,7 +786,7 @@
       font-size: 10px;
       text-transform: uppercase;
       letter-spacing: 0.22em;
-      color: var(--ink-400);
+      color: var(--ink-300);
       font-variant-numeric: tabular-nums;
     }
     .hero-photo-caption .cap-eyebrow {
@@ -816,7 +816,7 @@
       flex-direction: column;
       align-items: center;
       gap: 8px;
-      color: var(--ink-400);
+      color: var(--ink-300);
       z-index: 2;
     }
     @media (min-width: 768px) { .scroll-hint { display: flex; } }
@@ -891,7 +891,7 @@
     @media (min-width: 1024px) { .div-col { padding: 56px; } }
     .div-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
     .div-head .num { color: var(--accent-500); font-family: 'Barlow Condensed', 'Barlow Condensed Fallback', sans-serif; font-size: 11px; text-transform: uppercase; letter-spacing: 0.22em; font-weight: 600; }
-    .div-head .type { color: var(--ink-500); font-family: 'Barlow Condensed', 'Barlow Condensed Fallback', sans-serif; font-size: 10px; text-transform: uppercase; letter-spacing: 0.22em; font-weight: 600; }
+    .div-head .type { color: var(--ink-300); font-family: 'Barlow Condensed', 'Barlow Condensed Fallback', sans-serif; font-size: 10px; text-transform: uppercase; letter-spacing: 0.22em; font-weight: 600; }
     .div-title {
       margin-top: 24px;
       font-family: 'Fraunces', 'Fraunces Fallback', serif;
@@ -914,7 +914,7 @@
       border-top: 1px solid rgba(255,255,255,0.1);
       padding-top: 24px;
     }
-    .div-stat dt { font-family: 'Barlow Condensed', 'Barlow Condensed Fallback', sans-serif; font-size: 10px; text-transform: uppercase; letter-spacing: 0.22em; color: var(--ink-500); }
+    .div-stat dt { font-family: 'Barlow Condensed', 'Barlow Condensed Fallback', sans-serif; font-size: 10px; text-transform: uppercase; letter-spacing: 0.22em; color: var(--ink-300); }
     .div-stat dd { margin-top: 6px; font-family: 'Fraunces', 'Fraunces Fallback', serif; font-weight: 500; font-size: 22px; color: #fff; font-variant-numeric: tabular-nums; letter-spacing: -0.025em; }
     .div-stat dd .u { color: var(--accent-500); font-size: 13px; margin-left: 4px; }
     .div-link {
@@ -932,10 +932,10 @@
     /* Division 02 (residential) reads blue — the counterweight to
        Division 01's orange. Together they show orange + blue + black
        as the three main brand colors on a single screen. */
-    .div-col.alt .num { color: var(--steel-500); }
+    .div-col.alt .num { color: var(--steel-400); }
     .div-col.alt .div-title em { color: var(--steel-500); }
     .div-col.alt .div-list li::before { background: var(--steel-500); }
-    .div-col.alt .div-stat dd .u { color: var(--steel-500); }
+    .div-col.alt .div-stat dd .u { color: var(--steel-400); }
     .div-col.alt .div-link { color: var(--steel-500); }
     .div-col.alt .div-link:hover { color: var(--steel-400); }
 
@@ -945,7 +945,7 @@
     .lane-strip .lbl {
       font-family: 'Barlow Condensed', 'Barlow Condensed Fallback', 'Inter', 'Inter Fallback', sans-serif;
       text-transform: uppercase; letter-spacing: 0.14em;
-      font-size: 13px; color: var(--ink-400); margin: 0 8px 0 0;
+      font-size: 13px; color: var(--ink-300); margin: 0 8px 0 0;
     }
     .lane-strip a {
       font-family: 'Barlow Condensed', 'Barlow Condensed Fallback', 'Inter', 'Inter Fallback', sans-serif;
@@ -1005,8 +1005,13 @@
       flex-wrap: wrap;
       gap: 12px 32px;
       justify-content: center;
-      color: var(--ink-400);
+      color: var(--ink-300);
     }
+    /* .spec-label carries its own --ink-500 and out-specifies the inherited
+       color above; on --ink-950 that measured 2.52:1. Scoped to --ink-300
+       (7.81:1) here only — the light-background .spec-label uses stay at
+       --ink-500, which clears AA on --paper at 7.03:1. */
+    .cta-facts .spec-label { color: var(--ink-300); }
     .cta-facts .dot { width: 4px; height: 4px; background: var(--accent-500); border-radius: 50%; align-self: center; }
 
     /* ─── CONTACT FORM ───────────────────────────────────────── */
@@ -1118,7 +1123,7 @@
       line-height: 0.95;
       letter-spacing: -0.03em;
     }
-    .foot-hero p { margin-top: 16px; max-width: 640px; color: var(--ink-400); font-size: 18px; line-height: 1.65; }
+    .foot-hero p { margin-top: 16px; max-width: 640px; color: var(--ink-300); font-size: 18px; line-height: 1.65; }
     .foot-badges { margin-top: 32px; display: flex; flex-wrap: wrap; gap: 12px; }
 
     .foot-cols {
@@ -1130,7 +1135,7 @@
     }
     @media (min-width: 640px) { .foot-cols { grid-template-columns: 1fr 1fr; } }
     @media (min-width: 1024px) { .foot-cols { grid-template-columns: 4fr 3fr 3fr; gap: 40px 60px; } }
-    .foot-col .lbl { font-family: 'Barlow Condensed', 'Barlow Condensed Fallback', sans-serif; font-size: 10px; text-transform: uppercase; letter-spacing: 0.22em; color: var(--ink-500); font-weight: 600; }
+    .foot-col .lbl { font-family: 'Barlow Condensed', 'Barlow Condensed Fallback', sans-serif; font-size: 10px; text-transform: uppercase; letter-spacing: 0.22em; color: var(--ink-300); font-weight: 600; }
     .foot-col .big { margin-top: 16px; font-family: 'Fraunces', 'Fraunces Fallback', serif; font-size: 30px; color: #fff; font-weight: 500; letter-spacing: -0.025em; display: block; transition: color 0.2s; font-variant-numeric: tabular-nums; }
     .foot-col .big:hover { color: var(--accent-500); }
     .foot-col .med { margin-top: 8px; color: var(--ink-300); display: block; transition: color 0.2s; }
@@ -1150,7 +1155,7 @@
       align-items: center;
       justify-content: space-between;
       font-size: 12px;
-      color: var(--ink-500);
+      color: var(--ink-300);
     }
     @media (min-width: 768px) { .foot-bottom { flex-direction: row; } }
     .foot-bottom .tab { font-variant-numeric: tabular-nums; }
@@ -1293,7 +1298,11 @@
   <div id="progress-rail" class="progress-rail" aria-hidden="true"></div>
 
   <!-- ─── NAV ────────────────────────────────────────────────── -->
-  <nav class="top">
+  <!-- The page exposes 3 nav landmarks (top / lane-strip / call-bar), so each
+       needs its own accessible name. "Primary" used to sit on the child <ul>,
+       where it named a list rather than the landmark; it lives on the <nav>
+       now and is deliberately NOT repeated below. -->
+  <nav class="top" aria-label="Primary">
     <div class="wrap nav-inner">
       <a href="#hero" class="brand">
         <span class="brand-mark" aria-hidden="true">B7</span>
@@ -1302,7 +1311,7 @@
           <span class="brand-sub">Metro Atlanta · Licensed &amp; Bonded · § 01 Home</span>
         </span>
       </a>
-      <ul class="nav-links" aria-label="Primary">
+      <ul class="nav-links">
         <li><a href="#hero" class="active"><span class="n">01</span>Home</a></li>
         <li><a href="#two-paths"><span class="n">02</span>Two Paths</a></li>
         <li><a href="/commercial-industrial"><span class="n">→</span>Commercial</a></li>
@@ -1317,7 +1326,12 @@
         </button>
       </div>
     </div>
-    <div class="mob-menu" id="mobMenu" role="dialog" aria-label="Navigation">
+    <!-- Plain disclosure, not a modal: no focus trap, no Esc handler, no
+         backdrop. role="dialog" promised all three (WCAG 4.1.2), so it is
+         gone; the toggle's aria-expanded + aria-controls already describe the
+         relationship, and the closed menu is display:none so it traps nothing.
+         aria-label went with the role — it is not exposed on a generic div. -->
+    <div class="mob-menu" id="mobMenu">
       <div class="wrap">
         <a href="#hero" onclick="toggleMenu()"><span class="n">01</span>Home</a>
         <a href="#two-paths" onclick="toggleMenu()"><span class="n">02</span>Two Paths</a>
@@ -1370,7 +1384,10 @@
       </div>
       <div class="hero-photo">
         <div class="hero-photo-frame blueprint-grid" data-parallax>
-          <img src="images/jobsite-01.jpg" alt="Aerial view of an active Big 7 Construction jobsite — sitework and concrete foundation formwork in progress" fetchpriority="high" onerror="this.style.display='none'" />
+          <!-- Neutral wording, matching the lane pages: jobsite-01.jpg is a
+               placeholder (byte-identical to jobsite-02.jpg), so the alt must
+               not attribute the scene to a Big 7 project it does not show. -->
+          <img src="images/jobsite-01.jpg" alt="Aerial view of an active construction jobsite — sitework and concrete formwork in progress" fetchpriority="high" onerror="this.style.display='none'" />
           <div class="hero-photo-shade" aria-hidden="true"></div>
           <div class="hero-photo-caption">
             <div>
@@ -1391,7 +1408,7 @@
     </div>
 
     <div class="scroll-hint reveal in" style="--reveal-delay: 1200ms" aria-hidden="true">
-      <span class="spec-label" style="color: var(--ink-500);">Scroll</span>
+      <span class="spec-label" style="color: var(--ink-300);">Scroll</span>
       <span class="rail"><span></span></span>
     </div>
   </section>
@@ -1648,7 +1665,7 @@
 
     <div class="wrap foot-bottom">
       <p class="tab">© <span id="year">2026</span> Big 7 Construction · Bidding open · Metro Atlanta</p>
-      <p class="spec-label" style="color: var(--ink-500);">Licensed · Bonded · Insured</p>
+      <p class="spec-label" style="color: var(--ink-300);">Licensed · Bonded · Insured</p>
     </div>
   </footer>
 
