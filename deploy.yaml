@@ -1,0 +1,110 @@
+# deploy.yaml — provisioning contract for scripts/deploy.py.
+# `python scripts/deploy.py plan Big7Construction` shows the diff vs live (read-only).
+# `python scripts/deploy.py provision Big7Construction --apply` applies it.
+# Values marked from_env are read from your environment or the gitignored
+# .env.deploy at the fleet root; real secrets never belong in this file.
+#
+# ############################################################################
+# STOP — DO NOT RUN `provision --apply` FOR THIS PROJECT YET. READ THIS FIRST.
+#
+# Big7 is LIVE on Cloudflare **Workers static assets**, NOT Cloudflare Pages:
+#   README.md:35-37  "Primary — Cloudflare Workers static assets. Worker `big7`
+#                     auto-deploys from GitHub `main` via Workers Builds
+#                     (wrangler.jsonc)."
+#   STATUS.md:7      same, plus "apex bound 2026-07-17", verified live.
+#   CLAUDE.md:4,38 / AGENTS.md:4,27 — same statement.
+#   wrangler.jsonc   {"name": "big7", "assets": {"directory": "./"}}  <- no
+#                    pages_build_output_dir, i.e. a Worker, not a Pages project.
+#
+# deploykit only speaks the Pages API (scripts/deploykit/cloudflare.py:5 —
+# /accounts/{acct}/pages/projects/...). `target: railway` is the only other
+# value spec.py accepts (spec.py:40-42), and Railway is explicitly the *fallback*
+# here, not the live host (README.md:44-47 "Kept build- and test-able but it is
+# not the live host"). So `cloudflare-pages` is recorded below as the truthful
+# host-of-record family, with two known consequences:
+#
+#   1. `plan` will report Pages project 'big7' as MISSING (it is — the live
+#      thing is a Worker) and `provision --apply` would CREATE a brand-new
+#      Pages project named big7 alongside the live Worker.
+#   2. Worse: cloudflare.py:239 would then rewrite the apex DNS record to
+#      `CNAME big7construction.com -> big7.pages.dev`, moving a live paying
+#      client's site off the Worker that currently serves it.
+#
+# => Treat this file as documentation + `plan` input until deploykit grows
+#    Workers-static-assets support (or the site is deliberately migrated to
+#    Pages). Migration to Pages was only ever an OPTIONAL, never-executed
+#    paste-block (TODO.md:834-847, deploy-cf.bat) under the name
+#    `m3-big7construction`; no Pages project is known to exist.
+# ############################################################################
+
+target: cloudflare-worker
+
+# VERIFY THIS — see the block above.
+# `big7` is the LIVE remote project name: it is the deployed Cloudflare Worker
+# (wrangler.jsonc:3 "name": "big7"; README.md:35; STATUS.md:7; TODO.md:588
+# "wrangler renamed to match the deployed worker"). It is NOT a Pages project
+# name, and it is NOT the repo folder name (Big7Construction) nor the GitHub
+# repo name (Big7ConstructionWebSite).
+# The only other name that appears anywhere, `m3-big7construction`, belongs to
+# an optional Pages migration that was never run (deploy-cf.bat, TODO.md:834)
+# — do NOT use it; it would provision a second, non-live site.
+name: big7
+
+# `git -C Big7Construction remote get-url origin`
+#   -> https://github.com/murillomartinezmichael/Big7ConstructionWebSite.git
+# Note the GitHub repo name differs from the local folder name.
+repo: murillomartinezmichael/Big7ConstructionWebSite
+# Production branch. origin/HEAD -> origin/main; README.md:84 "git push origin
+# main # Cloudflare Workers Builds auto-deploys". (The working tree is currently
+# on the feature branch design/a11y-2026-08-17 — that is not the deploy branch.)
+branch: main
+
+build:
+  # NO build command on purpose. README.md:12 "Multi-page static site. No
+  # framework, no bundler, no build step." There is no package.json in the repo,
+  # so `npm run build` would fail. The `build.sh` / `build.bat` wrappers are the
+  # fleet's generic STACK=static lint/copy helpers, not a site build.
+  #
+  # Repo root IS the deploy root: wrangler.jsonc assets.directory "./"
+  # (STATUS.md:7 "wrangler.jsonc assets dir ./"; TODO.md:16 same).
+  output: "."
+  root: "/"
+
+# healthcheck: railway-only, so omitted. For the record, if the Railway/nginx
+# fallback is ever made the live target there is no dedicated health route in
+# nginx.conf — Dockerfile:39 probes `http://localhost:${PORT:-8080}/`, i.e. `/`.
+
+domains:
+  # Apex is the sole bound custom domain and the canonical host in all shipped
+  # markup (STATUS.md:7 "Apex bound 2026-07-17 ... verified live post-bind";
+  # README.md:3 "Live client site at https://big7construction.com/").
+  # NOTE: attaching/DNS-writing this via provision is exactly the hazard called
+  # out at the top of this file. Left declared because it is the ground truth.
+  - big7construction.com
+  # www.big7construction.com is deliberately NOT listed: the www custom domain
+  # was REMOVED from the project (PENDING_MANUAL.md:270 "Mike then removed
+  # www.big7construction.com entirely"); it only still answers because the CF
+  # proxy + worker route cover it (PENDING_MANUAL.md:21), and its disposition
+  # (301 / keep / decommission) is an OPEN decision needing Mike
+  # (PENDING_MANUAL.md:11-30). Declaring it here would bind it for real.
+
+# env: intentionally absent — this project has ZERO application environment
+# variables, so there is nothing for Cloudflare's replace-on-write to destroy.
+# Grounding:
+#   .env.example (whole file): "Big7Construction is a fully static site — no
+#     environment variables required. Railway injects PORT automatically for the
+#     nginx config substitution."
+#   There is no .dev.vars.example and no wrangler `vars` block (wrangler.jsonc
+#     is 8 lines: $schema, name, compatibility_date, assets).
+#   Code sweep for process.env.* / import.meta.env / os.getenv / os.environ /
+#     env.X across *.html, big7.js, tests/, scripts/, Makefile, Dockerfile,
+#     nginx.conf: the ONLY hit is `$PORT` (Dockerfile:41 sed substitution,
+#     scripts/preflight-deploy.py:117), which Railway injects itself and which
+#     must not be declared as a managed variable.
+#   The one outbound endpoint in the money path is hard-coded, not env-driven:
+#     big7.js:46 fetch('https://michaelmurillo.app.n8n.cloud/webhook/big7-lead').
+# If a live Pages/Workers variable ever turns up in `plan` output, add it here
+# BEFORE applying — an undeclared live secret blocks the patch by design
+# (deploykit/cloudflare.py:189-199).
+
+# kv: none. wrangler.jsonc declares no kv_namespaces bindings.
