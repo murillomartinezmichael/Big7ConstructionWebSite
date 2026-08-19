@@ -1,0 +1,33 @@
+# RELEASES.yaml — Big7Construction's public release ledger.
+# Collected by `python scripts/releases.py`; feeds m3mm.net /roadmap.
+
+project: Big7Construction
+category: Client work
+
+entries:
+  - date: 2026-08-19
+    kind: blocked
+    title: Not released — waiting on job photos
+    notes: >-
+      The site is deployed and serving at big7construction.com, but it is not
+      released. Only 3 images exist in the repo, so the portfolio is a shell.
+      Do not count this as a shipped product or cite it as proof-of-work until
+      the client's photo shoot lands.
+    public: false
+
+  - date: 2026-07-17
+    kind: shipped
+    title: Apex domain live on Cloudflare
+    notes: >-
+      big7construction.com bound and serving. www was intentionally
+      decommissioned rather than redirected.
+    url: https://big7construction.com
+    public: false
+
+  - date: 2026-08-16
+    kind: patch
+    title: Canonical URL parity between nginx and Cloudflare
+    notes: >-
+      Both edges now 301 .html paths to their clean equivalents, so a page has
+      exactly one address regardless of which layer answers.
+    public: false
