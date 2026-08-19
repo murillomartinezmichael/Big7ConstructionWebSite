@@ -9,3 +9,11 @@ Thumbs.db
 .autoimprove/
 .claims/
 SESSION_GOAL.md
+
+# Python build + test artifacts (were showing as untracked, 2026-08-19)
+__pycache__/
+*.py[cod]
+.coverage
+.coverage.*
+.pytest_cache/
+htmlcov/
