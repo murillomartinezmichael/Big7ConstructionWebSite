@@ -17,3 +17,10 @@ __pycache__/
 .coverage.*
 .pytest_cache/
 htmlcov/
+
+# Added 2026-08-19 (fleet-wide .gitignore audit): completes the Python block
+# added earlier the same day -- a venv and the ruff cache were still uncovered.
+.venv/
+venv/
+.ruff_cache/
+coverage.xml
