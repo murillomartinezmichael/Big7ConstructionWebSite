@@ -1,0 +1,60 @@
+# .assetsignore — what Cloudflare Workers must NOT publish.
+#
+# wrangler.jsonc sets assets.directory: "./", i.e. the whole repo root. Without
+# this file the Worker served the entire repository publicly: on 2026-08-19,
+# https://big7construction.com/.git/config, /TODO.md and /PENDING_MANUAL.md all
+# returned 200 on a live paying-client site. This is the deny-list that stops
+# that. Verify after deploy: those paths must 404.
+#
+# Everything not matched here is still published (index.html, images, css, js).
+
+# Version control — the whole history, config, and any credentials in it
+.git/
+.github/
+.gitignore
+.gitattributes
+
+# Internal planning, process, and status docs — never for public eyes
+*.md
+!index.md
+AGENTS.md
+BRD.md
+CHANGELOG.md
+CONTENT.md
+CONTRIBUTING.md
+CLAUDE.md
+DECISIONS.md
+ONBOARDING.md
+PENDING_MANUAL.md
+PREPROJECT.md
+README.md
+RUNBOOK.md
+SECURITY.md
+SESSION_GOAL.md
+STATUS.md
+TODO.md
+
+# Machine-readable internal state
+*.yaml
+*.yml
+projects.yaml
+RELEASES.yaml
+
+# Build / infra / tooling — not site content
+Dockerfile
+Makefile
+LICENSE
+nginx.conf
+package.json
+package-lock.json
+wrangler.jsonc
+wrangler.toml
+.assetsignore
+.dev.vars*
+.env*
+
+# Source, tests, and scripts that back the site but should not be downloadable
+scripts/
+tests/
+node_modules/
+docs/
