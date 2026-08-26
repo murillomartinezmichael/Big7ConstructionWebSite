@@ -52,6 +52,12 @@ checkbox so it clears with a stroke.
       source exists.)
   - **Resumes:** the 2026-07-20 "real client quote for South Fulton" item below
     remains the upgrade path if the client re-confirms in writing.
+  - **Option (b) is now drafted, not sent:** Mike selected "get written consent
+    before reposting". The outreach copy — a message to Big 7's owner plus a
+    forwardable consent ask for each customer, and the no-reply fallback — is
+    ready at `docs/testimonial-consent-request.md`. **Nothing has been sent and
+    nothing republished**; sending is Mike's, and the reply is the receipt that
+    unblocks this checkbox.
 
 ## 2026-08-03 canonical `.html` -> clean-path arc (part 2) — manual gates
 
