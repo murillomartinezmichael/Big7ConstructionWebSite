@@ -33,9 +33,14 @@ Multi-page static site. No framework, no bundler, no build step.
 ## Hosting
 
 **Primary — Cloudflare Workers static assets.** Worker `big7` auto-deploys from
-GitHub `main` via Workers Builds (`wrangler.jsonc`). Bound to the apex
-`big7construction.com` only — `www` was intentionally decommissioned (2026-07-17),
-do not re-add it. Security headers ship via `_headers`; redirects via
+GitHub `main` via Workers Builds (`wrangler.jsonc`). Canonical host is the apex
+`big7construction.com`. **Reality check 2026-08-07:** although the 2026-07-17
+decision was to decommission `www`, it is live today — `www.big7construction.com`
+resolves to the same Cloudflare edge, holds a cert (SAN issued 2026-07-17), and
+serves a byte-identical copy of the apex site with a 200, no redirect. Whether to
+keep it, 301 it, or actually decommission it is an open decision in
+`PENDING_MANUAL.md` (DNS/dashboard is Mike's). Shipped markup still references
+apex only. Security headers ship via `_headers`; redirects via
 `_redirects`; pages are served extensionless (`/commercial-industrial`).
 
 **Fallback — Railway (nginx).** `Dockerfile` (`nginx:alpine`) + `nginx.conf`;

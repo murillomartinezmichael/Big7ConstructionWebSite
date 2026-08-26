@@ -1,7 +1,7 @@
 # CLAUDE.md
 
 ## What This Is
-Static marketing website for Big 7 Construction — a full-service commercial, industrial, and residential contractor. Multi-page static HTML site served via **Cloudflare Workers static assets** (worker `big7`, auto-deploys from GitHub `main`; live at the apex `big7construction.com`). `www` was intentionally decommissioned (Mike's call, 2026-07-17) rather than bound + 301'd — apex is the sole host, matching the repo's existing apex-form canonicals. The nginx:alpine/Railway stack stays in-repo as a tested fallback.
+Static marketing website for Big 7 Construction — a full-service commercial, industrial, and residential contractor. Multi-page static HTML site served via **Cloudflare Workers static assets** (worker `big7`, auto-deploys from GitHub `main`; live at the apex `big7construction.com`). `www` was slated for decommission (Mike's call, 2026-07-17) rather than bound + 301'd — but as of 2026-08-07 `www.big7construction.com` is observed live (Cloudflare edge, cert SAN covers www, byte-identical body to apex, 200 with no redirect); its disposition (keep / 301 / decommission) is an open item in `PENDING_MANUAL.md`. Apex remains the sole canonical host in all shipped markup. The nginx:alpine/Railway stack stays in-repo as a tested fallback.
 
 ## Site Architecture Direction (2026-07-17, supersedes 2026-07-09 three-lane IA)
 
