@@ -27,6 +27,10 @@ Checks:
      (LAW numbers, PENDING_MANUAL / DECISIONS.md / TODO.md / CONVERSION_
      STANDARDS.md / SECURITY_AUDIT.md pointers, tests/ or scripts/ paths,
      bare test_*.py names, SiteAudit finding ids, tick-N session names).
+  5. Every path measured returning HTTP 200 on the live client domain is
+     covered by `.assetsignore`. Check 3 cannot prove this on its own: it
+     skips SKIP_WALK directories, so deleting the `.git/` line leaves
+     checks 1-4 green while /.git/config goes back to 200.
 
 Run:
     python tests/test_shipped_source.py            # golden check on the real files
@@ -54,6 +58,25 @@ SKIP_WALK = {".git", "node_modules", ".venv", "venv", "__pycache__", ".pytest_ca
 # never reading them, which would drop the five security headers and the
 # /home-repair 301.
 CF_CONSUMED = {"_headers", "_redirects"}
+
+# Paths measured returning HTTP 200 on https://big7construction.com on
+# 2026-08-25 -- 9 days after the exposure was first recorded and 17 days after
+# this branch was opened, with the fix still sitting in an unmerged PR. This
+# list is evidence, not inference: every entry was fetched, and the byte counts
+# are the response sizes. `.git/objects/`, `.git/refs/`, `.git/packed-refs` and
+# `.env` were 404 in the same pass, so no source reconstruction and no secret
+# was reachable -- the damage is the private remote URL, the file inventory,
+# 150 KB of internal planning notes on a paying client's domain, and the live
+# n8n lead webhook printed inside them.
+LIVE_LEAK_EVIDENCE = [
+    ".git/config",        # 200, 263 B -- private GitHub remote URL
+    ".git/index",         # 200, 13993 B -- full tracked-file inventory
+    ".git/HEAD",          # 200, 41 B
+    ".git/logs/HEAD",     # 200, 212 B
+    "TODO.md",            # 200, 114533 B -- internal notes, client domain
+    "PENDING_MANUAL.md",  # 200, 36308 B -- carries the n8n webhook URL
+    ".env.example",       # 200, 153 B -- infrastructure shape
+]
 
 # Text extensions worth scanning for leaked internal references. Binary assets
 # (images, the capability-statement PDF) are skipped.
@@ -202,6 +225,22 @@ def run_all_checks(repo: Path) -> list[str]:
                         f"browser -- move the reasoning into the commit message "
                         f"or docs/shipped-source-hygiene.md"
                     )
+
+    # 5. every path proven live-exposed must be covered
+    for rel in LIVE_LEAK_EVIDENCE:
+        if rel in public_set or rel in CF_CONSUMED:
+            errors.append(
+                f"{rel} was measured live-exposed on 2026-08-25 but is on the "
+                f"public surface -- reconcile the evidence list with the "
+                f"Dockerfile COPY list before trusting either"
+            )
+            continue
+        if is_excluded(rel, patterns) is None:
+            errors.append(
+                f"{rel} returned HTTP 200 on https://big7construction.com/{rel} "
+                f"on 2026-08-25 and no .assetsignore pattern covers it -- "
+                f"merging this branch would leave that path live"
+            )
     return errors
 
 
@@ -264,6 +303,18 @@ def selftest() -> int:
             encoding="utf-8",
         )
 
+    def drop_pattern(line: str):
+        def _mutate(root: Path) -> None:
+            p = root / ".assetsignore"
+            kept = [
+                raw
+                for raw in p.read_text(encoding="utf-8").splitlines()
+                if raw.strip() != line
+            ]
+            p.write_text("\n".join(kept) + "\n", encoding="utf-8")
+
+        return _mutate
+
     mutations = [
         ("missing .assetsignore", mutate_missing_ignore),
         ("empty .assetsignore", mutate_empty_ignore),
@@ -273,6 +324,9 @@ def selftest() -> int:
         ("PENDING_MANUAL in shipped JS", mutate_pending_manual_comment),
         ("tests/ path in shipped XML", mutate_test_path_comment),
         ("SiteAudit id in shipped HTML", mutate_siteaudit_comment),
+        (".git/ line dropped -- /.git/config back to 200", drop_pattern(".git/")),
+        (".env.example line dropped", drop_pattern(".env.example")),
+        ("*.md line dropped -- TODO.md back to 200", drop_pattern("*.md")),
     ]
 
     failures = 0
@@ -313,7 +367,9 @@ def main() -> int:
         f"OK: .assetsignore has {len(patterns)} pattern(s); the {len(public)} "
         f"public path(s) from the Dockerfile COPY list stay publishable; every "
         f"other file in the tree is excluded; no shipped file references LAW "
-        f"numbers, internal docs, test paths, or session names."
+        f"numbers, internal docs, test paths, or session names; all "
+        f"{len(LIVE_LEAK_EVIDENCE)} path(s) measured live-exposed on "
+        f"2026-08-25 are covered."
     )
     return 0
 
