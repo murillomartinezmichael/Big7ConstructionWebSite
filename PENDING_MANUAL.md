@@ -8,6 +8,37 @@ checkbox so it clears with a stroke.
 > banner above the Work Log (27 entries fleet-wide, verified via headless
 > Playwright). Then check these boxes in one stroke.
 
+## 2026-08-07 www drift — OPEN: Mike's decision required (DNS/dashboard is his)
+
+- [ ] **Decision (OPEN — needs Mike): what should `www.big7construction.com`
+  do?** Docs since 2026-07-17 said www was intentionally decommissioned ("no
+  longer resolves"). Observed 2026-08-07 (read-only probes, Lane B session):
+  www is **live** — resolves to the same Cloudflare anycast IPs as apex,
+  Cloudflare edge cert covers it (SAN `www.big7construction.com` + `*.www`,
+  issued 2026-07-17 20:50 GMT — the same day as the decommission call), and it
+  serves a **byte-identical** copy of the apex site (same sha256 body hash)
+  with HTTP 200 and **no redirect**. Likely cause: the zone-level Cloudflare
+  proxy + worker route still cover www even after the custom-domain removal.
+  - **The three options:** (a) **301 www → apex** (recommended: one Cloudflare
+    Bulk Redirect / redirect rule; kills the SEO duplicate-host risk, keeps
+    old links working); (b) **actually decommission** (remove/unproxy the www
+    DNS record so it stops resolving — matches the 2026-07-17 decision as
+    written, but breaks any typed/bookmarked www visit for a local-service
+    audience); (c) **keep serving as-is** (zero work; duplicate host stays,
+    mitigated but not eliminated by apex-form canonicals on every page).
+  - **Bonus finding, same probe:** plain **`http://` serves 200 with no
+    https redirect** on both apex and www (Cloudflare-served, CF-Cache-Status
+    present). Turning on **"Always Use HTTPS"** in the Cloudflare dashboard is
+    a 10-second toggle and closes it; HSTS is already set but only protects
+    repeat visitors.
+  - **Why blocked on him:** DNS records, redirect rules, and the Always Use
+    HTTPS toggle all live in the Cloudflare dashboard — Mike's account,
+    Mike's call (live paying-client site).
+  - **Resumes:** repo docs (README/AGENTS/CLAUDE/STATUS, corrected to
+    observed truth 2026-08-07) get a one-line follow-up recording the final
+    disposition; if (b) is chosen, `tests/test_url_shape.py` docstrings can
+    say "decommissioned" again truthfully.
+
 ## 2026-08-05 unattributable testimonials — OPEN: Mike's decision required
 
 - [ ] **Decision (OPEN — needs Mike): keep the testimonials removed, or restore

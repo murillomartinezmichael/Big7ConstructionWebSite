@@ -16,6 +16,7 @@ import subprocess
 import sys
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 import uuid
 from pathlib import Path
@@ -23,32 +24,41 @@ from typing import Any
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
+
+# The redirect map is defined ONCE, in the contract suite, and both serving
+# stacks are checked against it statically (tests/test_url_shape.py contract
+# 6). Importing it here means this probe asserts the RUNNING server implements
+# that same map — static agreement and runtime behaviour can't diverge.
+sys.path.insert(0, str(REPO_ROOT / "tests"))
+from test_url_shape import expected_redirect_map  # noqa: E402
+
 CONTAINER_PORT = 8080
 ROUTES = (
+    # `/` must stay 200: `/index.html` now 301s to it, and the `index`
+    # directive's internal redirect would have bounced the homepage into a
+    # loop — this route is the loop guard's live proof.
     ("/", 200),
     # Clean extensionless paths — the shape every internal link, canonical,
     # sitemap loc and JSON-LD url uses (2026-08-03 migration). These only
     # resolve because nginx.conf's `location /` try_files carries `$uri.html`;
-    # without it the fallback 404s on the site's entire navigation.
+    # without it the fallback 404s on the site's entire navigation. They must
+    # ALSO stay 200 while their `.html` twins 301 — if try_files re-ran
+    # location matching on the file it finds, these would loop instead.
     ("/commercial-industrial", 200),
     ("/residential-construction", 200),
     ("/south-fulton-distribution", 200),
     ("/accessibility", 200),
-    # Legacy `.html` form still serves on the fallback (Cloudflare 307s it to
-    # the clean path; nginx has no such rewrite). Kept green so an old
-    # bookmark or inbound link never hard-fails on the fallback host.
-    ("/commercial-industrial.html", 200),
-    ("/residential-construction.html", 200),
     ("/big7.js", 200),
     ("/__big7_container_smoke_missing__", 404),
 )
-# Retired routes that must permanently redirect (2026-07-17 two-path
-# restructure): (path, expected status, expected Location header).
-# Target is the CLEAN path (2026-08-03): the `.html` target chained
-# 301 -> 307 -> 200 on the live host.
-REDIRECTS = (
-    ("/home-repair.html", 301, "/residential-construction#home-repair"),
-)
+# Every `.html` form (plus the retired `/home-repair` lane) must answer a
+# permanent 301 to the same clean path Cloudflare sends it to. Before
+# 2026-08-12 the fallback served the `.html` forms 200 — duplicate content on
+# every page the moment traffic failed over.
+REDIRECT_MAP = expected_redirect_map(REPO_ROOT)
+# A realistic money-path query: `intent` drives the intake-form prefill in
+# big7.js, `utm_source` is the attribution half.
+MONEY_QUERY = "?intent=bid-commercial&utm_source=ig"
 HTTP = urllib.request.build_opener(urllib.request.ProxyHandler({}))
 
 
@@ -174,6 +184,18 @@ def _wait_until_ready(container_name: str, base_url: str, deadline: float) -> No
     raise SmokeFailure(f"container did not become HTTP-ready before timeout ({last_error})")
 
 
+def _location_path(location: str) -> str:
+    """Path part of a Location header: no scheme/host, no query, no fragment.
+
+    nginx absolutizes `Location` against the request Host, and keeps the
+    `#home-repair` fragment that Cloudflare drops (fragment support is
+    undocumented in CF-style `_redirects`). Both stacks must agree on the
+    destination PAGE, which is what this extracts.
+    """
+    path = urllib.parse.urlsplit(location).path or "/"
+    return path
+
+
 def _assert_routes(base_url: str) -> None:
     for path, expected in ROUTES:
         try:
@@ -187,7 +209,7 @@ def _assert_routes(base_url: str) -> None:
             raise SmokeFailure("GET / returned 200 but the Big 7 brand signature was absent")
         print(f"  OK  GET {path} -> {actual}")
 
-    for path, expected, location in REDIRECTS:
+    for path, destination in sorted(REDIRECT_MAP.items()):
         request = urllib.request.Request(
             f"{base_url}{path}",
             headers={"User-Agent": "big7-container-smoke/1.0"},
@@ -199,15 +221,44 @@ def _assert_routes(base_url: str) -> None:
             actual, got_location = exc.code, exc.headers.get("Location", "")
         except (OSError, TimeoutError, urllib.error.URLError) as exc:
             raise SmokeFailure(f"GET {path} failed: {type(exc).__name__}: {exc}") from exc
-        if actual != expected:
-            raise SmokeFailure(f"GET {path} returned HTTP {actual}, expected {expected}")
-        # nginx absolutizes the Location header against the request Host, so
-        # compare by suffix rather than equality.
-        if not got_location.endswith(location):
+        if actual != 301:
             raise SmokeFailure(
-                f"GET {path} redirected to {got_location!r}, expected suffix {location!r}"
+                f"GET {path} returned HTTP {actual}, expected 301 to {destination} "
+                f"(a 200 here is the duplicate-content shape Cloudflare already "
+                f"redirects away)"
+            )
+        if _location_path(got_location) != destination:
+            raise SmokeFailure(
+                f"GET {path} redirected to {got_location!r}, expected the page "
+                f"{destination!r} (Cloudflare's destination for the same path)"
             )
         print(f"  OK  GET {path} -> {actual} Location: {got_location}")
+
+    # Money path: the intake form prefills from `?intent=` / `?utm_*`
+    # (big7.js). nginx's `return` drops the query string unless the target
+    # carries `$is_args$args`, so a bio-link or ad click arriving on a legacy
+    # `.html` URL would land with an empty form and no attribution.
+    for path, destination in sorted(REDIRECT_MAP.items()):
+        request = urllib.request.Request(
+            f"{base_url}{path}{MONEY_QUERY}",
+            headers={"User-Agent": "big7-container-smoke/1.0"},
+        )
+        try:
+            with HTTP_NO_REDIRECT.open(request, timeout=3) as response:
+                got_location = response.headers.get("Location", "")
+        except urllib.error.HTTPError as exc:
+            got_location = exc.headers.get("Location", "")
+        except (OSError, TimeoutError, urllib.error.URLError) as exc:
+            raise SmokeFailure(f"GET {path}{MONEY_QUERY} failed: {exc}") from exc
+        got_query = urllib.parse.urlsplit(got_location).query
+        if got_query != MONEY_QUERY.lstrip("?"):
+            raise SmokeFailure(
+                f"GET {path}{MONEY_QUERY} redirected to {got_location!r} — the "
+                f"query string did not survive the hop, so the intake form "
+                f"lands unprefilled with no attribution (add `$is_args$args` "
+                f"to the `return 301` target)"
+            )
+    print(f"  OK  query string survives all {len(REDIRECT_MAP)} redirects ({MONEY_QUERY})")
 
 
 def _logs(container_name: str) -> str:
