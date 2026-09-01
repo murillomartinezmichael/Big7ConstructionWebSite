@@ -40,7 +40,7 @@ async function submitForm(e) {
       if (k === 'website' || k === '_subject' || k === '_replyto') return;
       mirror.append(k, v);
     });
-    fetch('https://michaelmurillo.app.n8n.cloud/webhook/big7-lead', {
+    fetch('https://michaelmurillo.app.n8n.cloud/webhook/big7-lead-6463ba1dfc556282d338d554', {
       method: 'POST',
       body: mirror,
       keepalive: true
