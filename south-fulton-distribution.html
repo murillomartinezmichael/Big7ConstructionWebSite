@@ -12,7 +12,7 @@
   <!--
     Open Graph + Twitter card. Same branded 1200x630 og-card.png the other
     pages ship so a share of this URL previews cleanly on iMessage / Slack /
-    Facebook / LinkedIn. Locked by tests/test_og_twitter.py.
+    Facebook / LinkedIn.
   -->
   <meta property="og:type" content="article" />
   <meta property="og:site_name" content="Big 7 Construction" />
@@ -33,9 +33,7 @@
 
   <!--
     BreadcrumbList JSON-LD — Home > Commercial & Industrial > this case
-    study. Not wired into tests/test_breadcrumbs.py (that contract assumes
-    a 2-level Home > Lane shape; this page is 3 levels deep) but still
-    valid schema.org for Google's SERP breadcrumb rendering.
+    study, for Google's SERP breadcrumb rendering.
   -->
   <script type="application/ld+json">
   {
@@ -51,9 +49,7 @@
 
   <!--
     Article JSON-LD. Every fact here mirrors commercial-industrial.html's
-    own pf-card verbatim (LAW #6 — no invented specifics). The page's
-    testimonial was removed 2026-08-05 pending a documented source
-    (PENDING_MANUAL § "2026-08-05 unattributable testimonials").
+    own pf-card verbatim.
   -->
   <script type="application/ld+json">
   {
@@ -415,10 +411,6 @@
     <section aria-labelledby="result-h2">
       <p class="badge">The result</p>
       <h2 id="result-h2">Delivered on schedule, <em>punch list closed early.</em></h2>
-      <!-- Client quote removed 2026-08-05: the "Marcus H." attribution has
-           no documented source (LAW 6; PENDING_MANUAL already flagged it as
-           inferential). Verbatim quote + restore instructions:
-           PENDING_MANUAL.md § "2026-08-05 unattributable testimonials". -->
       <dl class="stat-row">
         <div><dt>Size</dt><dd>42,000 sq ft</dd></div>
         <div><dt>Duration</dt><dd>11 months</dd></div>
@@ -487,7 +479,7 @@
 
   <script defer src="/big7.js"></script>
 
-  <!-- SiteGuide widget — Big 7 tenant (same tenant + config as other pages) -->
+  <!-- Chat assistant widget -->
   <script
     src="https://siteguide-production.up.railway.app/widget.js"
     data-site="big7"

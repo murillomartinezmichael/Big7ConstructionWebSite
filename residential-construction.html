@@ -12,7 +12,7 @@
   <!--
     Open Graph + Twitter card. Same branded 1200x630 og-card.png the homepage
     ships so a share of this URL previews cleanly on iMessage / Slack / Facebook
-    / LinkedIn. Locked by tests/test_og_twitter.py (residential-construction.html target).
+    / LinkedIn.
   -->
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Big 7 Construction" />
@@ -34,7 +34,7 @@
   <!--
     BreadcrumbList JSON-LD. Google renders "Home > Residential Construction" in
     SERP results instead of a raw URL — drives higher CTR on branded /
-    lane-specific service queries. Locked by tests/test_breadcrumbs.py.
+    lane-specific service queries.
   -->
   <script type="application/ld+json">
   {
@@ -53,7 +53,6 @@
     folded into this page 2026-07-17 and its offers merged into this catalog;
     the old /home-repair.html 301s to /residential-construction.html#home-repair).
     Offer URLs point at THIS page's own intake form.
-    Locked by tests/test_service_schema.py.
   -->
   <script type="application/ld+json">
   {
@@ -327,9 +326,9 @@
     .top-links a:hover { color: var(--accent-600); }
     .top-links a.btn-accent { color: #fff; }
     .top-links a[href^="tel:"] {
-      /* >=48px tap target (WCAG 2.5.8 — SiteAudit tap_target_size flags
-         bare 13px tel: links): padding + negative margin grow the hit box
-         without moving the rendered layout. */
+      /* >=48px tap target (WCAG 2.5.8 — bare 13px tel: links fall short):
+         padding + negative margin grow the hit box without moving the
+         rendered layout. */
       padding: 17px 9px;
       margin: -17px -9px;
     }
@@ -580,7 +579,7 @@
     }
 
     /* ─── STICKY MOBILE CALL BAR ─────────────────────────────── */
-    /* SiteAudit sticky_mobile_cta: >2-viewport page, no floating call CTA
+    /* >2-viewport page, no floating call CTA
        on mobile. Fixed bottom bar <=768px only — tel: + intake deep-link,
        both >=48px tap targets. body padding-bottom keeps the bar clear of
        content; the entrance slide runs only under
@@ -881,11 +880,6 @@
       <p class="spec">One-year workmanship warranty on every self-performed trade · Transferable if you sell inside 12 months</p>
     </section>
 
-    <!-- ─── TESTIMONIALS ── removed 2026-08-05 ───────────────────
-         Quote shipped here with no documented source (LAW 6 —
-         reputational exposure on a client site). Removed pending client
-         sign-off; the verbatim quote + restore instructions live in
-         PENDING_MANUAL.md § "2026-08-05 unattributable testimonials". -->
 
 
     <!-- ─── FAQ ──────────────────────────────────────────────── -->
@@ -1129,7 +1123,7 @@
 
   <script defer src="/big7.js"></script>
 
-  <!-- SiteGuide widget — Big 7 tenant (same tenant + config as index.html) -->
+  <!-- Chat assistant widget -->
   <script
     src="https://siteguide-production.up.railway.app/widget.js"
     data-site="big7"

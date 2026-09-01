@@ -14,11 +14,9 @@
   <meta property="og:title" content="Big 7 Construction — Commercial · Industrial · Residential" />
   <meta property="og:description" content="Two divisions, every trade in-house. Licensed, bonded, insured. Metro Atlanta." />
   <meta property="og:url" content="https://big7construction.com/" />
-  <!--
-    og-card.png is a 1200x630 branded typography card (Grok 2026-08-24).
-    No jobsite photography. jobsite-01.jpg is 206x206 — a summary_large_image
-    needs a real ~1200-wide source or Slack/iMessage/Facebook crop it to a smear.
-  -->
+  <!-- og-card.png is the branded 1200x630 typography card; a
+       summary_large_image needs a real ~1200-wide source or the preview
+       gets cropped to a smear. -->
   <meta property="og:image" content="https://big7construction.com/images/og-card.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
@@ -162,8 +160,7 @@
     through TYPE_TO_LANE and location.replace() to the right lane form; the
     lane page's prefill IIFE (big7.js) then does radio/textarea/source work.
     ?src=-only URLs stay here (nothing to prefill). Runs inline in <head> so
-    the redirect fires before first paint. INTENT_TO_TYPE mirrors big7.js —
-    tests/test_url_prefill.py locks the two copies in sync.
+    the redirect fires before first paint. INTENT_TO_TYPE mirrors big7.js.
   -->
   <script>
     (function () {
@@ -386,8 +383,7 @@
        for small text (4.5:1). --ink-200 (#CBCFD3) on --ink-950 clears ~11.5,
        comfortably passes AA even with the inline `opacity:0.8` on the "of 08"
        counter spans (effective L drops but still >7). Light-divider case
-       (--paper bg) already passes and is intentionally untouched. Closes
-       TODO PARKED §2 (dark-divider tabular contrast). */
+       (--paper bg) already passes and is intentionally untouched. */
     .divider.dark .section-marker span.tabular { color: var(--ink-200); }
 
     /* ─── BUTTONS ────────────────────────────────────────────── */
@@ -590,15 +586,14 @@
       color: var(--ink-600);
       font-variant-numeric: tabular-nums;
       transition: color 0.2s;
-      /* >=48px tap target (WCAG 2.5.8 — SiteAudit tap_target_size measured
-         this link at 17px): vertical padding + negative margin grow the hit
-         box without moving the rendered line. */
+      /* >=48px tap target (WCAG 2.5.8 — the bare link measures 17px):
+         vertical padding + negative margin grow the hit box without
+         moving the rendered line. */
       padding: 16px 10px;
       margin: -16px -10px;
     }
     /* 769px (not 1100): below this the sticky .call-bar owns click-to-call,
-       above it the header phone must be the tappable number (SiteAudit
-       click_to_call). */
+       above it the header phone must be the tappable number. */
     @media (min-width: 769px) { .nav-phone { display: inline-block; } }
     .nav-phone:hover { color: var(--accent-500); }
 
@@ -938,8 +933,7 @@
     .div-col.alt .div-link { color: var(--steel-500); }
     .div-col.alt .div-link:hover { color: var(--steel-400); }
 
-    /* Buyer-lane strip — routes each buyer type to its deep lane page
-       (locked by tests/test_lane_nav.py) */
+    /* Buyer-lane strip — routes each buyer type to its deep lane page */
     .lane-strip { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 0 0 48px; }
     .lane-strip .lbl {
       font-family: 'Barlow Condensed', 'Barlow Condensed Fallback', 'Inter', 'Inter Fallback', sans-serif;
@@ -1155,8 +1149,8 @@
     .foot-bottom .tab { font-variant-numeric: tabular-nums; }
 
     /* ─── STICKY MOBILE CALL BAR ─────────────────────────────── */
-    /* SiteAudit sticky_mobile_cta: the page is >2 viewports tall with no
-       floating call CTA on mobile. Fixed bottom bar <=768px only — tel: +
+    /* The page is >2 viewports tall with no floating call CTA on
+       mobile. Fixed bottom bar <=768px only — tel: +
        intake deep-link, both >=48px tap targets. body padding-bottom
        reserves the bar's height so it never covers content; the entrance
        slide only runs under prefers-reduced-motion: no-preference. */
@@ -1502,10 +1496,6 @@
         <li><span class="trust-val">Bonds to $25M</span><span class="spec-label">Performance &amp; payment</span></li>
         <li><span class="trust-val">Zero OSHA recordables</span><span class="spec-label">3-year TRIR</span></li>
       </ul>
-      <!-- Trust-strip quote removed 2026-08-05: no documented source for
-           the "Marcus H." attribution (LAW 6). Verbatim quote + restore
-           instructions: PENDING_MANUAL.md § "2026-08-05 unattributable
-           testimonials". Credential badges above are the published claims. -->
       <p class="trust-more reveal" style="--reveal-delay: 250ms">
         <a href="/commercial-industrial#credentials">Full compliance detail →</a>
       </p>
@@ -1749,15 +1739,8 @@
   </script>
   <script defer src="/big7.js"></script>
 
-  <!-- ═══════════════════════════════════════════════════════════════
-       SiteGuide widget — Big 7 tenant. Loaded from separately-deployed
-       SiteGuide (siteguide-production.up.railway.app). If unreachable
-       the rest of the page is unaffected. If the visitor is on an
-       origin not listed in SiteGuide/sites/big7.json → allowed_origins,
-       /v1/chat returns 403 and the widget stays silent (by design).
-       LOCAL DEV: swap both URLs below to http://localhost:8000
-                  after `cd ../SiteGuide && ./run.sh`.
-       ═══════════════════════════════════════════════════════════════ -->
+  <!-- Chat assistant widget. Loaded from a separate service; if it is
+       unreachable the rest of the page is unaffected. -->
   <script
     src="https://siteguide-production.up.railway.app/widget.js"
     data-site="big7"

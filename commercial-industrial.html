@@ -12,7 +12,7 @@
   <!--
     Open Graph + Twitter card. Same branded 1200x630 og-card.png the homepage
     ships so a share of this URL previews cleanly on iMessage / Slack / Facebook
-    / LinkedIn. Locked by tests/test_og_twitter.py (commercial-industrial.html target).
+    / LinkedIn.
   -->
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Big 7 Construction" />
@@ -34,7 +34,7 @@
   <!--
     BreadcrumbList JSON-LD. Google renders "Home > Commercial & Industrial" in
     SERP results instead of a raw URL — drives higher CTR on branded /
-    lane-specific service queries. Locked by tests/test_breadcrumbs.py.
+    lane-specific service queries.
   -->
   <script type="application/ld+json">
   {
@@ -55,7 +55,6 @@
     Offer names mirror the visible <span class="service-title"> rows 1:1 and
     offer URLs point at THIS page's own intake form (the form moved on-page
     2026-07-17 — no more round-trip through the homepage).
-    Locked by tests/test_service_schema.py.
   -->
   <script type="application/ld+json">
   {
@@ -289,9 +288,9 @@
     .top-links a:hover { color: var(--accent-600); }
     .top-links a.btn-accent { color: #fff; }
     .top-links a[href^="tel:"] {
-      /* >=48px tap target (WCAG 2.5.8 — SiteAudit tap_target_size flags
-         bare 13px tel: links): padding + negative margin grow the hit box
-         without moving the rendered layout. */
+      /* >=48px tap target (WCAG 2.5.8 — bare 13px tel: links fall short):
+         padding + negative margin grow the hit box without moving the
+         rendered layout. */
       padding: 17px 9px;
       margin: -17px -9px;
     }
@@ -556,7 +555,7 @@
       .process-steps li { grid-template-columns: 44px 1fr; }
     }
     /* ─── STICKY MOBILE CALL BAR ─────────────────────────────── */
-    /* SiteAudit sticky_mobile_cta: >2-viewport page, no floating call CTA
+    /* >2-viewport page, no floating call CTA
        on mobile. Fixed bottom bar <=768px only — tel: + intake deep-link,
        both >=48px tap targets. body padding-bottom keeps the bar clear of
        content; the entrance slide runs only under
@@ -748,10 +747,7 @@
           </div>
         </a>
         <a class="pf-card" href="#contact" data-intent="portfolio:commercial-04">
-          <!-- No photo: only 2 real jobsite shots exist and both are used
-               above — a repeated photo reads as "no real portfolio"
-               (competitor research 2026-07-19). Real shots are client-gated
-               in PENDING_MANUAL. -->
+          <!-- No photo for this entry. -->
           <div class="pf-body">
             <span class="pf-tag">Commercial № 04</span>
             <p class="pf-title">Buckhead Retail Concept</p>
@@ -765,7 +761,7 @@
           </div>
         </a>
         <a class="pf-card" href="#contact" data-intent="portfolio:structural-06">
-          <!-- No photo — same reason as № 04 above. -->
+          <!-- No photo for this entry. -->
           <div class="pf-body">
             <span class="pf-tag">Structural Repair № 06</span>
             <p class="pf-title">Warehouse Structural Repair</p>
@@ -878,11 +874,6 @@
       <p class="spec">Typical bid response · 48 hours · Full proposal · 5–14 business days</p>
     </section>
 
-    <!-- ─── TESTIMONIALS ── removed 2026-08-05 ───────────────────
-         Three quotes shipped here with no documented source (LAW 6 —
-         reputational exposure on a client site). Removed pending client
-         sign-off; the verbatim quotes + restore instructions live in
-         PENDING_MANUAL.md § "2026-08-05 unattributable testimonials". -->
 
 
     <!-- ─── FAQ ──────────────────────────────────────────────── -->
@@ -1110,7 +1101,7 @@
 
   <script defer src="/big7.js"></script>
 
-  <!-- SiteGuide widget — Big 7 tenant (same tenant + config as index.html) -->
+  <!-- Chat assistant widget -->
   <script
     src="https://siteguide-production.up.railway.app/widget.js"
     data-site="big7"
