@@ -6,6 +6,48 @@
 
 # Big7Construction — TODO
 
+## SHIPPED 2026-09-08 — one brand across all 6 pages (committed `4367968`, unpushed at time of writing)
+
+`404.html` and `accessibility.html` were a stale design generation. A visitor who hit a dead
+link or opened the accessibility statement saw a different brand than every other page:
+`--ink-900` `#1A1D22`→`#0E1012` (both), `--ink-800` `#22262B`→`#151719`, `--accent-500`
+`#FF5A2D`→`#E85D2C`, `--ink-300` `#B7B0A5`→`#9CA3AA` (accessibility). Both also loaded a
+different Google Fonts URL and set headings in **Anton**, a display face used on no other page,
+with body copy in Barlow Condensed instead of Inter.
+
+**Also fixed a real WCAG 1.4.3 failure on the accessibility statement page itself:** `a:hover`
+lightened links to `--accent-500`. Measured on `--paper #F5F1EA`, the shipped rogue value
+`#FF5A2D` was **2.76:1** and the canonical `#E85D2C` is **3.09:1** — both fail the 4.5:1 floor
+for text, and a hover state is text. Hover now darkens to `--ink-950` (**17.69:1**) and thickens
+the underline so the affordance is not carried by colour alone.
+
+Locked by **`tests/test_design_tokens.py`**, wired into `make test` as `test-design-tokens`:
+custom properties must agree page-to-page, type may only be set in Fraunces / Barlow Condensed /
+Inter, every page must request the same Google Fonts family set. 4 mutations, all caught.
+Full `make test` **exit 0**.
+
+Measured contrast on `--paper #F5F1EA` (computed, not estimated): `ink-900` 16.93 · `ink-800`
+15.96 · `ink-500` 7.03 · `accent-600` **4.96 (the only accent legal for text)** · `accent-500`
+**3.09 (large text / UI boundaries only)** · `steel-500` 4.89 · `forest` 6.79. `ink-300` is
+2.27 on paper but **7.81 on `--ink-950`** — it is a dark-section colour, verified in use at
+`index.html:869` under `section.divisions { background: var(--ink-950) }`.
+
+### NEXT ACTION (Big7)
+1. **Mike-gated, and it outranks everything else here:** the shipped phone number
+   `(555) 700-0007` is a placeholder. `make test` WARNs on it every run — *every* click-to-call
+   surface, including the sticky mobile call bar, dials a number that does not exist. Leads die
+   there. Client must provision the real line.
+2. **Blocked on a permission grant:** retire the old `big7-lead` n8n trigger in workflow
+   `NOiAPRC4nYcOdMge`. Verified safe on 2026-09-08 — live `big7.js` and repo source both post
+   only to `big7-lead-6463ba1dfc556282d338d554`; the old path is referenced nowhere. The
+   `update_workflow` call was refused by the Claude Code auto-mode classifier.
+3. Separately found and **not yet fixed**: the workflow's `Auto-Reply to Customer` node is
+   `disabled: true`, while the workflow description claims it "sends the customer a professional
+   auto-reply." Leads currently get silence until Michael emails them by hand.
+4. Deferred: Big7 loads fonts from `fonts.googleapis.com` at runtime — self-hosting would drop a
+   third-party connection from the critical path, but it touches all 6 inlined `<style>` blocks.
+
+
 ## SHIPPED 2026-08-12 — canonical arc part 4: the two serving stacks now AGREE
 
 **NOT DEPLOYED. Local commits only, nothing pushed.** Branch
