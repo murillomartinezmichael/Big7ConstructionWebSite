@@ -32,17 +32,17 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow+Condensed:wght@400;600&family=Fraunces:wght@500&display=swap" onload="this.rel='stylesheet'" />
-  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow+Condensed:wght@400;600&family=Fraunces:wght@500&display=swap" /></noscript>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500&family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" onload="this.rel='stylesheet'" />
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500&family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" /></noscript>
   <style>
     :root {
       --paper: #F5F1EA;
-      --ink-300: #B7B0A5;
+      --ink-300: #9CA3AA;
       --ink-500: #4C5258;
-      --ink-800: #22262B;
-      --ink-900: #1A1D22;
+      --ink-800: #151719;
+      --ink-900: #0E1012;
       --ink-950: #08090B;
-      --accent-500: #FF5A2D;
+      --accent-500: #E85D2C;
       --accent-600: #B34419;
     }
     * { box-sizing: border-box; }
@@ -50,17 +50,19 @@
     html { scroll-behavior: smooth; }
     body {
       background: var(--paper); color: var(--ink-900);
-      font-family: 'Barlow Condensed', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
       min-height: 100vh; display: flex; flex-direction: column;
     }
     a { color: var(--accent-600); text-underline-offset: 3px; }
-    a:hover { color: var(--accent-500); }
+    /* --accent-500 on --paper is 3.09:1 — fails WCAG 1.4.3 for text, and a
+       hover state is text too. Darken instead of lightening on hover. */
+    a:hover { color: var(--ink-950); text-decoration-thickness: 2px; }
     header {
       padding: 20px 24px; border-bottom: 1px solid rgba(0,0,0,0.08);
       display: flex; justify-content: space-between; align-items: center;
     }
     .brand {
-      font-family: 'Anton', sans-serif; font-size: 22px;
+      font-family: 'Fraunces', Georgia, serif; font-weight: 600; font-size: 22px;
       color: var(--ink-950); text-decoration: none; letter-spacing: 0.01em;
     }
     .back { font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-500); text-decoration: none; }
@@ -75,14 +77,16 @@
       text-transform: uppercase; color: var(--ink-500);
     }
     h1 {
-      font-family: 'Anton', 'Impact', sans-serif;
+      font-family: 'Fraunces', Georgia, serif;
+      font-weight: 500;
       font-size: clamp(48px, 8vw, 88px);
       line-height: 0.95; letter-spacing: -0.01em;
       margin: 10px 0 20px; color: var(--ink-950);
     }
     h1 em { color: var(--accent-600); font-style: italic; font-family: 'Fraunces', serif; }
     h2 {
-      font-family: 'Anton', 'Impact', sans-serif;
+      font-family: 'Fraunces', Georgia, serif;
+      font-weight: 500;
       font-size: 28px; letter-spacing: 0.01em;
       margin: 40px 0 12px; color: var(--ink-800);
     }

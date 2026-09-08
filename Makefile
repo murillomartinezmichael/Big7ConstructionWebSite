@@ -10,7 +10,7 @@
 # =============================================================================
 
 .DEFAULT_GOAL := help
-.PHONY: help build run test test-container test-jsonld test-seo-files test-conversion test-primary-ctas test-url-prefill test-og test-assets test-anchors test-nginx test-form test-font-preload test-images test-breadcrumbs test-service-schema test-offer-catalog test-dockerfile test-meta-descriptions test-intake-analytics test-a11y-baseline test-lane-nav test-404-lane-recovery test-click-to-call test-url-shape test-phone test-shipped-source test-unit test-integration test-e2e lint fmt clean docker docker-run deploy
+.PHONY: help build run test test-container test-jsonld test-seo-files test-conversion test-primary-ctas test-url-prefill test-og test-assets test-anchors test-nginx test-form test-font-preload test-images test-breadcrumbs test-service-schema test-offer-catalog test-dockerfile test-meta-descriptions test-intake-analytics test-a11y-baseline test-lane-nav test-404-lane-recovery test-click-to-call test-url-shape test-phone test-shipped-source test-design-tokens test-unit test-integration test-e2e lint fmt clean docker docker-run deploy
 
 help: ## Show this help
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -21,7 +21,7 @@ build: ## Clean-clone -> running prerequisites met (delegates to build.sh)
 run: ## Run the service locally
 	./scripts/run.sh
 
-test: test-jsonld test-seo-files test-conversion test-primary-ctas test-url-prefill test-og test-assets test-anchors test-nginx test-form test-font-preload test-images test-breadcrumbs test-service-schema test-offer-catalog test-dockerfile test-meta-descriptions test-intake-analytics test-a11y-baseline test-lane-nav test-404-lane-recovery test-click-to-call test-url-shape test-phone test-shipped-source ## Run all tests (stdlib-only smoke suite)
+test: test-jsonld test-seo-files test-conversion test-primary-ctas test-url-prefill test-og test-assets test-anchors test-nginx test-form test-font-preload test-images test-breadcrumbs test-service-schema test-offer-catalog test-dockerfile test-meta-descriptions test-intake-analytics test-a11y-baseline test-lane-nav test-404-lane-recovery test-click-to-call test-url-shape test-phone test-shipped-source test-design-tokens ## Run all tests (stdlib-only smoke suite)
 
 test-container: ## Build the production image; prove nginx boots, clean paths 200, every .html form 301s to the same target Cloudflare uses (map imported from tests/test_url_shape.py), and the ?intent=/?utm_* money query survives each hop
 	python scripts/test-container-boot.py
@@ -125,6 +125,10 @@ test-phone: ## Phone single-source lock: every tel:/display/JSON-LD number acros
 test-shipped-source: ## Shipped-source leak lock: .assetsignore covers every non-public file (wrangler serves the repo root); no LAW number / PENDING_MANUAL / tests path / SiteAudit id in anything the browser can fetch
 	python tests/test_shipped_source.py
 	python tests/test_shipped_source.py --selftest
+
+test-design-tokens: ## One brand across all 6 inlined <style> blocks: every :root custom property agrees page-to-page (404 + accessibility had drifted ink-900/ink-800/accent-500), type is set only in Fraunces / Barlow Condensed / Inter (Anton had crept onto 2 pages), and every page requests the same Google Fonts family set
+	python tests/test_design_tokens.py
+	python tests/test_design_tokens.py --selftest
 
 test-unit: ## Run unit tests only
 	./scripts/test.sh unit
