@@ -22,8 +22,8 @@ redirects, contrast of individual hardcoded pairs, and the a11y baseline —
 none of them compare pages against each other.
 
 This closes that gap with three checks:
-  1. Token agreement  — a custom property declared on more than one page
-                        must carry the same value on every page.
+  1. Token agreement  — every page declares the complete canonical token
+                        set, with the same values on every page.
   2. Typeface allowlist — no page may introduce a font family outside the
                         three the brand actually owns.
   3. Font URL agreement — every page that loads Google Fonts must request
@@ -87,13 +87,22 @@ def _families(decl: str) -> list[str]:
 def check_token_agreement(pages: list[tuple[str, str]]) -> list[str]:
     """A custom property must not carry two different values across pages."""
     seen: dict[str, dict[str, list[str]]] = {}
+    declared: dict[str, set[str]] = {}
     for name, html in pages:
+        declared[name] = set()
         for block in ROOT_BLOCK_RE.findall(html):
             for var, raw in DECL_RE.findall(block):
+                declared[name].add(var)
                 value = " ".join(raw.split()).lower()
                 seen.setdefault(var, {}).setdefault(value, []).append(name)
 
     errors = []
+    if not seen:
+        return ["missing canonical tokens on every page"]
+    for name, tokens in declared.items():
+        missing = set(seen) - tokens
+        if missing:
+            errors.append(f"{name} missing canonical tokens: {', '.join(sorted(missing))}")
     for var in sorted(seen):
         values = seen[var]
         if len(values) > 1:
@@ -128,6 +137,8 @@ def check_font_url_agreement(pages: list[tuple[str, str]]) -> list[str]:
     by_query: dict[str, list[str]] = {}
     for name, html in pages:
         queries = {m.group(1) for m in GFONTS_RE.finditer(html)}
+        if not queries:
+            return [f"{name} missing Google Fonts family set"]
         for q in queries:
             families = tuple(sorted(re.findall(r"family=([^&]+)", q)))
             by_query.setdefault("|".join(families), []).append(name)
@@ -153,12 +164,19 @@ def run_all_checks(root: Path) -> list[str]:
 
 def selftest() -> int:
     """Mutate known-good input; every mutation must be caught by some check."""
+    baseline = run_all_checks(REPO_ROOT)
+    if baseline:
+        print(f"SELFTEST: baseline failed: {baseline}")
+        return 1
     pages = [(p.name, p.read_text(encoding="utf-8")) for p in shipped_pages(REPO_ROOT)]
     not_caught: list[str] = []
     attempted: list[str] = []
 
     def add(label: str, mutated: list[tuple[str, str]], expect: str) -> None:
         attempted.append(label)
+        if mutated == pages:
+            not_caught.append(f"{label} (mutation did not change input)")
+            return
         errors = (
             check_token_agreement(mutated)
             + check_typeface_allowlist(mutated)
@@ -202,6 +220,22 @@ def selftest() -> int:
             html = html.replace("family=Fraunces", "family=Anton&family=Fraunces", 1)
         drifted.append((name, html))
     add("accessibility requests a different family set", drifted, "different Google Fonts family sets")
+
+    add("404 loses a token", [
+        (name, re.sub(r"--ink-900\s*:[^;]+;", "", html) if name == "404.html" else html)
+        for name, html in pages
+    ], "missing canonical tokens")
+    add("404 loses its root block", [
+        (name, ROOT_BLOCK_RE.sub("", html) if name == "404.html" else html)
+        for name, html in pages
+    ], "missing canonical tokens")
+    add("404 loses font imports", [
+        (name, GFONTS_RE.sub("", html) if name == "404.html" else html)
+        for name, html in pages
+    ], "missing Google Fonts family set")
+    add("every page loses its root block", [
+        (name, ROOT_BLOCK_RE.sub("", html)) for name, html in pages
+    ], "missing canonical tokens")
 
     if not_caught:
         print(f"SELFTEST: {len(not_caught)} mutation(s) not caught: {not_caught}")

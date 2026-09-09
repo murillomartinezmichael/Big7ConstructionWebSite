@@ -6,6 +6,26 @@
 
 # Big7Construction — TODO
 
+## VERIFIED LOCALLY 2026-09-08 — complete palette coverage
+
+All six pages now declare the complete 22-token homepage palette. The prior test
+compared only tokens that happened to exist, allowing deleted declarations to pass.
+`tests/test_design_tokens.py` now rejects missing tokens, missing root blocks, and
+missing font imports; its selftest requires a green baseline and an actual mutation.
+Verified the stricter check failed on the five incomplete pages before fixing them.
+`make test` passes, including all eight design mutations. No deployment performed.
+
+Files touched: `404.html`, `accessibility.html`, `commercial-industrial.html`,
+`residential-construction.html`, `south-fulton-distribution.html`,
+`tests/test_design_tokens.py`, `TODO.md`, `PENDING_MANUAL.md`.
+
+Next action: Mike reviews/releases the local changes under the existing deployment
+gate and supplies the real business phone. Workflow changes and font self-hosting
+remain parked; the phone placeholder warning remains active.
+
+Cockpit log draft: Big7 complete palette on all six pages; missing-token/font
+regressions caught; full make test green with eight design mutations; local only.
+
 ## SHIPPED 2026-09-08 — one brand across all 6 pages (committed `4367968`, unpushed at time of writing)
 
 `404.html` and `accessibility.html` were a stale design generation. A visitor who hit a dead

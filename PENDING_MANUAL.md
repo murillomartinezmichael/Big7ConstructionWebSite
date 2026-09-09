@@ -1,5 +1,14 @@
 # Big7Construction — pending manual gates
 
+## 2026-09-08 — release complete design-token coverage
+
+- What: review and release the local six-page palette/test changes after the normal
+  deployment review.
+- Why Mike: pushes on this repository can deploy the paying-client site, including
+  branch pushes (root `DECISIONS.md`, 2026-08-25).
+- Resumes: verify the released site after approval. Local `make test` passed with
+  eight design mutations caught. - [ ]
+
 Tick-level items only Mike can complete. Sweep at will; each ends in a
 checkbox so it clears with a stroke.
 
