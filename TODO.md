@@ -6,6 +6,15 @@
 
 # Big7Construction — TODO
 
+## VERIFIED LOCALLY 2026-09-10 — source-only Git cleanup
+
+Removed 45 generated Python bytecode files from Git tracking and added cache
+ignore rules. Local cache files were retained; website source and test scripts
+were unchanged. Next: review the existing design branch and supply the already
+listed owner-content corrections before any production rollout.
+
+Files: `.gitignore`, `TODO.md`, previously tracked `tests/__pycache__/*.pyc`.
+
 ## VERIFIED LOCALLY 2026-09-08 — complete palette coverage
 
 All six pages now declare the complete 22-token homepage palette. The prior test
