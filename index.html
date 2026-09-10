@@ -384,7 +384,8 @@
        comfortably passes AA even with the inline `opacity:0.8` on the "of 08"
        counter spans (effective L drops but still >7). Light-divider case
        (--paper bg) already passes and is intentionally untouched. */
-    .divider.dark .section-marker span.tabular { color: var(--ink-200); }
+    .divider.dark .section-marker { color: var(--ink-200); }
+    .divider.light .section-marker span.tabular { opacity: 1 !important; }
 
     /* ─── BUTTONS ────────────────────────────────────────────── */
     .btn {
@@ -678,7 +679,8 @@
       padding: 96px 0 96px;
       z-index: 2;
     }
-    @media (min-width: 1024px) { .hero-inner { grid-template-columns: 1.15fr 1fr; gap: 80px; padding: 128px 0; } }
+    @media (min-width: 1024px) { .hero-inner { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 64px; padding: 100px 0; } }
+    .hero-inner > * { min-width: 0; }
     .hero-title {
       margin-top: 32px;
       font-family: 'Fraunces', 'Fraunces Fallback', serif;
@@ -686,7 +688,7 @@
       color: #fff;
       line-height: 0.98;
       letter-spacing: -0.03em;
-      font-size: clamp(48px, 8vw, 92px);
+      font-size: clamp(44px, 5.2vw, 76px);
     }
     .hero-title .accent { color: var(--accent-500); }
     .hero-sub {
@@ -1111,7 +1113,7 @@
       line-height: 0.95;
       letter-spacing: -0.03em;
     }
-    .foot-hero p { margin-top: 16px; max-width: 640px; color: var(--ink-400); font-size: 18px; line-height: 1.65; }
+    .foot-hero p { margin-top: 16px; max-width: 640px; color: var(--ink-300); font-size: 18px; line-height: 1.65; }
     .foot-badges { margin-top: 32px; display: flex; flex-wrap: wrap; gap: 12px; }
 
     .foot-cols {
@@ -1278,6 +1280,9 @@
     @media (min-width: 1024px) {
       .hero-title { font-family: 'Fraunces', 'Fraunces Display Fallback', serif; }
     }
+    /* Preserve page gutters after section padding shorthands. */
+    .wrap { padding-inline: clamp(16px, 3vw, 48px); }
+    .foot-col .lbl, .foot-bottom { color: var(--ink-300); }
 </style>
 </head>
 <body>
@@ -1362,7 +1367,7 @@
         </dl>
       </div>
       <div class="hero-photo">
-        <div class="hero-photo-frame blueprint-grid" data-parallax>
+        <a class="hero-photo-frame blueprint-grid" data-parallax href="/south-fulton-distribution" aria-label="Explore the South Fulton distribution facility project" style="display:block;text-decoration:none;outline-offset:6px;">
           <img src="images/jobsite-01.jpg" alt="Aerial view of an active Big 7 Construction jobsite — sitework and concrete foundation formwork in progress" fetchpriority="high" onerror="this.style.display='none'" />
           <div class="hero-photo-shade" aria-hidden="true"></div>
           <div class="hero-photo-caption">
@@ -1371,11 +1376,11 @@
               <p class="cap-title">42,000 sq ft distribution facility</p>
               <p class="cap-meta">South Fulton, GA · Pre-engineered metal · Design-build</p>
             </div>
-            <a href="/commercial-industrial#portfolio" style="color: var(--accent-500);" aria-label="See commercial portfolio">
+            <span style="color: var(--accent-500);" aria-hidden="true">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 17L17 7M17 7H8M17 7v9"/></svg>
-            </a>
+            </span>
           </div>
-        </div>
+        </a>
         <span class="frame-corner tl" aria-hidden="true"></span>
         <span class="frame-corner tr" aria-hidden="true"></span>
         <span class="frame-corner bl" aria-hidden="true"></span>
@@ -1637,7 +1642,7 @@
 
     <div class="wrap foot-bottom">
       <p class="tab">© <span id="year">2026</span> Big 7 Construction · Bidding open · Metro Atlanta</p>
-      <p class="spec-label" style="color: var(--ink-500);">Licensed · Bonded · Insured</p>
+      <p class="spec-label" style="color: var(--ink-300);">Licensed · Bonded · Insured</p>
     </div>
   </footer>
 
