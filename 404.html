@@ -58,7 +58,7 @@
     * { box-sizing: border-box; }
     html, body { margin: 0; padding: 0; height: 100%; }
     body {
-      background: var(--paper); color: var(--ink-900);
+      background: var(--dm-bg--paper, var(--paper)); color: var(--dm-text--ink-900, var(--ink-900));
       font-family: 'Inter', system-ui, -apple-system, sans-serif;
       display: flex; flex-direction: column; min-height: 100vh;
     }
@@ -66,18 +66,18 @@
     .badge {
       font-family: 'Barlow Condensed', sans-serif;
       font-size: 11px; font-weight: 600; letter-spacing: 0.24em;
-      text-transform: uppercase; color: var(--ink-500);
+      text-transform: uppercase; color: var(--dm-text--ink-500, var(--ink-500));
     }
     h1 {
       font-family: 'Fraunces', Georgia, serif;
       font-weight: 500;
       font-size: clamp(56px, 12vw, 128px);
       line-height: 0.95; letter-spacing: -0.01em;
-      margin: 12px 0 20px; color: var(--ink-950);
+      margin: 12px 0 20px; color: var(--dm-text--ink-950, var(--ink-950));
     }
     p {
       font-family: 'Fraunces', Georgia, serif; font-weight: 500;
-      font-size: 20px; line-height: 1.5; color: var(--ink-500);
+      font-size: 20px; line-height: 1.5; color: var(--dm-text--ink-500, var(--ink-500));
       max-width: 52ch; margin: 0 0 32px;
     }
     .btn {
@@ -90,30 +90,30 @@
     .btn:hover { filter: brightness(0.88); transform: translateY(-1px); }
     .lanes {
       margin: 40px 0 0; padding: 24px 0 0;
-      border-top: 1px solid rgba(0,0,0,0.08);
+      border-top: 1px solid rgb(var(--dm-linec-000000, 0 0 0) / 0.08);
     }
     .lanes h2 {
       font-family: 'Barlow Condensed', sans-serif;
       font-size: 12px; font-weight: 600; letter-spacing: 0.24em;
-      text-transform: uppercase; color: var(--ink-500);
+      text-transform: uppercase; color: var(--dm-text--ink-500, var(--ink-500));
       margin: 0 0 16px;
     }
     .lanes ul { list-style: none; padding: 0; margin: 0; }
     .lanes li { margin: 0 0 4px; }
     .lanes a {
       display: block; padding: 12px 0;
-      color: var(--ink-950); text-decoration: none;
+      color: var(--dm-text--ink-950, var(--ink-950)); text-decoration: none;
       font-family: 'Barlow Condensed', sans-serif; font-weight: 600;
       font-size: 18px; letter-spacing: 0.02em;
-      border-bottom: 1px solid rgba(0,0,0,0.06);
+      border-bottom: 1px solid rgb(var(--dm-linec-000000, 0 0 0) / 0.06);
     }
-    .lanes a:hover { color: var(--accent-600); }
+    .lanes a:hover { color: var(--dm-text--accent-600, var(--accent-600)); }
     footer {
-      padding: 24px; border-top: 1px solid rgba(0,0,0,0.08);
+      padding: 24px; border-top: 1px solid rgb(var(--dm-linec-000000, 0 0 0) / 0.08);
       font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase;
-      color: var(--ink-500); text-align: center;
+      color: var(--dm-text--ink-500, var(--ink-500)); text-align: center;
     }
-    footer a { color: var(--ink-500); text-decoration: underline; margin-left: 8px; }
+    footer a { color: var(--dm-text--ink-500, var(--ink-500)); text-decoration: underline; margin-left: 8px; }
     .skip-link {
       position: absolute; top: -100px; left: 8px;
       background: var(--ink-950); color: #fff;
@@ -131,6 +131,12 @@
       }
     }
   </style>
+  <link rel="stylesheet" href="/theme.css" />
+  <script>
+    /* Before first paint: apply a saved light/dark choice (none = follow the OS). */
+    try { var t = localStorage.getItem('big7-theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch (e) {}
+  </script>
+  <script defer src="/theme.js"></script>
 </head>
 <body>
   <a href="#main" class="skip-link">Skip to main content</a>

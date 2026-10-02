@@ -154,14 +154,14 @@
     html, body { margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
     body {
-      background: var(--paper); color: var(--ink-900);
+      background: var(--dm-bg--paper, var(--paper)); color: var(--dm-text--ink-900, var(--ink-900));
       font-family: 'Inter', 'Inter Fallback', system-ui, sans-serif;
       font-size: 16px; line-height: 1.6;
       min-height: 100vh; display: flex; flex-direction: column;
     }
     ::selection { background: var(--accent-500); color: #fff; }
-    a { color: var(--accent-600); text-underline-offset: 3px; }
-    a:hover { color: var(--accent-500); }
+    a { color: var(--dm-text--accent-600, var(--accent-600)); text-underline-offset: 3px; }
+    a:hover { color: var(--dm-text--accent-500, var(--accent-500)); }
     a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible {
       outline: 3px solid var(--accent-500); outline-offset: 3px; border-radius: 2px;
     }
@@ -174,21 +174,21 @@
     .skip-link:focus { top: 8px; outline: 3px solid var(--accent-500); outline-offset: 2px; }
 
     header.top {
-      padding: 18px 24px; border-bottom: 1px solid rgba(0,0,0,0.08);
+      padding: 18px 24px; border-bottom: 1px solid rgb(var(--dm-linec-000000, 0 0 0) / 0.08);
       display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;
-      background: var(--paper);
+      background: var(--dm-bg--paper, var(--paper));
     }
     .brand {
       font-family: 'Fraunces', 'Fraunces Fallback', Georgia, serif; font-weight: 700; font-size: 22px;
-      color: var(--ink-950); text-decoration: none; letter-spacing: 0.01em;
+      color: var(--dm-text--ink-950, var(--ink-950)); text-decoration: none; letter-spacing: 0.01em;
     }
     .top-links { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
     .top-links a {
       font-family: 'Barlow Condensed', 'Barlow Condensed Fallback', sans-serif; font-weight: 600;
       font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase;
-      color: var(--ink-500); text-decoration: none;
+      color: var(--dm-text--ink-500, var(--ink-500)); text-decoration: none;
     }
-    .top-links a:hover { color: var(--accent-600); }
+    .top-links a:hover { color: var(--dm-text--accent-600, var(--accent-600)); }
     .top-links a.btn-accent { color: #fff; }
     .top-links a[href^="tel:"] {
       padding: 17px 9px;
@@ -200,52 +200,52 @@
     .badge {
       font-family: 'Barlow Condensed', 'Barlow Condensed Fallback', sans-serif;
       font-size: 12px; font-weight: 600; letter-spacing: 0.24em;
-      text-transform: uppercase; color: var(--ink-500); margin: 0 0 8px;
+      text-transform: uppercase; color: var(--dm-text--ink-500, var(--ink-500)); margin: 0 0 8px;
     }
     h1 {
       font-family: 'Fraunces', 'Fraunces Fallback', Georgia, serif; font-weight: 600;
       font-size: clamp(36px, 6vw, 60px);
       line-height: 1.05; letter-spacing: -0.01em;
-      margin: 6px 0 20px; color: var(--ink-950);
+      margin: 6px 0 20px; color: var(--dm-text--ink-950, var(--ink-950));
     }
-    h1 em, h2 em { color: var(--accent-600); font-style: italic; }
+    h1 em, h2 em { color: var(--dm-text--accent-600, var(--accent-600)); font-style: italic; }
     h2 {
       font-family: 'Fraunces', 'Fraunces Fallback', Georgia, serif; font-weight: 600;
       font-size: clamp(26px, 4vw, 34px); line-height: 1.15;
-      margin: 0 0 16px; color: var(--ink-800);
+      margin: 0 0 16px; color: var(--dm-text--ink-800, var(--ink-800));
     }
-    p { margin: 0 0 14px; color: var(--ink-700); }
+    p { margin: 0 0 14px; color: var(--dm-text--ink-700, var(--ink-700)); }
     .lede { font-family: 'Fraunces', 'Fraunces Fallback', Georgia, serif; font-size: 18px; line-height: 1.65; }
     .spec {
       font-family: 'Barlow Condensed', 'Barlow Condensed Fallback', sans-serif; font-weight: 600;
       font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase;
-      color: var(--ink-500);
+      color: var(--dm-text--ink-500, var(--ink-500));
     }
 
     /* Breadcrumb nav */
     .crumbs { font-size: 13px; margin: 0 0 20px; }
-    .crumbs a { color: var(--ink-500); text-decoration: none; }
-    .crumbs a:hover { color: var(--accent-600); text-decoration: underline; }
-    .crumbs span[aria-current] { color: var(--ink-800); font-weight: 600; }
+    .crumbs a { color: var(--dm-text--ink-500, var(--ink-500)); text-decoration: none; }
+    .crumbs a:hover { color: var(--dm-text--accent-600, var(--accent-600)); text-decoration: underline; }
+    .crumbs span[aria-current] { color: var(--dm-text--ink-800, var(--ink-800)); font-weight: 600; }
 
     /* Case-study hero image + stat row */
     .case-hero-img {
       width: 100%; max-height: 420px; object-fit: cover; display: block;
-      border-radius: 4px; margin: 0 0 24px; border: 1px solid rgba(0,0,0,0.08);
+      border-radius: 4px; margin: 0 0 24px; border: 1px solid rgb(var(--dm-linec-000000, 0 0 0) / 0.08);
     }
     .stat-row {
       display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
-      margin: 0 0 8px; padding: 20px 0; border-top: 1px solid rgba(0,0,0,0.12);
-      border-bottom: 1px solid rgba(0,0,0,0.12);
+      margin: 0 0 8px; padding: 20px 0; border-top: 1px solid rgb(var(--dm-linec-000000, 0 0 0) / 0.12);
+      border-bottom: 1px solid rgb(var(--dm-linec-000000, 0 0 0) / 0.12);
     }
     .stat-row dt {
       font-family: 'Barlow Condensed', 'Barlow Condensed Fallback', sans-serif; font-weight: 600;
-      font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-500);
+      font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--dm-text--ink-500, var(--ink-500));
       margin: 0 0 4px;
     }
     .stat-row dd {
       font-family: 'Fraunces', 'Fraunces Fallback', Georgia, serif; font-weight: 600;
-      font-size: 19px; margin: 0; color: var(--ink-950);
+      font-size: 19px; margin: 0; color: var(--dm-text--ink-950, var(--ink-950));
     }
 
     /* Buttons */
@@ -259,22 +259,22 @@
     .btn-accent:hover { filter: brightness(0.88); color: #fff; }
     .btn-ghost {
       display: inline-block; padding: 14px 22px;
-      border: 1px solid var(--ink-500); color: var(--ink-800); text-decoration: none;
+      border: 1px solid var(--ink-500); color: var(--dm-text--ink-800, var(--ink-800)); text-decoration: none;
       font-family: 'Barlow Condensed', 'Barlow Condensed Fallback', sans-serif; font-weight: 600; font-size: 14px;
       letter-spacing: 0.08em; text-transform: uppercase; border-radius: 3px;
       background: transparent;
     }
-    .btn-ghost:hover { border-color: var(--accent-600); color: var(--accent-600); }
+    .btn-ghost:hover { border-color: var(--accent-600); color: var(--dm-text--accent-600, var(--accent-600)); }
 
     /* Credentials mini-strip */
-    .cred-table { list-style: none; padding: 0; margin: 24px 0 16px; border-top: 1px solid rgba(0,0,0,0.12); }
+    .cred-table { list-style: none; padding: 0; margin: 24px 0 16px; border-top: 1px solid rgb(var(--dm-linec-000000, 0 0 0) / 0.12); }
     .cred-row {
       display: grid; grid-template-columns: 130px 1fr; gap: 4px 20px;
-      padding: 14px 4px; border-bottom: 1px solid rgba(0,0,0,0.12);
+      padding: 14px 4px; border-bottom: 1px solid rgb(var(--dm-linec-000000, 0 0 0) / 0.12);
     }
     .cred-label {
       font-family: 'Barlow Condensed', 'Barlow Condensed Fallback', sans-serif; font-weight: 600;
-      font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-500);
+      font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--dm-text--ink-500, var(--ink-500));
       padding-top: 3px;
     }
     .cred-value { font-family: 'Fraunces', 'Fraunces Fallback', Georgia, serif; font-weight: 600; font-size: 17px; }
@@ -282,22 +282,22 @@
     /* Testimonial */
     .testi-quote {
       font-family: 'Fraunces', 'Fraunces Fallback', Georgia, serif; font-style: italic; font-weight: 500;
-      font-size: clamp(20px, 3vw, 26px); line-height: 1.45; color: var(--ink-800);
+      font-size: clamp(20px, 3vw, 26px); line-height: 1.45; color: var(--dm-text--ink-800, var(--ink-800));
       margin: 24px 0 12px; padding: 0;
     }
     .testi-attr { margin: 0 0 24px; }
-    .testi-attr .name { font-weight: 600; color: var(--ink-900); margin: 0; }
+    .testi-attr .name { font-weight: 600; color: var(--dm-text--ink-900, var(--ink-900)); margin: 0; }
 
     .other-lanes { font-size: 15px; margin-top: -24px; }
 
     footer.site {
-      padding: 28px 24px; border-top: 1px solid rgba(0,0,0,0.08);
+      padding: 28px 24px; border-top: 1px solid rgb(var(--dm-linec-000000, 0 0 0) / 0.08);
       font-family: 'Barlow Condensed', 'Barlow Condensed Fallback', sans-serif; font-weight: 600;
       font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase;
-      color: var(--ink-500); text-align: center;
+      color: var(--dm-text--ink-500, var(--ink-500)); text-align: center;
     }
-    footer.site a { color: var(--ink-500); text-decoration: underline; margin: 0 8px; }
-    footer.site a:hover { color: var(--accent-600); }
+    footer.site a { color: var(--dm-text--ink-500, var(--ink-500)); text-decoration: underline; margin: 0 8px; }
+    footer.site a:hover { color: var(--dm-text--accent-600, var(--accent-600)); }
 
     @media (max-width: 720px) {
       .stat-row { grid-template-columns: 1fr 1fr; }
@@ -312,7 +312,7 @@
         z-index: 90;
         display: flex; gap: 10px;
         padding: 10px 14px calc(10px + env(safe-area-inset-bottom, 0px));
-        background: var(--paper); border-top: 1px solid rgba(0,0,0,0.08);
+        background: var(--dm-bg--paper, var(--paper)); border-top: 1px solid rgb(var(--dm-linec-000000, 0 0 0) / 0.08);
       }
       .call-bar a {
         flex: 1; display: inline-flex; align-items: center; justify-content: center;
@@ -322,10 +322,10 @@
         text-transform: uppercase; text-decoration: none; border-radius: 3px;
       }
       .call-bar .cb-call {
-        border: 1px solid var(--ink-500); color: var(--ink-800);
+        border: 1px solid var(--ink-500); color: var(--dm-text--ink-800, var(--ink-800));
         background: transparent; font-variant-numeric: tabular-nums;
       }
-      .call-bar .cb-call:hover { border-color: var(--accent-600); color: var(--accent-600); }
+      .call-bar .cb-call:hover { border-color: var(--accent-600); color: var(--dm-text--accent-600, var(--accent-600)); }
       .call-bar .cb-bid { background: var(--accent-600); color: #fff; }
       .call-bar .cb-bid:hover { color: #fff; filter: brightness(0.88); }
       body { padding-bottom: 80px; }
@@ -351,6 +351,12 @@
       h1 { font-family: 'Fraunces', 'Fraunces Display Fallback', serif; }
     }
   </style>
+  <link rel="stylesheet" href="/theme.css" />
+  <script>
+    /* Before first paint: apply a saved light/dark choice (none = follow the OS). */
+    try { var t = localStorage.getItem('big7-theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch (e) {}
+  </script>
+  <script defer src="/theme.js"></script>
 </head>
 <body>
   <a href="#main" class="skip-link">Skip to main content</a>

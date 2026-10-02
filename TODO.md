@@ -937,3 +937,8 @@ Ran the new 30-Point Mobile Lead-Leak Inspection against the live site: **B (85/
 - [x] ~~**title_quality WARN**~~ SHIPPED 2026-07-19 (`f02cebf`) — homepage `<title>` tightened 87 → 60 chars, front-loaded service + metro.
 
 Verify each with `SiteAudit: ./run.bat check https://big7construction.com --no-leads` (grade should climb toward A once the two PENDING_MANUAL Cloudflare toggles land too).
+
+## 2026-10-02 · Dark mode shipped (Claude)
+
+- **Shipped:** dark mode on all 6 pages, following the OS setting, with a bottom-left toggle (`theme.js`; on phones it sits above the call bar). `scripts/add_dark_mode.py` rewrites page colors by role (light backgrounds go steel-blue dark, dark text goes light, already-dark sections stay dark) as `var(--dm-..., original)`, so light mode is unchanged. The palette lives in `theme.css`. Re-run the script after adding colors to a page; `--check` exits 1 if a page needs it.
+- **Next action:** swap the placeholder (555) 700-0007 for the real business line (procedure in PENDING_MANUAL.md, single-sourced in `site.config.json`).
