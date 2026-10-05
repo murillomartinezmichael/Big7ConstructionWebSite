@@ -7,6 +7,8 @@ COPY commercial-industrial.html     /usr/share/nginx/html/commercial-industrial.
 COPY residential-construction.html  /usr/share/nginx/html/residential-construction.html
 COPY south-fulton-distribution.html /usr/share/nginx/html/south-fulton-distribution.html
 COPY big7.js            /usr/share/nginx/html/big7.js
+COPY theme.css          /usr/share/nginx/html/theme.css
+COPY theme.js           /usr/share/nginx/html/theme.js
 COPY robots.txt         /usr/share/nginx/html/robots.txt
 COPY sitemap.xml        /usr/share/nginx/html/sitemap.xml
 COPY images/            /usr/share/nginx/html/images/

@@ -1,3 +1,9 @@
+## 2026-10-02 — A11 local delivery checkpoint
+
+Shared form duplicate/receipt/timeout handling and mobile layout fixes are verified locally. `make test` passes 26 static targets and 13 JavaScript cases; 36 browser page/viewport/theme checks plus six synthetic form journeys pass. Prior theme edits are preserved. Actual patch, hashes and exact limits: `../docs/fleet-deep-completion-2026-10-02/big7/TASK_RETURN.md` and `.json`.
+
+Next: A11-HOST-UI candidate widget/real-font acceptance; A11-RUNTIME fallback container smoke when local Docker is healthy. Preserve existing M07 client facts/phone, M05 exact send and M06 production/redirect gates. No commit/push/deploy. Every-branch deployment risk remains.
+
 ## VERIFIED (2026-07-17 — Lighthouse mobile, live www.big7construction.com)
 
 - Home **95-96** perf / 96 a11y / 100 bp · Commercial **98**/100/100 · Residential **98**/100/100 — the ≥95 quality bar passes on all three (first home run read 71 from cold-cache noise; two repeat runs confirmed 95-96).

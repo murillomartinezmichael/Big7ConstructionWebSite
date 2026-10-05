@@ -626,3 +626,8 @@ checkbox so it clears with a stroke.
     `localStorage` — cannot be written from CLI. 30 seconds in the browser.
   - **Resumes:** Cockpit shows the entry; next Big7 tick can proceed with a
     clean log timeline.
+
+## 2026-10-02 — A11 evidence refresh; existing M07/M05/M06 gates preserved
+
+- [ ] **M07 — Big7 client facts/contact:** use the approved real phone and substantiation for published business claims; do not invent missing values. Existing placeholder/contact/claim items remain open. Agent source result: `docs/fleet-deep-completion-2026-10-02/big7/TASK_RETURN.json` at fleet root.
+- [ ] **M05/M06 — Big7 delivery and production:** approve exact live destination/send and candidate rollout separately. Fresh public HEAD checks still show HTTP200 without HTTPS redirect and www200 without canonical redirect. Dashboard policy and every-branch deployment remain owner-controlled. Acceptance: approved revision, corrected redirect evidence and exact operator receipt.

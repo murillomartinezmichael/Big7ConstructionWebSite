@@ -1,0 +1,90 @@
+/* Light/dark theme for every page. Light mode is the original design and needs
+   nothing from this file: pages use var(--dm-..., <original color>) and the
+   --dm-* tokens are only defined for dark mode below. */
+
+/* dark-palette:start (generated; do not hand-edit) */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --dm-bg--accent-400: #5c2a17;
+    --dm-bg--paper: #13181f;
+    --dm-bg-ffffff: #0f1218;
+    --dm-bgc-f5f1ea: 19 24 31;
+    --dm-bgc-ffffff: 15 18 24;
+    --dm-line--ink-100: #2f3946;
+    --dm-line-ffffff: #29313d;
+    --dm-linec-000000: 255 255 255;
+    --dm-linec-ffffff: 41 49 61;
+    --dm-text--accent-500: #ef8e6c;
+    --dm-text--accent-600: #eb9270;
+    --dm-text--ink-400: #a7b0bd;
+    --dm-text--ink-500: #bdc4cd;
+    --dm-text--ink-600: #ced3da;
+    --dm-text--ink-700: #d9dde2;
+    --dm-text--ink-800: #e2e5e9;
+    --dm-text--ink-900: #e6e9ec;
+    --dm-text--ink-950: #ebedf0;
+    --dm-text--steel-400: #74a1e7;
+    --dm-text--steel-500: #75a0e6;
+    --dm-text--steel-600: #72a2e9;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --dm-bg--accent-400: #5c2a17;
+  --dm-bg--paper: #13181f;
+  --dm-bg-ffffff: #0f1218;
+  --dm-bgc-f5f1ea: 19 24 31;
+  --dm-bgc-ffffff: 15 18 24;
+  --dm-line--ink-100: #2f3946;
+  --dm-line-ffffff: #29313d;
+  --dm-linec-000000: 255 255 255;
+  --dm-linec-ffffff: 41 49 61;
+  --dm-text--accent-500: #ef8e6c;
+  --dm-text--accent-600: #eb9270;
+  --dm-text--ink-400: #a7b0bd;
+  --dm-text--ink-500: #bdc4cd;
+  --dm-text--ink-600: #ced3da;
+  --dm-text--ink-700: #d9dde2;
+  --dm-text--ink-800: #e2e5e9;
+  --dm-text--ink-900: #e6e9ec;
+  --dm-text--ink-950: #ebedf0;
+  --dm-text--steel-400: #74a1e7;
+  --dm-text--steel-500: #75a0e6;
+  --dm-text--steel-600: #72a2e9;
+  color-scheme: dark;
+}
+/* dark-palette:end */
+
+/* Theme toggle (rendered by theme.js). Bottom-left so it never covers the
+   phone / review CTAs on the right. */
+.theme-toggle {
+  position: fixed; left: 16px; bottom: 16px; z-index: 60;
+  width: 44px; height: 44px; display: grid; place-items: center;
+  border-radius: 50%; border: 1px solid rgba(255, 255, 255, .28);
+  background: #151719; color: #F5F1EA; cursor: pointer;
+  box-shadow: 0 6px 18px rgba(8, 9, 11, .35);
+}
+.theme-toggle:hover { background: #22262A; }
+.theme-toggle:focus-visible { outline: 2px solid #E85D2C; outline-offset: 3px; }
+.theme-toggle svg { width: 20px; height: 20px; }
+.theme-toggle .icon-moon { display: none; }
+:root[data-theme="light"] .theme-toggle .icon-moon { display: block; }
+:root[data-theme="light"] .theme-toggle .icon-sun { display: none; }
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) .theme-toggle .icon-moon { display: block; }
+  :root:not([data-theme="dark"]) .theme-toggle .icon-sun { display: none; }
+}
+@media print { .theme-toggle { display: none; } }
+/* Phones: sit above the sticky call / bid bar instead of covering Call. */
+@media (max-width: 768px) {
+  body:has(.call-bar) .theme-toggle { bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
+}
+
+/* Dark buttons would vanish on a dark page; in dark mode they take the brand
+   orange used by the other bid CTAs (white text 5.6:1). */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .btn-dark { background: #B34419; border-color: #B34419; color: #fff; }
+  :root:not([data-theme="light"]) .btn-dark:hover { background: #9C3A14; border-color: #9C3A14; }
+}
+:root[data-theme="dark"] .btn-dark { background: #B34419; border-color: #B34419; color: #fff; }
+:root[data-theme="dark"] .btn-dark:hover { background: #9C3A14; border-color: #9C3A14; }
