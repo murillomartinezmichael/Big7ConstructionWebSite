@@ -952,3 +952,12 @@ Ran the new 30-Point Mobile Lead-Leak Inspection against the live site: **B (85/
 - [x] ~~**title_quality WARN**~~ SHIPPED 2026-07-19 (`f02cebf`) — homepage `<title>` tightened 87 → 60 chars, front-loaded service + metro.
 
 Verify each with `SiteAudit: ./run.bat check https://big7construction.com --no-leads` (grade should climb toward A once the two PENDING_MANUAL Cloudflare toggles land too).
+
+## 2026-10-02 · Dark mode shipped (Claude)
+
+- **Shipped:** dark mode on all 6 pages, following the OS setting, with a bottom-left toggle (`theme.js`; on phones it sits above the call bar). `scripts/add_dark_mode.py` rewrites page colors by role (light backgrounds go steel-blue dark, dark text goes light, already-dark sections stay dark) as `var(--dm-..., original)`, so light mode is unchanged. The palette lives in `theme.css`. Re-run the script after adding colors to a page; `--check` exits 1 if a page needs it.
+- **Next action:** swap the placeholder (555) 700-0007 for the real business line (procedure in PENDING_MANUAL.md, single-sourced in `site.config.json`).
+
+## 2026-10-09 — default integration prepared locally
+
+Qualified96aaef6 source already includes upstream dark-mode source. Reconciled theme-history conflicts while retaining candidate HTML, form/receipt/mobile fixes, and upstream setup-python7 workflow; all application/test/asset bytes match qualified candidate. No redundant runtime rerun. Preserve all client, actual-font/widget, container, send and production gates; no branch push because every-branch deployment risk remains. Next: exact hosted deployment/acceptance prerequisite. Fleet proof: big7/default-integration-2026-10-09/LOCAL_INTEGRATION.json.
