@@ -1,0 +1,115 @@
+name: Verify and publish Big7 candidate
+on:
+  push:
+    branches: ['revamp/big7-2026-10-11']
+    paths: ['.github/workflows/publish-big7-revamp.yml']
+permissions:
+  contents: write
+concurrency:
+  group: publish-big7-revamp
+  cancel-in-progress: false
+jobs:
+  candidate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Apply verified candidate without touching protected interfaces
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p /tmp/big7-evidence
+          python - <<'PY'
+          import base64, hashlib, io, json, lzma, os, pathlib, subprocess, tarfile, urllib.request
+          parts = ['855570dd31a40a15087d0e7089237ff42d181588', 'c0b8ef452f2f177b5678ec85784cd46d14b50dc6', '7f928919b2adbf24660d88b1b214b7b336663ae1', 'e40c926d2154c5f4566eb0d3e8f758298342b6bc', 'fcf82d911d1958d46cfa9f2f4d0b93ec40006299', '2426d10b0b6b3c64fab9b7af9b191589951271da', '301f33cb1db7cb72aa04af8b10d12d10710445d5', 'db0e3cf1b96cef022db9b854a7ffa32c19940c09', 'c553a2cf6a85607de61317af6020bb8e91c7d4ef', 'b697ebbb34e823d75ac913a5d3eeb324e948df9d']
+          chunks = []
+          for sha in parts:
+              req = urllib.request.Request('https://api.github.com/repos/' + os.environ['GITHUB_REPOSITORY'] + '/git/blobs/' + sha, headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'], 'Accept':'application/vnd.github+json', 'User-Agent':'Big7-verification'})
+              with urllib.request.urlopen(req, timeout=30) as response:
+                  chunk = base64.b64decode(json.load(response)['content'])
+              if hashlib.sha1(b'blob '+str(len(chunk)).encode()+b'\0'+chunk).hexdigest() != sha:
+                  raise SystemExit('Object hash mismatch')
+              chunks.append(chunk)
+          data = b''.join(chunks)
+          if hashlib.sha256(data).hexdigest() != 'f552be8e9d7351185bd1581ded76c5e30d4ef3fdfacefea562035baeda663c4c':
+              raise SystemExit('Candidate hash mismatch')
+          allowed = {'404.html','accessibility.html','commercial-industrial.html','index.html','residential-construction.html','south-fulton-distribution.html','Makefile','tests/intake-browser.mjs','tests/test_revamp.py','docs/revamp-2026-10-11.md','images/ai-home-concept.webp','images/concept-campus.svg','images/concept-interior.svg','images/concept-residence.svg','images/concept-warehouse.svg','images/concept-workplace.svg'}
+          with tarfile.open(fileobj=io.BytesIO(lzma.decompress(data)), mode='r:') as archive:
+              if {m.name for m in archive.getmembers()} != {'manifest.json','change.patch','images/ai-home-concept.webp'} or any(not m.isfile() for m in archive.getmembers()):
+                  raise SystemExit('Unexpected archive members')
+              manifest = json.load(archive.extractfile('manifest.json'))
+              if set(manifest['files']) != allowed:
+                  raise SystemExit('Unexpected candidate paths')
+              for name, expected in manifest['base_files'].items():
+                  path = pathlib.Path(name)
+                  if path.is_symlink() or not path.resolve().is_relative_to(pathlib.Path.cwd()):
+                      raise SystemExit('Unsafe baseline path')
+                  actual = hashlib.sha256(path.read_bytes()).hexdigest() if path.exists() else None
+                  if actual != expected:
+                      raise SystemExit('Baseline changed: '+name)
+              patch = pathlib.Path('/tmp/big7-change.patch')
+              patch.write_bytes(archive.extractfile('change.patch').read())
+              subprocess.run(['git','apply','--check',str(patch)],check=True)
+              subprocess.run(['git','apply',str(patch)],check=True)
+              pathlib.Path('images/ai-home-concept.webp').write_bytes(archive.extractfile('images/ai-home-concept.webp').read())
+          for name, info in manifest['files'].items():
+              if hashlib.sha256(pathlib.Path(name).read_bytes()).hexdigest() != info['sha256']:
+                  raise SystemExit('Written file mismatch: '+name)
+          p = pathlib.Path('Makefile')
+          p.write_text(p.read_text().replace('test-design-tokens ##','test-design-tokens test-revamp ##').replace('regressions test-revamp','regressions'))
+          pathlib.Path('/tmp/big7-evidence/changed-paths.json').write_text(json.dumps(sorted(allowed)))
+          print('Applied and hash-verified 16 allowlisted files.')
+          PY
+      - name: All regression contracts and strict preflight
+        run: |
+          set -o pipefail
+          git diff --check
+          make test 2>&1 | tee /tmp/big7-evidence/contracts.txt
+          python scripts/preflight-deploy.py --strict 2>&1 | tee /tmp/big7-evidence/preflight.txt
+      - name: Container routing and security
+        run: |
+          set -o pipefail
+          make test-container 2>&1 | tee /tmp/big7-evidence/container.txt
+      - name: Browser test dependencies
+        run: |
+          npm install --prefix "$RUNNER_TEMP/big7-tools" --ignore-scripts --no-audit --no-fund puppeteer-core@25.2.1 axe-core@4.12.1
+          npm list --prefix "$RUNNER_TEMP/big7-tools" --depth=0 > /tmp/big7-evidence/browser-versions.txt
+      - name: Accessibility, responsive layouts and simulated submissions
+        run: |
+          set -o pipefail
+          export PUPPETEER_MODULE="$RUNNER_TEMP/big7-tools/node_modules/puppeteer-core/lib/esm/puppeteer/puppeteer-core.js"
+          export AXE_SOURCE="$RUNNER_TEMP/big7-tools/node_modules/axe-core/axe.min.js"
+          export PUPPETEER_EXECUTABLE_PATH="$(command -v google-chrome || command -v chromium)"
+          node tests/intake-browser.mjs --out /tmp/big7-evidence/browser 2>&1 | tee /tmp/big7-evidence/browser.txt
+      - name: Commit, push and verify remote source
+        run: |
+          python - <<'PY'
+          import json, pathlib, subprocess
+          paths=json.loads(pathlib.Path('/tmp/big7-evidence/changed-paths.json').read_text())
+          changed=subprocess.check_output(['git','diff','--name-only'],text=True).splitlines()
+          if not set(changed).issubset(paths):
+              raise SystemExit('Unexpected tracked changes')
+          subprocess.run(['git','add','--',*paths],check=True)
+          subprocess.run(['git','-c','user.name=github-actions[bot]','-c','user.email=41898282+github-actions[bot]@users.noreply.github.com','commit','-m','feat: fully revamp Big7 with labelled AI imagery and verified responsive journeys'],check=True)
+          subprocess.run(['git','push','origin','HEAD:refs/heads/revamp/big7-2026-10-11'],check=True)
+          head=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()
+          remote=subprocess.check_output(['git','ls-remote','origin','refs/heads/revamp/big7-2026-10-11'],text=True).split()[0]
+          if head != remote:
+              raise SystemExit('Remote verification failed')
+          state={'commit':head,'tree':subprocess.check_output(['git','rev-parse','HEAD^{tree}'],text=True).strip(),'workflows':subprocess.check_output(['git','ls-tree','HEAD:.github/workflows'],text=True)}
+          pathlib.Path('/tmp/big7-evidence/repository-state.json').write_text(json.dumps(state,indent=2))
+          pathlib.Path('/tmp/big7-evidence/commit.txt').write_text(head+'\n')
+          subprocess.run(['git','archive','--format=zip','HEAD','-o','/tmp/big7-evidence/source.zip'],check=True)
+          print('Verified remote source:',head)
+          PY
+      - name: Retain evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: big7-full-revamp-verification
+          path: /tmp/big7-evidence/
+          retention-days: 7
+          if-no-files-found: error
