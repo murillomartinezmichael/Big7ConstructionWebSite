@@ -1,0 +1,144 @@
+name: Apply and verify Big7 revamp
+
+on:
+  push:
+    branches: ['revamp/big7-2026-10-11']
+    paths: ['.github/workflows/apply-big7-revamp.yml']
+
+permissions:
+  contents: write
+
+concurrency:
+  group: apply-big7-revamp
+  cancel-in-progress: false
+
+jobs:
+  verify-and-publish:
+    if: github.ref == 'refs/heads/revamp/big7-2026-10-11'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Apply integrity-checked, allowlisted candidate
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p /tmp/big7-evidence
+          python - <<'PY'
+          import base64, hashlib, io, json, lzma, os, pathlib, subprocess, tarfile, urllib.request
+          parts = [
+            'c34a63a657e5b0f8d0fead7375d5885f41b4dd82',
+            '8f05c3e787516553d90a89d13213b7e9f5459c86',
+            '021a796801e1f04dc76f7efba907d2ed6079ef83',
+            'a35aa3c7fc561f93482a11f60111f2d60d7c05ea',
+            'f7d1ce81cba7282c81a33165965478028689618b',
+            'e98c2d0341af174fe66301be6e7aa9c47f73a264',
+            '301f33cb1db7cb72aa04af8b10d12d10710445d5',
+            'db0e3cf1b96cef022db9b854a7ffa32c19940c09',
+            'c553a2cf6a85607de61317af6020bb8e91c7d4ef',
+            'b697ebbb34e823d75ac913a5d3eeb324e948df9d',
+          ]
+          chunks = []
+          for sha in parts:
+              url = 'https://api.github.com/repos/' + os.environ['GITHUB_REPOSITORY'] + '/git/blobs/' + sha
+              request = urllib.request.Request(url, headers={'Authorization': 'Bearer ' + os.environ['GH_TOKEN'], 'Accept': 'application/vnd.github+json', 'User-Agent': 'Big7-revamp-verification'})
+              with urllib.request.urlopen(request, timeout=30) as response:
+                  obj = json.load(response)
+              chunk = base64.b64decode(obj['content'])
+              actual = hashlib.sha1(b'blob ' + str(len(chunk)).encode() + b'\0' + chunk).hexdigest()
+              if actual != sha:
+                  raise SystemExit('Blob integrity failure')
+              chunks.append(chunk)
+          data = b''.join(chunks)
+          if hashlib.sha256(data).hexdigest() != 'f552be8e9d7351185bd1581ded76c5e30d4ef3fdfacefea562035baeda663c4c':
+              raise SystemExit('Candidate digest mismatch; no files changed')
+          allowed = {
+              '404.html', 'accessibility.html', 'commercial-industrial.html', 'index.html',
+              'residential-construction.html', 'south-fulton-distribution.html', 'Makefile',
+              'tests/intake-browser.mjs', 'tests/test_revamp.py', 'docs/revamp-2026-10-11.md',
+              'images/ai-home-concept.webp', 'images/concept-campus.svg', 'images/concept-interior.svg',
+              'images/concept-residence.svg', 'images/concept-warehouse.svg', 'images/concept-workplace.svg',
+          }
+          with tarfile.open(fileobj=io.BytesIO(lzma.decompress(data)), mode='r:') as archive:
+              names = {m.name for m in archive.getmembers()}
+              if names != {'manifest.json', 'change.patch', 'images/ai-home-concept.webp'} or any(not m.isfile() for m in archive.getmembers()):
+                  raise SystemExit('Unexpected archive members')
+              manifest = json.load(archive.extractfile('manifest.json'))
+              if set(manifest['files']) != allowed:
+                  raise SystemExit('Unexpected changed paths')
+              for name, expected in manifest['base_files'].items():
+                  path = pathlib.Path(name)
+                  if path.is_symlink():
+                      raise SystemExit('Symlink baseline is not permitted')
+                  actual = hashlib.sha256(path.read_bytes()).hexdigest() if path.exists() else None
+                  if actual != expected:
+                      raise SystemExit('Baseline changed; refusing to overwrite ' + name)
+              patch = pathlib.Path('/tmp/big7-revamp.patch')
+              patch.write_bytes(archive.extractfile('change.patch').read())
+              subprocess.run(['git', 'apply', '--check', str(patch)], check=True)
+              subprocess.run(['git', 'apply', str(patch)], check=True)
+              pathlib.Path('images/ai-home-concept.webp').write_bytes(archive.extractfile('images/ai-home-concept.webp').read())
+          for name, info in manifest['files'].items():
+              if hashlib.sha256(pathlib.Path(name).read_bytes()).hexdigest() != info['sha256']:
+                  raise SystemExit('Written-file verification failed: ' + name)
+          # Register the added test as a prerequisite, not in the help comment.
+          makefile = pathlib.Path('Makefile')
+          text = makefile.read_text()
+          text = text.replace('test-design-tokens ##', 'test-design-tokens test-revamp ##')
+          text = text.replace('regressions test-revamp', 'regressions')
+          makefile.write_text(text)
+          pathlib.Path('/tmp/big7-evidence/changed-paths.json').write_text(json.dumps(sorted(allowed)))
+          pathlib.Path('/tmp/big7-evidence/candidate-manifest.json').write_text(json.dumps(manifest, indent=2))
+          print('Verified and applied 16 allowlisted files. Shared intake, theme, settings, routes and hosting configuration are unchanged.')
+          PY
+      - name: Complete regression suite and deployment preflight
+        run: |
+          set -o pipefail
+          git diff --check
+          make test 2>&1 | tee /tmp/big7-evidence/contracts.txt
+          python scripts/preflight-deploy.py --strict 2>&1 | tee /tmp/big7-evidence/preflight.txt
+      - name: Container routing and security checks
+        run: |
+          set -o pipefail
+          make test-container 2>&1 | tee /tmp/big7-evidence/container.txt
+      - name: Install isolated browser verification tools
+        run: |
+          npm install --prefix "$RUNNER_TEMP/big7-tools" --ignore-scripts --no-audit --no-fund puppeteer-core@25.2.1 axe-core@4.12.1
+          npm list --prefix "$RUNNER_TEMP/big7-tools" --depth=0 > /tmp/big7-evidence/browser-tool-versions.txt
+      - name: Responsive, accessibility and simulated intake journeys
+        run: |
+          set -o pipefail
+          export PUPPETEER_MODULE="$RUNNER_TEMP/big7-tools/node_modules/puppeteer-core/lib/esm/puppeteer/puppeteer-core.js"
+          export AXE_SOURCE="$RUNNER_TEMP/big7-tools/node_modules/axe-core/axe.min.js"
+          export PUPPETEER_EXECUTABLE_PATH="$(command -v google-chrome || command -v chromium)"
+          node tests/intake-browser.mjs --out /tmp/big7-evidence/browser 2>&1 | tee /tmp/big7-evidence/browser.txt
+      - name: Commit and push only the verified candidate
+        run: |
+          python - <<'PY'
+          import json, pathlib, subprocess
+          paths = json.loads(pathlib.Path('/tmp/big7-evidence/changed-paths.json').read_text())
+          changed = subprocess.check_output(['git', 'diff', '--name-only'], text=True).splitlines()
+          if not set(changed).issubset(paths):
+              raise SystemExit('Unexpected tracked changes; refusing to publish')
+          subprocess.run(['git', 'add', '--', *paths], check=True)
+          subprocess.run(['git', '-c', 'user.name=github-actions[bot]', '-c', 'user.email=41898282+github-actions[bot]@users.noreply.github.com', 'commit', '-m', 'feat: fully revamp Big7 construction site with labelled AI concepts and tested responsive journeys'], check=True)
+          subprocess.run(['git', 'push', 'origin', 'HEAD:refs/heads/revamp/big7-2026-10-11'], check=True)
+          head = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()
+          remote = subprocess.check_output(['git', 'ls-remote', 'origin', 'refs/heads/revamp/big7-2026-10-11'], text=True).split()[0]
+          if head != remote:
+              raise SystemExit('Remote head did not verify')
+          pathlib.Path('/tmp/big7-evidence/commit.txt').write_text(head + '\n')
+          subprocess.run(['git', 'archive', '--format=zip', 'HEAD', '-o', '/tmp/big7-evidence/source.zip'], check=True)
+          print('Verified remote branch head:', head)
+          PY
+      - name: Preserve verification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: big7-full-revamp-verification
+          path: /tmp/big7-evidence/
+          retention-days: 7
+          if-no-files-found: error
