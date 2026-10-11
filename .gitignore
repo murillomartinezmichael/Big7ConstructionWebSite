@@ -9,3 +9,7 @@ Thumbs.db
 .autoimprove/
 .claims/
 SESSION_GOAL.md
+# Test/runtime output is regenerated locally, never site source.
+__pycache__/
+*.py[cod]
+.pytest_cache/

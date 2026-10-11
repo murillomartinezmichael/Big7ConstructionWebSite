@@ -19,13 +19,23 @@ var BIG7_PAGE = (function () {
 })();
 
 // ─── Form submit: POST to Formspree via fetch, keep the user
-//     on-page. Falls back to the native form action if fetch fails.
+//     on-page. Native form action remains available when JavaScript is off.
+// One in-flight or accepted send per form; a disabled button alone does not
+// prevent a re-entrant submit event from dispatching the request again.
+var BIG7_SUBMISSIONS = new WeakMap();
 async function submitForm(e) {
   e.preventDefault();
   const form = e.target;
+  if (BIG7_SUBMISSIONS.has(form)) return;
+  BIG7_SUBMISSIONS.set(form, 'pending');
   const btn = document.getElementById('formBtn');
   const note = document.querySelector('.form-note');
   const original = btn.textContent;
+  if (note) {
+    note.setAttribute('role', 'status');
+    note.setAttribute('aria-atomic', 'true');
+    note.textContent = 'Sending your request…';
+  }
   btn.textContent = 'Sending…';
   btn.disabled = true;
 
@@ -47,21 +57,40 @@ async function submitForm(e) {
     }).catch(function () { /* best-effort only */ });
   } catch (_) { /* mirror must never break the real submit */ }
 
+  let timeout;
   try {
+    const controller = new AbortController();
+    timeout = setTimeout(() => controller.abort(), 30000);
     const res = await fetch(form.action, {
       method: 'POST',
       body: new FormData(form),
-      headers: { 'Accept': 'application/json' }
+      headers: { 'Accept': 'application/json' },
+      signal: controller.signal,
+      redirect: 'error'
     });
-    if (!res.ok) throw new Error('Formspree returned ' + res.status);
+    if (!res.ok || res.redirected ||
+        (res.headers.get('content-type') || '').split(';')[0].trim().toLowerCase() !== 'application/json') {
+      throw new Error('Unconfirmed Formspree response');
+    }
+    // Match Formspree's published success shape. Never navigate to `next`.
+    const receipt = await res.json();
+    if (!receipt || Array.isArray(receipt) || typeof receipt !== 'object' ||
+        typeof receipt.next !== 'string' || 'error' in receipt || 'errors' in receipt) {
+      throw new Error('Unconfirmed Formspree receipt');
+    }
+    BIG7_SUBMISSIONS.set(form, 'accepted');
     btn.textContent = 'Request received ✓';
     btn.style.background = '#2F5D3A';
     form.querySelectorAll('input, select, textarea').forEach(f => f.disabled = true);
     if (note) note.textContent = "A senior estimator will reach out within 48 hours. Drawings + specs can be emailed to info@big7construction.com.";
   } catch (err) {
+    if (BIG7_SUBMISSIONS.get(form) === 'accepted') return;
+    BIG7_SUBMISSIONS.delete(form);
     btn.textContent = original;
     btn.disabled = false;
-    if (note) note.textContent = "Something went wrong sending the form. Email info@big7construction.com directly or call (555) 700-0007.";
+    if (note) note.textContent = "We could not confirm receipt. Your details are still here; a request may already have arrived. To avoid a duplicate, email info@big7construction.com or call (555) 700-0007 before retrying.";
+  } finally {
+    clearTimeout(timeout);
   }
 }
 

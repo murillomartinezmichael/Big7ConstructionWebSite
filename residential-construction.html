@@ -494,8 +494,8 @@
     /* Intake form */
     .contact-grid { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 28px; margin-top: 24px; }
     .cform { min-width: 0; }
-    .cform-set { border: 0; padding: 0; margin: 0 0 26px; }
-    .cform-legend { display: flex; align-items: baseline; gap: 12px; margin: 0 0 14px; }
+    .cform-set { min-width: 0; border: 0; padding: 0; margin: 0 0 26px; }
+    .cform-legend { display: flex; flex-wrap: wrap; align-items: baseline; gap: 12px; margin: 0 0 14px; }
     .cform-legend .lbl {
       font-family: 'Barlow Condensed', 'Barlow Condensed Fallback', sans-serif; font-weight: 600;
       font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--dm-text--ink-500, var(--ink-500));
@@ -584,6 +584,8 @@
     footer.site a:hover { color: var(--dm-text--accent-600, var(--accent-600)); }
 
     @media (max-width: 720px) {
+      .service-row { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 12px; }
+      .service-arrow { grid-column: 2; margin-left: 0; justify-self: start; }
       .pf-grid, .chorus, .cform-cols, .type-grid { grid-template-columns: 1fr; }
       .contact-grid { grid-template-columns: 1fr; }
       .process-steps li { grid-template-columns: 44px 1fr; }

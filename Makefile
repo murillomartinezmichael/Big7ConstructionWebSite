@@ -1,5 +1,5 @@
 # =============================================================================
-# Makefile — convenience tasks for Unix-friendly devs.
+# Makefile â€” convenience tasks for Unix-friendly devs.
 #
 # WHY THIS EXISTS
 #   `./build.sh` is the canonical full-build entry point. Make wraps the common
@@ -21,7 +21,7 @@ build: ## Clean-clone -> running prerequisites met (delegates to build.sh)
 run: ## Run the service locally
 	./scripts/run.sh
 
-test: test-jsonld test-seo-files test-conversion test-primary-ctas test-url-prefill test-og test-assets test-anchors test-nginx test-form test-font-preload test-images test-breadcrumbs test-service-schema test-offer-catalog test-dockerfile test-meta-descriptions test-intake-analytics test-a11y-baseline test-lane-nav test-404-lane-recovery test-click-to-call test-url-shape test-phone test-shipped-source test-design-tokens ## Run all tests (stdlib-only smoke suite)
+test: test-intake-runtime test-jsonld test-seo-files test-conversion test-primary-ctas test-url-prefill test-og test-assets test-anchors test-nginx test-form test-font-preload test-images test-breadcrumbs test-service-schema test-offer-catalog test-dockerfile test-meta-descriptions test-intake-analytics test-a11y-baseline test-lane-nav test-404-lane-recovery test-click-to-call test-url-shape test-phone test-shipped-source test-design-tokens ## Run static Python checks and Node.js intake runtime regressions
 
 test-container: ## Build the production image; prove nginx boots, clean paths 200, every .html form 301s to the same target Cloudflare uses (map imported from tests/test_url_shape.py), and the ?intent=/?utm_* money query survives each hop
 	python scripts/test-container-boot.py
@@ -156,3 +156,7 @@ docker-run: ## Run Docker image on port 8080 (the static site has no project env
 
 deploy: ## Deploy to the platform configured in scripts/deploy.sh
 	./scripts/deploy.sh
+
+.PHONY: test-intake-runtime
+test-intake-runtime: ## Offline actual-JS delivery guards, receipt validation and timeout (Node.js 22+)
+	node --test tests/intake-runtime.test.mjs

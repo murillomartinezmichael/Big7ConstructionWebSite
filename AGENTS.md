@@ -21,7 +21,7 @@ python -m http.server 8080
 ```
 
 ## Test
-`make test` — 24 stdlib-only suites (golden + selftest each), or `python tests/test_<name>.py [--selftest]` directly.
+`make test` — 26 Python stdlib suites (golden + selftest each) plus 13 offline JavaScript runtime cases (Node.js 22 tested). Python suites can also run as `python tests/test_<name>.py [--selftest]`; runtime cases use `node --test tests/intake-runtime.test.mjs`.
 
 ## Deploy
 Push to `main` → Cloudflare Workers Builds auto-deploys. Railway fallback: Docker build of nginx:alpine serving on `${PORT:-8080}`.
