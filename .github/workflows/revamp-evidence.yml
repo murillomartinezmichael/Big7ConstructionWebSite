@@ -1,0 +1,38 @@
+name: Revamp evidence
+
+on:
+  push:
+    branches: ['revamp/big7-2026-10-11']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: revamp-evidence-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Archive exact tracked source for reproducible review
+        run: |
+          mkdir -p /tmp/big7-evidence
+          git archive --format=zip HEAD -o /tmp/big7-evidence/source.zip
+          git rev-parse HEAD > /tmp/big7-evidence/commit.txt
+      - name: Existing regression contracts
+        run: |
+          set -o pipefail
+          make test 2>&1 | tee /tmp/big7-evidence/contracts.txt
+      - name: Preserve review evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: big7-revamp-evidence
+          path: /tmp/big7-evidence/
+          retention-days: 7
+          if-no-files-found: error
