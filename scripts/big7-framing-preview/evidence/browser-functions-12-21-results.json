@@ -1,0 +1,81 @@
+{
+  "mode": "In-memory Chromium DOM rendering; local images embedded; default fallback fonts; synthetic fetch responses.",
+  "browser": "144.0.7559.96",
+  "total": 9,
+  "passed": 9,
+  "failed": 0,
+  "cases": [
+    {
+      "name": "delivery:json-error",
+      "status": "PASS",
+      "scenario": "json-error",
+      "state": "error",
+      "primary_requests": 1,
+      "network": "synthetic; no live request"
+    },
+    {
+      "name": "delivery:array",
+      "status": "PASS",
+      "scenario": "array",
+      "state": "error",
+      "primary_requests": 1,
+      "network": "synthetic; no live request"
+    },
+    {
+      "name": "delivery:null",
+      "status": "PASS",
+      "scenario": "null",
+      "state": "error",
+      "primary_requests": 1,
+      "network": "synthetic; no live request"
+    },
+    {
+      "name": "delivery:missing-next",
+      "status": "PASS",
+      "scenario": "missing-next",
+      "state": "error",
+      "primary_requests": 1,
+      "network": "synthetic; no live request"
+    },
+    {
+      "name": "delivery:next-null",
+      "status": "PASS",
+      "scenario": "next-null",
+      "state": "error",
+      "primary_requests": 1,
+      "network": "synthetic; no live request"
+    },
+    {
+      "name": "delivery:malformed-json",
+      "status": "PASS",
+      "scenario": "malformed-json",
+      "state": "error",
+      "primary_requests": 1,
+      "network": "synthetic; no live request"
+    },
+    {
+      "name": "delivery:network-failure",
+      "status": "PASS",
+      "scenario": "network-failure",
+      "state": "error",
+      "primary_requests": 1,
+      "network": "synthetic; no live request"
+    },
+    {
+      "name": "delivery:redirect",
+      "status": "PASS",
+      "scenario": "redirect",
+      "state": "error",
+      "primary_requests": 1,
+      "network": "synthetic; no live request"
+    },
+    {
+      "name": "delivery:timeout",
+      "status": "PASS",
+      "scenario": "timeout",
+      "state": "error",
+      "primary_requests": 1,
+      "network": "synthetic; no live request"
+    }
+  ]
+}

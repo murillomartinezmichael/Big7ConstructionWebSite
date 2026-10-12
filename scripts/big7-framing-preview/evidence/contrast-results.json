@@ -1,0 +1,271 @@
+{
+  "scope": "24 selected rendered text/background pairs; does not cover every pixel or image-overlay text",
+  "checks": [
+    {
+      "theme": "light",
+      "foreground": "body",
+      "background": "body",
+      "colors": [
+        "rgb(23, 33, 31)",
+        "rgb(245, 242, 234)"
+      ],
+      "ratio": 14.737,
+      "status": "PASS"
+    },
+    {
+      "theme": "light",
+      "foreground": ".hero-description",
+      "background": ".hero",
+      "colors": [
+        "rgb(198, 207, 202)",
+        "rgb(18, 26, 27)"
+      ],
+      "ratio": 11.081,
+      "status": "PASS"
+    },
+    {
+      "theme": "light",
+      "foreground": ".hero-copy .eyebrow",
+      "background": ".hero",
+      "colors": [
+        "rgb(218, 196, 176)",
+        "rgb(18, 26, 27)"
+      ],
+      "ratio": 10.514,
+      "status": "PASS"
+    },
+    {
+      "theme": "light",
+      "foreground": ".hero-credential span",
+      "background": ".hero",
+      "colors": [
+        "rgb(202, 209, 200)",
+        "rgb(18, 26, 27)"
+      ],
+      "ratio": 11.322,
+      "status": "PASS"
+    },
+    {
+      "theme": "light",
+      "foreground": ".image-disclosure",
+      "background": ".hero",
+      "colors": [
+        "rgb(193, 202, 196)",
+        "rgb(18, 26, 27)"
+      ],
+      "ratio": 10.521,
+      "status": "PASS"
+    },
+    {
+      "theme": "light",
+      "foreground": ".section-heading>p",
+      "background": "body",
+      "colors": [
+        "rgb(88, 97, 94)",
+        "rgb(245, 242, 234)"
+      ],
+      "ratio": 5.712,
+      "status": "PASS"
+    },
+    {
+      "theme": "light",
+      "foreground": ".section-heading .eyebrow",
+      "background": "body",
+      "colors": [
+        "rgb(166, 63, 32)",
+        "rgb(245, 242, 234)"
+      ],
+      "ratio": 5.598,
+      "status": "PASS"
+    },
+    {
+      "theme": "light",
+      "foreground": ".service-body>p",
+      "background": ".service-card",
+      "colors": [
+        "rgb(88, 97, 94)",
+        "rgb(255, 255, 255)"
+      ],
+      "ratio": 6.39,
+      "status": "PASS"
+    },
+    {
+      "theme": "light",
+      "foreground": ".section-caption",
+      "background": "body",
+      "colors": [
+        "rgb(88, 97, 94)",
+        "rgb(245, 242, 234)"
+      ],
+      "ratio": 5.712,
+      "status": "PASS"
+    },
+    {
+      "theme": "light",
+      "foreground": ".contact-band p",
+      "background": ".contact-band",
+      "colors": [
+        "rgb(255, 255, 255)",
+        "rgb(166, 63, 32)"
+      ],
+      "ratio": 6.263,
+      "status": "PASS"
+    },
+    {
+      "theme": "light",
+      "foreground": ".primary-nav>a",
+      "background": ".site-header",
+      "colors": [
+        "rgb(245, 242, 234)",
+        "rgb(18, 26, 27)"
+      ],
+      "ratio": 15.784,
+      "status": "PASS"
+    },
+    {
+      "theme": "light",
+      "foreground": ".hero .btn",
+      "background": ".hero .btn",
+      "colors": [
+        "rgb(255, 255, 255)",
+        "rgb(166, 63, 32)"
+      ],
+      "ratio": 6.263,
+      "status": "PASS"
+    },
+    {
+      "theme": "dark",
+      "foreground": "body",
+      "background": "body",
+      "colors": [
+        "rgb(245, 242, 234)",
+        "rgb(21, 31, 32)"
+      ],
+      "ratio": 15.032,
+      "status": "PASS"
+    },
+    {
+      "theme": "dark",
+      "foreground": ".hero-description",
+      "background": ".hero",
+      "colors": [
+        "rgb(198, 207, 202)",
+        "rgb(18, 26, 27)"
+      ],
+      "ratio": 11.081,
+      "status": "PASS"
+    },
+    {
+      "theme": "dark",
+      "foreground": ".hero-copy .eyebrow",
+      "background": ".hero",
+      "colors": [
+        "rgb(218, 196, 176)",
+        "rgb(18, 26, 27)"
+      ],
+      "ratio": 10.514,
+      "status": "PASS"
+    },
+    {
+      "theme": "dark",
+      "foreground": ".hero-credential span",
+      "background": ".hero",
+      "colors": [
+        "rgb(202, 209, 200)",
+        "rgb(18, 26, 27)"
+      ],
+      "ratio": 11.322,
+      "status": "PASS"
+    },
+    {
+      "theme": "dark",
+      "foreground": ".image-disclosure",
+      "background": ".hero",
+      "colors": [
+        "rgb(193, 202, 196)",
+        "rgb(18, 26, 27)"
+      ],
+      "ratio": 10.521,
+      "status": "PASS"
+    },
+    {
+      "theme": "dark",
+      "foreground": ".section-heading>p",
+      "background": "body",
+      "colors": [
+        "rgb(193, 201, 195)",
+        "rgb(21, 31, 32)"
+      ],
+      "ratio": 9.938,
+      "status": "PASS"
+    },
+    {
+      "theme": "dark",
+      "foreground": ".section-heading .eyebrow",
+      "background": "body",
+      "colors": [
+        "rgb(238, 155, 113)",
+        "rgb(21, 31, 32)"
+      ],
+      "ratio": 7.658,
+      "status": "PASS"
+    },
+    {
+      "theme": "dark",
+      "foreground": ".service-body>p",
+      "background": ".service-card",
+      "colors": [
+        "rgb(193, 201, 195)",
+        "rgb(29, 41, 41)"
+      ],
+      "ratio": 8.855,
+      "status": "PASS"
+    },
+    {
+      "theme": "dark",
+      "foreground": ".section-caption",
+      "background": "body",
+      "colors": [
+        "rgb(193, 201, 195)",
+        "rgb(21, 31, 32)"
+      ],
+      "ratio": 9.938,
+      "status": "PASS"
+    },
+    {
+      "theme": "dark",
+      "foreground": ".contact-band p",
+      "background": ".contact-band",
+      "colors": [
+        "rgb(255, 255, 255)",
+        "rgb(189, 84, 47)"
+      ],
+      "ratio": 4.695,
+      "status": "PASS"
+    },
+    {
+      "theme": "dark",
+      "foreground": ".primary-nav>a",
+      "background": ".site-header",
+      "colors": [
+        "rgb(245, 242, 234)",
+        "rgb(18, 26, 27)"
+      ],
+      "ratio": 15.784,
+      "status": "PASS"
+    },
+    {
+      "theme": "dark",
+      "foreground": ".hero .btn",
+      "background": ".hero .btn",
+      "colors": [
+        "rgb(255, 255, 255)",
+        "rgb(189, 84, 47)"
+      ],
+      "ratio": 4.695,
+      "status": "PASS"
+    }
+  ],
+  "passed": 24,
+  "failed": 0
+}

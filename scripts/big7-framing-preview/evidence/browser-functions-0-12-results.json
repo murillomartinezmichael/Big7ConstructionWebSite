@@ -1,0 +1,77 @@
+{
+  "mode": "In-memory Chromium DOM rendering; local images embedded; default fallback fonts; synthetic fetch responses.",
+  "browser": "144.0.7559.96",
+  "total": 12,
+  "passed": 12,
+  "failed": 0,
+  "cases": [
+    {
+      "name": "menu:open-Escape-focus-return",
+      "status": "PASS"
+    },
+    {
+      "name": "theme:toggle-in-memory-with-storage-unavailable",
+      "status": "PASS"
+    },
+    {
+      "name": "faq:keyboard-disclosure",
+      "status": "PASS"
+    },
+    {
+      "name": "no-JavaScript:content-nav-safe-native-action",
+      "status": "PASS"
+    },
+    {
+      "name": "motion:reduced-preference",
+      "status": "PASS"
+    },
+    {
+      "name": "form:required-validation",
+      "status": "PASS"
+    },
+    {
+      "name": "form:preview-never-sends",
+      "status": "PASS"
+    },
+    {
+      "name": "delivery:success",
+      "status": "PASS",
+      "scenario": "success",
+      "state": "success",
+      "primary_requests": 1,
+      "network": "synthetic; no live request"
+    },
+    {
+      "name": "delivery:mirror-failure",
+      "status": "PASS",
+      "scenario": "mirror-failure",
+      "state": "success",
+      "primary_requests": 1,
+      "network": "synthetic; no live request"
+    },
+    {
+      "name": "delivery:http-400",
+      "status": "PASS",
+      "scenario": "http-400",
+      "state": "error",
+      "primary_requests": 1,
+      "network": "synthetic; no live request"
+    },
+    {
+      "name": "delivery:http-500",
+      "status": "PASS",
+      "scenario": "http-500",
+      "state": "error",
+      "primary_requests": 1,
+      "network": "synthetic; no live request"
+    },
+    {
+      "name": "delivery:html-response",
+      "status": "PASS",
+      "scenario": "html-response",
+      "state": "error",
+      "primary_requests": 1,
+      "network": "synthetic; no live request"
+    }
+  ]
+}

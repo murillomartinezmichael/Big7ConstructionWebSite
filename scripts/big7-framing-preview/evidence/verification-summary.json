@@ -1,0 +1,751 @@
+{
+  "prepared_at_utc": "2026-10-12T00:38:53.104580+00:00",
+  "status": "implemented, locally tested preview; not integrated/pushed/deployed",
+  "source_sha256": {
+    "site/404.html": "c100879cb21a6bccf1925aca2896f63cf6020310775c64e85e7dadd8d4bd5dd5",
+    "site/accessibility.html": "bd1bf8dec92d8564251098acf7be0980d71367e7d18f386a4c2c93e0b0eb3d42",
+    "site/big7.js": "08ee6f8d21f06d82674f046201027a5d695110bdaad8f0760bb849be17b93367",
+    "site/commercial-industrial.html": "3b92d9776589f961ef04ae05aa60fae296e7448de796051ca076b17743fe7dd3",
+    "site/images/concept-framing.webp": "c08840d6ca78793ce549aa38428edadeb213cb02ad3f288239a230a22d060e16",
+    "site/images/concept-repairs.webp": "642dae654acb95ec7850adbc007a8fa9405848fd205691ce1fb69fa66190fe8f",
+    "site/images/concept-residential.webp": "f276387fb09230f0ea8147cc9bd002cc63b74518fe575a3609f90c8a944149b3",
+    "site/images/og-card.png": "3063e32a39a9bb2808647361e55c0e00cffd822a414e756fe92d2d19d1d93635",
+    "site/index.html": "bca69c43719ad71f23721ab5d5df630f9a2467cc3c5bfa6c5982ea37d2ece2dc",
+    "site/residential-construction.html": "6373fe81055f0b4a0dde36bcbaf13c357b5b8fbb7e02783cfbb0d64aaeafb0fd",
+    "site/robots.txt": "331ea9090db0c9f6f597bd9840fd5b171830f6e0b3ba1cb24dfa91f0c95aedc1",
+    "site/south-fulton-distribution.html": "4e3f5ebcdafbb089d7569dc64029a1efba82db33fc58fabaa3389714b162bca3",
+    "site/theme.js": "abdee100165bd037377f1b135c730fa42281ed26eac3e1f39e822d88c96f0443",
+    "src/build_preview.py": "fe2c039b5dd562e9f9a0060d60bcbd366e707614ea5bfbbb72923fdde5d3b728",
+    "src/design.css": "fd943ae70452a079dc384580f84963e65fc1e371c89b6cc4360bf901af537b9e",
+    "preview.py": "0c34d774de5d6bc900bd264a9b245848c9d67dd1afe0b746bc494be547305dff",
+    "tests/attribution.test.cjs": "c77b8016b1218519c261ec6e9753d027b0c2bdf8d811c45efb9d9f5a13e229ce",
+    "tests/browser_support.py": "923c159e636d2fe04a613b0969add8cf4a9abda0544dcd0faff05c86e4fc78e2",
+    "tests/render.py": "1b0ecae840efdd905c26f64545653665e4d055219903cf7dc46558bcd164829e",
+    "tests/test_browser.py": "4717fbc446266f4f936badfc9f3e870e8d347ef99edddcc1425f47bf5162ee00",
+    "tests/test_contracts.py": "bd912b1c55f7b8f74c60a8d2e468327017fcaf1e74878b549041c8b9fbde3a83",
+    "tests/test_contrast.py": "beb660cff67f90ea1dd257cb0260c2ba3f41e48a2160e1f1dd2e90b4b0cf7452"
+  },
+  "results": {
+    "python_contract_tests": {
+      "passed": 28,
+      "failed": 0,
+      "mutation_cases_within_suite": 10
+    },
+    "node_attribution_tests": {
+      "passed": 12,
+      "failed": 0
+    },
+    "browser_layout_cases": {
+      "passed": 48,
+      "failed": 0
+    },
+    "browser_functional_cases": {
+      "passed": 25,
+      "failed": 0
+    },
+    "selected_text_contrast_pairs": {
+      "passed": 24,
+      "failed": 0
+    }
+  },
+  "browser_cases": [
+    {
+      "name": "layout:index.html:320:light",
+      "status": "PASS",
+      "viewport": [
+        320,
+        800
+      ],
+      "theme": "light",
+      "scroll_width": 320,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:index.html:320:dark",
+      "status": "PASS",
+      "viewport": [
+        320,
+        800
+      ],
+      "theme": "dark",
+      "scroll_width": 320,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:index.html:390:light",
+      "status": "PASS",
+      "viewport": [
+        390,
+        844
+      ],
+      "theme": "light",
+      "scroll_width": 390,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:index.html:390:dark",
+      "status": "PASS",
+      "viewport": [
+        390,
+        844
+      ],
+      "theme": "dark",
+      "scroll_width": 390,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:index.html:768:light",
+      "status": "PASS",
+      "viewport": [
+        768,
+        1024
+      ],
+      "theme": "light",
+      "scroll_width": 768,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:index.html:768:dark",
+      "status": "PASS",
+      "viewport": [
+        768,
+        1024
+      ],
+      "theme": "dark",
+      "scroll_width": 768,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:index.html:1440:light",
+      "status": "PASS",
+      "viewport": [
+        1440,
+        1000
+      ],
+      "theme": "light",
+      "scroll_width": 1440,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:index.html:1440:dark",
+      "status": "PASS",
+      "viewport": [
+        1440,
+        1000
+      ],
+      "theme": "dark",
+      "scroll_width": 1440,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:commercial-industrial.html:320:light",
+      "status": "PASS",
+      "viewport": [
+        320,
+        800
+      ],
+      "theme": "light",
+      "scroll_width": 320,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:commercial-industrial.html:320:dark",
+      "status": "PASS",
+      "viewport": [
+        320,
+        800
+      ],
+      "theme": "dark",
+      "scroll_width": 320,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:commercial-industrial.html:390:light",
+      "status": "PASS",
+      "viewport": [
+        390,
+        844
+      ],
+      "theme": "light",
+      "scroll_width": 390,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:commercial-industrial.html:390:dark",
+      "status": "PASS",
+      "viewport": [
+        390,
+        844
+      ],
+      "theme": "dark",
+      "scroll_width": 390,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:commercial-industrial.html:768:light",
+      "status": "PASS",
+      "viewport": [
+        768,
+        1024
+      ],
+      "theme": "light",
+      "scroll_width": 768,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:commercial-industrial.html:768:dark",
+      "status": "PASS",
+      "viewport": [
+        768,
+        1024
+      ],
+      "theme": "dark",
+      "scroll_width": 768,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:commercial-industrial.html:1440:light",
+      "status": "PASS",
+      "viewport": [
+        1440,
+        1000
+      ],
+      "theme": "light",
+      "scroll_width": 1440,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:commercial-industrial.html:1440:dark",
+      "status": "PASS",
+      "viewport": [
+        1440,
+        1000
+      ],
+      "theme": "dark",
+      "scroll_width": 1440,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:residential-construction.html:320:light",
+      "status": "PASS",
+      "viewport": [
+        320,
+        800
+      ],
+      "theme": "light",
+      "scroll_width": 320,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:residential-construction.html:320:dark",
+      "status": "PASS",
+      "viewport": [
+        320,
+        800
+      ],
+      "theme": "dark",
+      "scroll_width": 320,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:residential-construction.html:390:light",
+      "status": "PASS",
+      "viewport": [
+        390,
+        844
+      ],
+      "theme": "light",
+      "scroll_width": 390,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:residential-construction.html:390:dark",
+      "status": "PASS",
+      "viewport": [
+        390,
+        844
+      ],
+      "theme": "dark",
+      "scroll_width": 390,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:residential-construction.html:768:light",
+      "status": "PASS",
+      "viewport": [
+        768,
+        1024
+      ],
+      "theme": "light",
+      "scroll_width": 768,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:residential-construction.html:768:dark",
+      "status": "PASS",
+      "viewport": [
+        768,
+        1024
+      ],
+      "theme": "dark",
+      "scroll_width": 768,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:residential-construction.html:1440:light",
+      "status": "PASS",
+      "viewport": [
+        1440,
+        1000
+      ],
+      "theme": "light",
+      "scroll_width": 1440,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:residential-construction.html:1440:dark",
+      "status": "PASS",
+      "viewport": [
+        1440,
+        1000
+      ],
+      "theme": "dark",
+      "scroll_width": 1440,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:south-fulton-distribution.html:320:light",
+      "status": "PASS",
+      "viewport": [
+        320,
+        800
+      ],
+      "theme": "light",
+      "scroll_width": 320,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:south-fulton-distribution.html:320:dark",
+      "status": "PASS",
+      "viewport": [
+        320,
+        800
+      ],
+      "theme": "dark",
+      "scroll_width": 320,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:south-fulton-distribution.html:390:light",
+      "status": "PASS",
+      "viewport": [
+        390,
+        844
+      ],
+      "theme": "light",
+      "scroll_width": 390,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:south-fulton-distribution.html:390:dark",
+      "status": "PASS",
+      "viewport": [
+        390,
+        844
+      ],
+      "theme": "dark",
+      "scroll_width": 390,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:south-fulton-distribution.html:768:light",
+      "status": "PASS",
+      "viewport": [
+        768,
+        1024
+      ],
+      "theme": "light",
+      "scroll_width": 768,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:south-fulton-distribution.html:768:dark",
+      "status": "PASS",
+      "viewport": [
+        768,
+        1024
+      ],
+      "theme": "dark",
+      "scroll_width": 768,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:south-fulton-distribution.html:1440:light",
+      "status": "PASS",
+      "viewport": [
+        1440,
+        1000
+      ],
+      "theme": "light",
+      "scroll_width": 1440,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:south-fulton-distribution.html:1440:dark",
+      "status": "PASS",
+      "viewport": [
+        1440,
+        1000
+      ],
+      "theme": "dark",
+      "scroll_width": 1440,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:accessibility.html:320:light",
+      "status": "PASS",
+      "viewport": [
+        320,
+        800
+      ],
+      "theme": "light",
+      "scroll_width": 320,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:accessibility.html:320:dark",
+      "status": "PASS",
+      "viewport": [
+        320,
+        800
+      ],
+      "theme": "dark",
+      "scroll_width": 320,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:accessibility.html:390:light",
+      "status": "PASS",
+      "viewport": [
+        390,
+        844
+      ],
+      "theme": "light",
+      "scroll_width": 390,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:accessibility.html:390:dark",
+      "status": "PASS",
+      "viewport": [
+        390,
+        844
+      ],
+      "theme": "dark",
+      "scroll_width": 390,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:accessibility.html:768:light",
+      "status": "PASS",
+      "viewport": [
+        768,
+        1024
+      ],
+      "theme": "light",
+      "scroll_width": 768,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:accessibility.html:768:dark",
+      "status": "PASS",
+      "viewport": [
+        768,
+        1024
+      ],
+      "theme": "dark",
+      "scroll_width": 768,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:accessibility.html:1440:light",
+      "status": "PASS",
+      "viewport": [
+        1440,
+        1000
+      ],
+      "theme": "light",
+      "scroll_width": 1440,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:accessibility.html:1440:dark",
+      "status": "PASS",
+      "viewport": [
+        1440,
+        1000
+      ],
+      "theme": "dark",
+      "scroll_width": 1440,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:404.html:320:light",
+      "status": "PASS",
+      "viewport": [
+        320,
+        800
+      ],
+      "theme": "light",
+      "scroll_width": 320,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:404.html:320:dark",
+      "status": "PASS",
+      "viewport": [
+        320,
+        800
+      ],
+      "theme": "dark",
+      "scroll_width": 320,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:404.html:390:light",
+      "status": "PASS",
+      "viewport": [
+        390,
+        844
+      ],
+      "theme": "light",
+      "scroll_width": 390,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:404.html:390:dark",
+      "status": "PASS",
+      "viewport": [
+        390,
+        844
+      ],
+      "theme": "dark",
+      "scroll_width": 390,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:404.html:768:light",
+      "status": "PASS",
+      "viewport": [
+        768,
+        1024
+      ],
+      "theme": "light",
+      "scroll_width": 768,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:404.html:768:dark",
+      "status": "PASS",
+      "viewport": [
+        768,
+        1024
+      ],
+      "theme": "dark",
+      "scroll_width": 768,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:404.html:1440:light",
+      "status": "PASS",
+      "viewport": [
+        1440,
+        1000
+      ],
+      "theme": "light",
+      "scroll_width": 1440,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:404.html:1440:dark",
+      "status": "PASS",
+      "viewport": [
+        1440,
+        1000
+      ],
+      "theme": "dark",
+      "scroll_width": 1440,
+      "javascript_errors": []
+    },
+    {
+      "name": "menu:open-Escape-focus-return",
+      "status": "PASS"
+    },
+    {
+      "name": "theme:toggle-in-memory-with-storage-unavailable",
+      "status": "PASS"
+    },
+    {
+      "name": "faq:keyboard-disclosure",
+      "status": "PASS"
+    },
+    {
+      "name": "no-JavaScript:content-nav-safe-native-action",
+      "status": "PASS"
+    },
+    {
+      "name": "motion:reduced-preference",
+      "status": "PASS"
+    },
+    {
+      "name": "form:required-validation",
+      "status": "PASS"
+    },
+    {
+      "name": "form:preview-never-sends",
+      "status": "PASS"
+    },
+    {
+      "name": "delivery:success",
+      "status": "PASS",
+      "scenario": "success",
+      "state": "success",
+      "primary_requests": 1,
+      "network": "synthetic; no live request"
+    },
+    {
+      "name": "delivery:mirror-failure",
+      "status": "PASS",
+      "scenario": "mirror-failure",
+      "state": "success",
+      "primary_requests": 1,
+      "network": "synthetic; no live request"
+    },
+    {
+      "name": "delivery:http-400",
+      "status": "PASS",
+      "scenario": "http-400",
+      "state": "error",
+      "primary_requests": 1,
+      "network": "synthetic; no live request"
+    },
+    {
+      "name": "delivery:http-500",
+      "status": "PASS",
+      "scenario": "http-500",
+      "state": "error",
+      "primary_requests": 1,
+      "network": "synthetic; no live request"
+    },
+    {
+      "name": "delivery:html-response",
+      "status": "PASS",
+      "scenario": "html-response",
+      "state": "error",
+      "primary_requests": 1,
+      "network": "synthetic; no live request"
+    },
+    {
+      "name": "delivery:json-error",
+      "status": "PASS",
+      "scenario": "json-error",
+      "state": "error",
+      "primary_requests": 1,
+      "network": "synthetic; no live request"
+    },
+    {
+      "name": "delivery:array",
+      "status": "PASS",
+      "scenario": "array",
+      "state": "error",
+      "primary_requests": 1,
+      "network": "synthetic; no live request"
+    },
+    {
+      "name": "delivery:null",
+      "status": "PASS",
+      "scenario": "null",
+      "state": "error",
+      "primary_requests": 1,
+      "network": "synthetic; no live request"
+    },
+    {
+      "name": "delivery:missing-next",
+      "status": "PASS",
+      "scenario": "missing-next",
+      "state": "error",
+      "primary_requests": 1,
+      "network": "synthetic; no live request"
+    },
+    {
+      "name": "delivery:next-null",
+      "status": "PASS",
+      "scenario": "next-null",
+      "state": "error",
+      "primary_requests": 1,
+      "network": "synthetic; no live request"
+    },
+    {
+      "name": "delivery:malformed-json",
+      "status": "PASS",
+      "scenario": "malformed-json",
+      "state": "error",
+      "primary_requests": 1,
+      "network": "synthetic; no live request"
+    },
+    {
+      "name": "delivery:network-failure",
+      "status": "PASS",
+      "scenario": "network-failure",
+      "state": "error",
+      "primary_requests": 1,
+      "network": "synthetic; no live request"
+    },
+    {
+      "name": "delivery:redirect",
+      "status": "PASS",
+      "scenario": "redirect",
+      "state": "error",
+      "primary_requests": 1,
+      "network": "synthetic; no live request"
+    },
+    {
+      "name": "delivery:timeout",
+      "status": "PASS",
+      "scenario": "timeout",
+      "state": "error",
+      "primary_requests": 1,
+      "network": "synthetic; no live request"
+    },
+    {
+      "name": "delivery:reentrant-duplicate-guard",
+      "status": "PASS"
+    },
+    {
+      "name": "prefill:service-choice-and-preserved-edits",
+      "status": "PASS"
+    },
+    {
+      "name": "form:honeypot-no-delivery",
+      "status": "PASS"
+    },
+    {
+      "name": "reflow:effective-200-percent-width",
+      "status": "PASS",
+      "method": "720 CSS px effective viewport corresponding to 1440px at 200%; not browser zoom automation"
+    }
+  ],
+  "limitations": [
+    "Original upstream full Makefile and pre-commit suites not run; only candidate suites are reported.",
+    "Browser HTTP and file navigation blocked by execution environment. Screenshots and browser functions use in-memory HTML with original CSS/JS, embedded local image bytes, and fallback fonts.",
+    "Delivery tests use synthetic fetch responses; no real Formspree or automation request was sent.",
+    "Preview server HTTP routes and native POST rejection verified separately using Python HTTP clients, not the production Cloudflare/nginx stacks.",
+    "Lighthouse, real external font loading, field Web Vitals, live traffic and conversion metrics not measured.",
+    "Persisted browser storage, full screen-reader audit, and real client-approved contact delivery remain unverified.",
+    "AI crops are review illustrations; they are not high-resolution client portfolio photography."
+  ],
+  "upstream_main_observed": "c5a26edf4de61eae360e625af25ab6085edacb90",
+  "github_writes": false,
+  "live_site_changed": false,
+  "real_test_leads_sent": 0
+}

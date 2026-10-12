@@ -1,0 +1,26 @@
+{
+  "mode": "In-memory Chromium DOM rendering; local images embedded; default fallback fonts; synthetic fetch responses.",
+  "browser": "144.0.7559.96",
+  "total": 4,
+  "passed": 4,
+  "failed": 0,
+  "cases": [
+    {
+      "name": "delivery:reentrant-duplicate-guard",
+      "status": "PASS"
+    },
+    {
+      "name": "prefill:service-choice-and-preserved-edits",
+      "status": "PASS"
+    },
+    {
+      "name": "form:honeypot-no-delivery",
+      "status": "PASS"
+    },
+    {
+      "name": "reflow:effective-200-percent-width",
+      "status": "PASS",
+      "method": "720 CSS px effective viewport corresponding to 1440px at 200%; not browser zoom automation"
+    }
+  ]
+}

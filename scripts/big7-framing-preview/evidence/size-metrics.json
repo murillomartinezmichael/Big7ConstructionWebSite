@@ -1,0 +1,40 @@
+{
+  "residential-construction.html": {
+    "bytes": 45815,
+    "gzip_bytes": 11608
+  },
+  "robots.txt": {
+    "bytes": 26,
+    "gzip_bytes": 46
+  },
+  "south-fulton-distribution.html": {
+    "bytes": 33629,
+    "gzip_bytes": 8583
+  },
+  "commercial-industrial.html": {
+    "bytes": 46373,
+    "gzip_bytes": 11746
+  },
+  "index.html": {
+    "bytes": 43952,
+    "gzip_bytes": 10802
+  },
+  "theme.js": {
+    "bytes": 1947,
+    "gzip_bytes": 753
+  },
+  "big7.js": {
+    "bytes": 9140,
+    "gzip_bytes": 3316
+  },
+  "accessibility.html": {
+    "bytes": 33912,
+    "gzip_bytes": 8900
+  },
+  "404.html": {
+    "bytes": 33126,
+    "gzip_bytes": 8367
+  },
+  "images_total_bytes": 140364,
+  "measurement": "Source sizes only; not transferred bytes, real network or Lighthouse."
+}

@@ -1,0 +1,537 @@
+{
+  "mode": "In-memory Chromium DOM rendering; local images embedded; default fallback fonts; synthetic fetch responses.",
+  "browser": "144.0.7559.96",
+  "total": 48,
+  "passed": 48,
+  "failed": 0,
+  "cases": [
+    {
+      "name": "layout:index.html:320:light",
+      "status": "PASS",
+      "viewport": [
+        320,
+        800
+      ],
+      "theme": "light",
+      "scroll_width": 320,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:index.html:320:dark",
+      "status": "PASS",
+      "viewport": [
+        320,
+        800
+      ],
+      "theme": "dark",
+      "scroll_width": 320,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:index.html:390:light",
+      "status": "PASS",
+      "viewport": [
+        390,
+        844
+      ],
+      "theme": "light",
+      "scroll_width": 390,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:index.html:390:dark",
+      "status": "PASS",
+      "viewport": [
+        390,
+        844
+      ],
+      "theme": "dark",
+      "scroll_width": 390,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:index.html:768:light",
+      "status": "PASS",
+      "viewport": [
+        768,
+        1024
+      ],
+      "theme": "light",
+      "scroll_width": 768,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:index.html:768:dark",
+      "status": "PASS",
+      "viewport": [
+        768,
+        1024
+      ],
+      "theme": "dark",
+      "scroll_width": 768,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:index.html:1440:light",
+      "status": "PASS",
+      "viewport": [
+        1440,
+        1000
+      ],
+      "theme": "light",
+      "scroll_width": 1440,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:index.html:1440:dark",
+      "status": "PASS",
+      "viewport": [
+        1440,
+        1000
+      ],
+      "theme": "dark",
+      "scroll_width": 1440,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:commercial-industrial.html:320:light",
+      "status": "PASS",
+      "viewport": [
+        320,
+        800
+      ],
+      "theme": "light",
+      "scroll_width": 320,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:commercial-industrial.html:320:dark",
+      "status": "PASS",
+      "viewport": [
+        320,
+        800
+      ],
+      "theme": "dark",
+      "scroll_width": 320,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:commercial-industrial.html:390:light",
+      "status": "PASS",
+      "viewport": [
+        390,
+        844
+      ],
+      "theme": "light",
+      "scroll_width": 390,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:commercial-industrial.html:390:dark",
+      "status": "PASS",
+      "viewport": [
+        390,
+        844
+      ],
+      "theme": "dark",
+      "scroll_width": 390,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:commercial-industrial.html:768:light",
+      "status": "PASS",
+      "viewport": [
+        768,
+        1024
+      ],
+      "theme": "light",
+      "scroll_width": 768,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:commercial-industrial.html:768:dark",
+      "status": "PASS",
+      "viewport": [
+        768,
+        1024
+      ],
+      "theme": "dark",
+      "scroll_width": 768,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:commercial-industrial.html:1440:light",
+      "status": "PASS",
+      "viewport": [
+        1440,
+        1000
+      ],
+      "theme": "light",
+      "scroll_width": 1440,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:commercial-industrial.html:1440:dark",
+      "status": "PASS",
+      "viewport": [
+        1440,
+        1000
+      ],
+      "theme": "dark",
+      "scroll_width": 1440,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:residential-construction.html:320:light",
+      "status": "PASS",
+      "viewport": [
+        320,
+        800
+      ],
+      "theme": "light",
+      "scroll_width": 320,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:residential-construction.html:320:dark",
+      "status": "PASS",
+      "viewport": [
+        320,
+        800
+      ],
+      "theme": "dark",
+      "scroll_width": 320,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:residential-construction.html:390:light",
+      "status": "PASS",
+      "viewport": [
+        390,
+        844
+      ],
+      "theme": "light",
+      "scroll_width": 390,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:residential-construction.html:390:dark",
+      "status": "PASS",
+      "viewport": [
+        390,
+        844
+      ],
+      "theme": "dark",
+      "scroll_width": 390,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:residential-construction.html:768:light",
+      "status": "PASS",
+      "viewport": [
+        768,
+        1024
+      ],
+      "theme": "light",
+      "scroll_width": 768,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:residential-construction.html:768:dark",
+      "status": "PASS",
+      "viewport": [
+        768,
+        1024
+      ],
+      "theme": "dark",
+      "scroll_width": 768,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:residential-construction.html:1440:light",
+      "status": "PASS",
+      "viewport": [
+        1440,
+        1000
+      ],
+      "theme": "light",
+      "scroll_width": 1440,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:residential-construction.html:1440:dark",
+      "status": "PASS",
+      "viewport": [
+        1440,
+        1000
+      ],
+      "theme": "dark",
+      "scroll_width": 1440,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:south-fulton-distribution.html:320:light",
+      "status": "PASS",
+      "viewport": [
+        320,
+        800
+      ],
+      "theme": "light",
+      "scroll_width": 320,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:south-fulton-distribution.html:320:dark",
+      "status": "PASS",
+      "viewport": [
+        320,
+        800
+      ],
+      "theme": "dark",
+      "scroll_width": 320,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:south-fulton-distribution.html:390:light",
+      "status": "PASS",
+      "viewport": [
+        390,
+        844
+      ],
+      "theme": "light",
+      "scroll_width": 390,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:south-fulton-distribution.html:390:dark",
+      "status": "PASS",
+      "viewport": [
+        390,
+        844
+      ],
+      "theme": "dark",
+      "scroll_width": 390,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:south-fulton-distribution.html:768:light",
+      "status": "PASS",
+      "viewport": [
+        768,
+        1024
+      ],
+      "theme": "light",
+      "scroll_width": 768,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:south-fulton-distribution.html:768:dark",
+      "status": "PASS",
+      "viewport": [
+        768,
+        1024
+      ],
+      "theme": "dark",
+      "scroll_width": 768,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:south-fulton-distribution.html:1440:light",
+      "status": "PASS",
+      "viewport": [
+        1440,
+        1000
+      ],
+      "theme": "light",
+      "scroll_width": 1440,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:south-fulton-distribution.html:1440:dark",
+      "status": "PASS",
+      "viewport": [
+        1440,
+        1000
+      ],
+      "theme": "dark",
+      "scroll_width": 1440,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:accessibility.html:320:light",
+      "status": "PASS",
+      "viewport": [
+        320,
+        800
+      ],
+      "theme": "light",
+      "scroll_width": 320,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:accessibility.html:320:dark",
+      "status": "PASS",
+      "viewport": [
+        320,
+        800
+      ],
+      "theme": "dark",
+      "scroll_width": 320,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:accessibility.html:390:light",
+      "status": "PASS",
+      "viewport": [
+        390,
+        844
+      ],
+      "theme": "light",
+      "scroll_width": 390,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:accessibility.html:390:dark",
+      "status": "PASS",
+      "viewport": [
+        390,
+        844
+      ],
+      "theme": "dark",
+      "scroll_width": 390,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:accessibility.html:768:light",
+      "status": "PASS",
+      "viewport": [
+        768,
+        1024
+      ],
+      "theme": "light",
+      "scroll_width": 768,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:accessibility.html:768:dark",
+      "status": "PASS",
+      "viewport": [
+        768,
+        1024
+      ],
+      "theme": "dark",
+      "scroll_width": 768,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:accessibility.html:1440:light",
+      "status": "PASS",
+      "viewport": [
+        1440,
+        1000
+      ],
+      "theme": "light",
+      "scroll_width": 1440,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:accessibility.html:1440:dark",
+      "status": "PASS",
+      "viewport": [
+        1440,
+        1000
+      ],
+      "theme": "dark",
+      "scroll_width": 1440,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:404.html:320:light",
+      "status": "PASS",
+      "viewport": [
+        320,
+        800
+      ],
+      "theme": "light",
+      "scroll_width": 320,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:404.html:320:dark",
+      "status": "PASS",
+      "viewport": [
+        320,
+        800
+      ],
+      "theme": "dark",
+      "scroll_width": 320,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:404.html:390:light",
+      "status": "PASS",
+      "viewport": [
+        390,
+        844
+      ],
+      "theme": "light",
+      "scroll_width": 390,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:404.html:390:dark",
+      "status": "PASS",
+      "viewport": [
+        390,
+        844
+      ],
+      "theme": "dark",
+      "scroll_width": 390,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:404.html:768:light",
+      "status": "PASS",
+      "viewport": [
+        768,
+        1024
+      ],
+      "theme": "light",
+      "scroll_width": 768,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:404.html:768:dark",
+      "status": "PASS",
+      "viewport": [
+        768,
+        1024
+      ],
+      "theme": "dark",
+      "scroll_width": 768,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:404.html:1440:light",
+      "status": "PASS",
+      "viewport": [
+        1440,
+        1000
+      ],
+      "theme": "light",
+      "scroll_width": 1440,
+      "javascript_errors": []
+    },
+    {
+      "name": "layout:404.html:1440:dark",
+      "status": "PASS",
+      "viewport": [
+        1440,
+        1000
+      ],
+      "theme": "dark",
+      "scroll_width": 1440,
+      "javascript_errors": []
+    }
+  ]
+}

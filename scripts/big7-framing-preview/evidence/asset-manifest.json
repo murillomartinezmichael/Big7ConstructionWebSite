@@ -1,0 +1,63 @@
+[
+  {
+    "file": "images/concept-framing.webp",
+    "provenance": "Crop of AI-generated conceptual design image, not a Big 7 project photograph",
+    "generated_source": "a_wide_professional_website_homepage_hero_header.png",
+    "crop": [
+      888,
+      80,
+      1534,
+      497
+    ],
+    "dimensions": [
+      646,
+      417
+    ],
+    "bytes": 62018,
+    "sha256": "c08840d6ca78793ce549aa38428edadeb213cb02ad3f288239a230a22d060e16"
+  },
+  {
+    "file": "images/concept-residential.webp",
+    "provenance": "Crop of AI-generated conceptual design image, not a Big 7 project photograph",
+    "generated_source": "a_wide_professional_website_homepage_hero_header.png",
+    "crop": [
+      529,
+      585,
+      1008,
+      768
+    ],
+    "dimensions": [
+      479,
+      183
+    ],
+    "bytes": 30516,
+    "sha256": "f276387fb09230f0ea8147cc9bd002cc63b74518fe575a3609f90c8a944149b3"
+  },
+  {
+    "file": "images/concept-repairs.webp",
+    "provenance": "Crop of AI-generated conceptual design image, not a Big 7 project photograph",
+    "generated_source": "a_wide_professional_website_homepage_hero_header.png",
+    "crop": [
+      1024,
+      585,
+      1510,
+      765
+    ],
+    "dimensions": [
+      486,
+      180
+    ],
+    "bytes": 11772,
+    "sha256": "642dae654acb95ec7850adbc007a8fa9405848fd205691ce1fb69fa66190fe8f"
+  },
+  {
+    "file": "images/og-card.png",
+    "provenance": "Chromium-rendered typographic brand card; no project photograph; font files not included",
+    "dimensions": [
+      1200,
+      630
+    ],
+    "bytes": 36058,
+    "sha256": "3063e32a39a9bb2808647361e55c0e00cffd822a414e756fe92d2d19d1d93635"
+  }
+]

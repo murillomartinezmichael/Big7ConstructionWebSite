@@ -1,0 +1,149 @@
+{
+  "scope": "Files in this additive candidate commit, except this manifest itself. Review screenshots and raw logs/history are in the ZIP, not the Git patch.",
+  "files": {
+    "HANDOFF.md": {
+      "bytes": 6010,
+      "sha256": "2ed509e77d9bfab4fb7fabc92a509899e1f943570e46fca430de5bd8a0c38541"
+    },
+    "README.md": {
+      "bytes": 4972,
+      "sha256": "525fe530598606e4aff04bc43107316342b9756ffa95fdc6fcb177f1603c725f"
+    },
+    "START-WINDOWS.bat": {
+      "bytes": 238,
+      "sha256": "51ae7aeb194efab4695c30f2e3fe84aa2c678718b0bffe3cd17164520b3abc87"
+    },
+    "VERIFICATION.md": {
+      "bytes": 2670,
+      "sha256": "cb5b41f73d8ba3dad4e95e01e937a21f62074b4a001f29058eedff47da4e94e2"
+    },
+    "evidence/asset-manifest.json": {
+      "bytes": 1642,
+      "sha256": "b9818a92387c3bf30f09e828f9b8263d94d3dd2292f4a494211d10e33523bd45"
+    },
+    "evidence/browser-functions-0-12-results.json": {
+      "bytes": 1840,
+      "sha256": "0ff67308127f395391e0d3e962049e105b771ad6ea7c100ca2a661820f4b29f9"
+    },
+    "evidence/browser-functions-12-21-results.json": {
+      "bytes": 2048,
+      "sha256": "ba1eab946ff60814b5d736e95c54f2df9c0a6a2eea9c261c0ffacdbeb9422317"
+    },
+    "evidence/browser-functions-21-25-results.json": {
+      "bytes": 676,
+      "sha256": "36bcea559912c189e2cc20840618e0da1a2b048e14e3763352106a629ea9ae27"
+    },
+    "evidence/browser-layout-0-999-results.json": {
+      "bytes": 11133,
+      "sha256": "773637a6460770474567cc892077ae7075607ab3ee4e7412f0ccbce3932e147b"
+    },
+    "evidence/contrast-results.json": {
+      "bytes": 5825,
+      "sha256": "d1021a02a126dccd79f4ab4e1e08e86fce41d7d708ea5f1568bce8095d2a184c"
+    },
+    "evidence/environment.json": {
+      "bytes": 245,
+      "sha256": "eef2a16145cbca4496c26e9d7a539d4fd37f8cf4fabfac2e06311b3f5eeb1d67"
+    },
+    "evidence/size-metrics.json": {
+      "bytes": 770,
+      "sha256": "3134de1fece8566cc32b3602c6541c8689ef211cd4c71d5325dbf75e5a56f087"
+    },
+    "evidence/verification-summary.json": {
+      "bytes": 18711,
+      "sha256": "0078297686ae3d8b536fd09fec91b6431800742bd2b0df3e754c3b06fa6dfe68"
+    },
+    "preview.py": {
+      "bytes": 3229,
+      "sha256": "0c34d774de5d6bc900bd264a9b245848c9d67dd1afe0b746bc494be547305dff"
+    },
+    "requirements-test.txt": {
+      "bytes": 57,
+      "sha256": "757f0948cd9092169ee0cb2b7028e542f55636b5fec211d8f09d8887d18c1e90"
+    },
+    "site/404.html": {
+      "bytes": 33126,
+      "sha256": "c100879cb21a6bccf1925aca2896f63cf6020310775c64e85e7dadd8d4bd5dd5"
+    },
+    "site/accessibility.html": {
+      "bytes": 33912,
+      "sha256": "bd1bf8dec92d8564251098acf7be0980d71367e7d18f386a4c2c93e0b0eb3d42"
+    },
+    "site/big7.js": {
+      "bytes": 9140,
+      "sha256": "08ee6f8d21f06d82674f046201027a5d695110bdaad8f0760bb849be17b93367"
+    },
+    "site/commercial-industrial.html": {
+      "bytes": 46373,
+      "sha256": "3b92d9776589f961ef04ae05aa60fae296e7448de796051ca076b17743fe7dd3"
+    },
+    "site/images/concept-framing.webp": {
+      "bytes": 62018,
+      "sha256": "c08840d6ca78793ce549aa38428edadeb213cb02ad3f288239a230a22d060e16"
+    },
+    "site/images/concept-repairs.webp": {
+      "bytes": 11772,
+      "sha256": "642dae654acb95ec7850adbc007a8fa9405848fd205691ce1fb69fa66190fe8f"
+    },
+    "site/images/concept-residential.webp": {
+      "bytes": 30516,
+      "sha256": "f276387fb09230f0ea8147cc9bd002cc63b74518fe575a3609f90c8a944149b3"
+    },
+    "site/images/og-card.png": {
+      "bytes": 36058,
+      "sha256": "3063e32a39a9bb2808647361e55c0e00cffd822a414e756fe92d2d19d1d93635"
+    },
+    "site/index.html": {
+      "bytes": 43952,
+      "sha256": "bca69c43719ad71f23721ab5d5df630f9a2467cc3c5bfa6c5982ea37d2ece2dc"
+    },
+    "site/residential-construction.html": {
+      "bytes": 45815,
+      "sha256": "6373fe81055f0b4a0dde36bcbaf13c357b5b8fbb7e02783cfbb0d64aaeafb0fd"
+    },
+    "site/robots.txt": {
+      "bytes": 26,
+      "sha256": "331ea9090db0c9f6f597bd9840fd5b171830f6e0b3ba1cb24dfa91f0c95aedc1"
+    },
+    "site/south-fulton-distribution.html": {
+      "bytes": 33629,
+      "sha256": "4e3f5ebcdafbb089d7569dc64029a1efba82db33fc58fabaa3389714b162bca3"
+    },
+    "site/theme.js": {
+      "bytes": 1947,
+      "sha256": "abdee100165bd037377f1b135c730fa42281ed26eac3e1f39e822d88c96f0443"
+    },
+    "src/build_preview.py": {
+      "bytes": 31083,
+      "sha256": "fe2c039b5dd562e9f9a0060d60bcbd366e707614ea5bfbbb72923fdde5d3b728"
+    },
+    "src/design.css": {
+      "bytes": 25833,
+      "sha256": "fd943ae70452a079dc384580f84963e65fc1e371c89b6cc4360bf901af537b9e"
+    },
+    "tests/attribution.test.cjs": {
+      "bytes": 4339,
+      "sha256": "c77b8016b1218519c261ec6e9753d027b0c2bdf8d811c45efb9d9f5a13e229ce"
+    },
+    "tests/browser_support.py": {
+      "bytes": 1294,
+      "sha256": "923c159e636d2fe04a613b0969add8cf4a9abda0544dcd0faff05c86e4fc78e2"
+    },
+    "tests/render.py": {
+      "bytes": 780,
+      "sha256": "1b0ecae840efdd905c26f64545653665e4d055219903cf7dc46558bcd164829e"
+    },
+    "tests/test_browser.py": {
+      "bytes": 15100,
+      "sha256": "4717fbc446266f4f936badfc9f3e870e8d347ef99edddcc1425f47bf5162ee00"
+    },
+    "tests/test_contracts.py": {
+      "bytes": 11691,
+      "sha256": "bd912b1c55f7b8f74c60a8d2e468327017fcaf1e74878b549041c8b9fbde3a83"
+    },
+    "tests/test_contrast.py": {
+      "bytes": 1994,
+      "sha256": "beb660cff67f90ea1dd257cb0260c2ba3f41e48a2160e1f1dd2e90b4b0cf7452"
+    }
+  }
+}
